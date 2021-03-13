@@ -136,8 +136,8 @@ app-emulation/qemu                                                              
 */*                                                                                                        -python_targets_python2_7
 */*                                                                                                        -python_single_target_python2_7
 
-# for networkmanager, "nss" is deprecated by "gnutls", "wext" is deprecated
-net-misc/networkmanager                                                                                    -nss -wext
+# "wpa_supplicant" is deprecated by "iwd", "nss" is deprecated by "gnutls", "wext" is deprecated
+net-misc/networkmanager                                                                                    iwd -nss -wext
 
 # select between qt4 and qt5
 */*                                                                                                        -qt4
@@ -189,8 +189,13 @@ net-im/zoom                                                                     
 # for /usr merge
 */*                                                                                                        -split-usr
 
+
+
+
+
 # package specified flags
 net-wireless/iwd                                                    -systemd                            # don't use systemd-resolve
+net-wireless/iwd                                                    -crda
 sys-apps/systemd                                                    -gcrypt -resolvconf
 app-emulation/qemu                                                  usb
 gnome-base/gvfs                                                     afp archive fuse gphoto2 mtp samba
@@ -201,7 +206,6 @@ media-tv/kodi                                                       cec -airplay
 media-libs/opencv                                                   gtk
 app-misc/hivex                                                      -perl           # why app-misc/hivex use +perl in ebuild file?
 media-plugins/gst-plugins-meta                                      pulseaudio      # enable pulseaudio currently
-net-wireless/iwd                                                    -crda
 media-libs/mesa                                                     gbm osmesa
 net-misc/freerdp                                                    cups ffmpeg smartcard usb
 net-misc/xrdp                                                       fuse
