@@ -1,0 +1,11 @@
+# menu: Graphics support
+[symbols:AGP]=m,y
+
+DRM_NOUVEAU=n              # it has compiling error
+
+[symbols:DRM]=m,y
+DRM_LOAD_EDID_FIRMWARE=n
+[regex-symbols:DRM_.*:/Device Drivers/Graphics support]=m,y
+HSA_AMD=y
+
+[symbols:/Device Drivers/Graphics support/Backlight & LCD device support]=m,y

@@ -1,0 +1,45 @@
+# Global settings
+set default=0
+set timeout=90
+
+# Display settings
+set gfxmode=auto
+insmod efi_gop
+insmod efi_uga
+insmod gfxterm
+insmod all_video
+insmod videotest
+insmod videoinfo
+terminal_output gfxterm
+
+# Menu
+menuentry "Boot SystemRescueDisk" {
+    search --no-floppy --fs-uuid --set %UUID%
+	linux %PREFIX%/vmlinuz dev_uuid=%UUID% basedir=%BASEDIR%
+	initrd %PREFIX%/initcpio.img
+#	initrd %PREFIX%/intel_ucode.img %PREFIX%/amd_ucode.img %PREFIX%/initcpio.img
+}
+
+# Menu
+menuentry "Boot existing OS" {
+	set root=(hd0)
+	chainloader +1
+}
+
+# menuentry "Run Memtest86+ (RAM test)" {
+#     linux %PREFIX%/memtest
+# }
+
+# menuentry "Hardware Information (HDT)" {
+#     linux %PREFIX%/hdt
+# }
+
+# Menu
+menuentry "Restart" {
+    reboot
+}
+
+# Menu
+menuentry "Power Off" {
+    halt
+}

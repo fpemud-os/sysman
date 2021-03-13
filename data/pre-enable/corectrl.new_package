@@ -1,0 +1,4 @@
+[main]
+name = farmboy0
+url = https://github.com/farmboy0/portage-overlay
+package = kde-misc/corectrl

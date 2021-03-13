@@ -1,0 +1,12 @@
+[Unit]
+Description=Kodi Media Center
+After=network.target sound.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/xinit /usr/bin/dbus-launch --exit-with-session /usr/bin/kodi-standalone -- :0 -nolisten tcp vt7
+Restart=on-abort
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

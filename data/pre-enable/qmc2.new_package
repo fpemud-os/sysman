@@ -1,0 +1,4 @@
+[main]
+name = Techwolf
+url = https://github.com/Techwolf/techwolf-overlay
+package = games-emulation/qmc2

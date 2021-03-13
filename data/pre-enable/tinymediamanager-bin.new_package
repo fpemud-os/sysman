@@ -1,0 +1,4 @@
+[main]
+name = gallifrey
+url = https://github.com/fedeliallalinea/gallifrey
+package = app-misc/tinymediamanager-bin

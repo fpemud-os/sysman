@@ -1,0 +1,4 @@
+[main]
+name = p3psi
+url = https://github.com/p3psi-boo/p3psi_overlay
+package = net-misc/xrdp

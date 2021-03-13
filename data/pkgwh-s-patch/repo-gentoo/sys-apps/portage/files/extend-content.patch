@@ -1,0 +1,88 @@
+diff -ru portage-3.0.8-bak/lib/portage/dbapi/vartree.py portage-3.0.8/lib/portage/dbapi/vartree.py
+--- portage-3.0.8-bak/lib/portage/dbapi/vartree.py	2020-10-12 22:05:49.958434123 +0800
++++ portage-3.0.8/lib/portage/dbapi/vartree.py	2020-10-12 22:18:43.688668219 +0800
+@@ -4783,6 +4783,13 @@
+ 			mode='w', encoding=_encodings['repo.content'],
+ 			errors='backslashreplace')
+ 
++		# add a CONTENTS_2 file to store addtional information
++		outfile2 = atomic_ofstream(_unicode_encode(
++			os.path.join(self.dbtmpdir, 'CONTENTS_2'),
++			encoding=_encodings['fs'], errors='strict'),
++			mode='w', encoding=_encodings['repo.content'],
++			errors='backslashreplace')
++
+ 		# Don't bump mtimes on merge since some application require
+ 		# preservation of timestamps.  This means that the unmerge phase must
+ 		# check to see if file belongs to an installed instance in the same
+@@ -4795,7 +4802,7 @@
+ 
+ 		# we do a first merge; this will recurse through all files in our srcroot but also build up a
+ 		# "second hand" of symlinks to merge later
+-		if self.mergeme(srcroot, destroot, outfile, secondhand,
++		if self.mergeme(srcroot, destroot, outfile, outfile2, secondhand,
+ 			self.settings["EPREFIX"].lstrip(os.sep), cfgfiledict, mymtime):
+ 			return 1
+ 
+@@ -4807,7 +4814,7 @@
+ 			# couldn't get merged will be added to thirdhand.
+ 
+ 			thirdhand = []
+-			if self.mergeme(srcroot, destroot, outfile, thirdhand,
++			if self.mergeme(srcroot, destroot, outfile, outfile2, thirdhand,
+ 				secondhand, cfgfiledict, mymtime):
+ 				return 1
+ 
+@@ -4821,7 +4828,7 @@
+ 
+ 		if len(secondhand):
+ 			# force merge of remaining symlinks (broken or circular; oh well)
+-			if self.mergeme(srcroot, destroot, outfile, None,
++			if self.mergeme(srcroot, destroot, outfile, outfile2, None,
+ 				secondhand, cfgfiledict, mymtime):
+ 				return 1
+ 
+@@ -4829,6 +4836,10 @@
+ 		os.umask(prevmask)
+ 
+ 		#if we opened it, close it
++		outfile2.flush()
++		outfile2.close()
++
++		#if we opened it, close it
+ 		outfile.flush()
+ 		outfile.close()
+ 
+@@ -4843,7 +4854,7 @@
+ 
+ 		return os.EX_OK
+ 
+-	def mergeme(self, srcroot, destroot, outfile, secondhand, stufftomerge, cfgfiledict, thismtime):
++	def mergeme(self, srcroot, destroot, outfile, outfile2, secondhand, stufftomerge, cfgfiledict, thismtime):
+ 		"""
+ 
+ 		This function handles actual merging of the package contents to the livefs.
+@@ -5051,6 +5062,7 @@
+ 
+ 					showMessage("%s %s -> %s\n" % (zing, mydest, myto))
+ 					outfile.write("sym "+myrealdest+" -> "+myto+" "+str(mymtime // 1000000000)+"\n")
++					outfile2.write("sym "+myrealdest+" -> "+myto+" "+str(mymtime // 1000000000)+" "+str(mystat[4])+" "+str(mystat[5])+"\n")
+ 				else:
+ 					showMessage(_("!!! Failed to move file.\n"),
+ 						level=logging.ERROR, noiselevel=-1)
+@@ -5152,6 +5164,7 @@
+ 					pass
+ 
+ 				outfile.write("dir "+myrealdest+"\n")
++				outfile2.write("dir "+myrealdest+" "+"%o"%(mystat[0])+" "+str(mystat[4])+" "+str(mystat[5])+"\n")
+ 				# recurse and merge this directory
+ 				mergelist.extend(join(relative_path, child) for child in
+ 					os.listdir(join(srcroot, relative_path)))
+@@ -5200,6 +5213,7 @@
+ 
+ 				if mymtime != None:
+ 					outfile.write("obj "+myrealdest+" "+mymd5+" "+str(mymtime // 1000000000)+"\n")
++					outfile2.write("obj "+myrealdest+" "+mymd5+" "+str(mymtime // 1000000000)+" "+"%o"%(mystat[0])+" "+str(mystat[4])+" "+str(mystat[5])+"\n")
+ 				showMessage("%s %s\n" % (zing,mydest))
+ 			else:
+ 				# we are merging a fifo or device node

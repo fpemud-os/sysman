@@ -1,0 +1,4 @@
+[main]
+name = ZeroPointEnergy
+url = https://github.com/ZeroPointEnergy/portage-overlay
+package = dev-util/pmbootstrap

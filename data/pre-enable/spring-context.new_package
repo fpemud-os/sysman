@@ -1,0 +1,4 @@
+[main]
+name = os-xtoo
+url = https://github.com/Obsidian-StudiosInc/os-xtoo
+package = dev-java/spring-context

@@ -1,0 +1,4 @@
+[main]
+name = linuxmonk
+url = https://github.com/ganto/linuxmonk-overlay
+package = app-emulation/vagrant-lxc

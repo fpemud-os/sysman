@@ -1,0 +1,3 @@
+net-ftp/pftp                                                        -ssl        # it depends a very low version of openssl 
+net-ftp/pftp-shit                                                   -ssl        # it depends a very low version of openssl 
+*/*                                                                 -adns       # "adns" is not compatible with "nss-mdns + TYPE_CNAME"

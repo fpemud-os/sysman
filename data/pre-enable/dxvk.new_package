@@ -1,0 +1,4 @@
+[main]
+name = ppfeufer
+url = https://github.com/ppfeufer/gentoo-overlay
+package = app-emulation/dxvk

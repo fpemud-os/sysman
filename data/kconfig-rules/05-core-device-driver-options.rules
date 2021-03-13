@@ -1,0 +1,16 @@
+# Generic Driver Options
+DEVTMPFS=y
+ALLOW_DEV_COREDUMP=y
+
+DEVTMPFS_MOUNT=n                    # no service
+STANDALONE=y
+PREVENT_FIRMWARE_BUILD=y
+
+[symbols:/Device Drivers/Generic Driver Options]=n
+
+# Plug and Play support
+PNP=y
+
+# Firmware drivers
+DMIID=y
+DMI_SYSFS=m,y

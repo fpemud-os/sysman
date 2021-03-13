@@ -1,0 +1,4 @@
+[main]
+name = vdr-devel
+url = https://github.com/gentoo-mirror/vdr-devel
+package = media-tv/oscam

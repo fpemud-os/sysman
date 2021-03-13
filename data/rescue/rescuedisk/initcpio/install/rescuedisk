@@ -1,0 +1,18 @@
+#!/bin/bash
+
+build() {
+    add_module "cdrom"
+    add_module "loop"
+    add_module "overlay"
+
+    add_runscript
+
+    add_binary /usr/lib/udev/cdrom_id
+    add_binary blockdev
+    add_binary losetup
+    add_binary mountpoint
+
+    add_file /usr/lib/udev/rules.d/60-cdrom_id.rules
+}
+
+# vim: set ft=sh ts=4 sw=4 et:

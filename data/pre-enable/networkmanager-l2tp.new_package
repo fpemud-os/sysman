@@ -1,0 +1,4 @@
+[main]
+name = gentoo-zh
+url = https://github.com/microcai/gentoo-zh
+package = net-misc/networkmanager-l2tp

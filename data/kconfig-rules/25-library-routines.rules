@@ -1,0 +1,17 @@
+#	CONFIG_CRYPTO_USER_API_SKCIPHER			m
+#	CONFIG_CRYPTO_ECB				M
+#	CONFIG_CRYPTO_CBC				OK
+CRYPTO_DES=m                            # iwd need it
+CRYPTO_DES3_EDE_X86_64=m                # iwd need it
+
+[prompt-regex-symbols:Userspace .*:/Cryptographic API]=m,y
+[prompt-regex-symbols:User-space interface for .*:/Cryptographic API]=m,y
+[symbols:/Cryptographic API]=n                                                  # remove all uneccessary options
+
+[symbols:/Library routines]=n                                                   # remove all uneccessary options
+
+
+
+# strange, seems "[symbols:CGROUPS]=y" does not take full effect
+CGROUP_HUGETLB=y
+CGROUP_BPF=y

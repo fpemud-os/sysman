@@ -1,0 +1,4 @@
+[main]
+name = gentoo-zh
+url = https://github.com/microcai/gentoo-zh
+package = app-i18n/fcitx5

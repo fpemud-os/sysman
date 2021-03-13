@@ -1,0 +1,5 @@
+# menu: Sound card support
+SOUND=m
+SND_SOC=n
+SND_PCSP=n
+[symbols:SOUND]=m,y

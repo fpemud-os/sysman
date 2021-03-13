@@ -1,0 +1,10 @@
+SUBSYSTEM!="block", GOTO="fkm_end"
+KERNEL!="dm-[0-9]*", GOTO="fkm_end"
+
+# By convension, every LV must have property DM_UDEV_PRIMARY_SOURCE_FLAG which is
+# brought in the add event sent by libdevmapper. fpemud-refsystem's initramfs
+# activates LV for {/,/boot,/usr} before udev daemon starts, so this property is lost
+# for these LVs. Here we set it manually.
+ENV{DM_UDEV_PRIMARY_SOURCE_FLAG}="1"
+
+LABEL="fkm_end"

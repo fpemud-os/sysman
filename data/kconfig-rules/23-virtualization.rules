@@ -1,0 +1,10 @@
+VIRTUALIZATION=y
+[symbols:VIRTUALIZATION]=m,y
+
+# device driver: IOMMU Hardware Support
+IOMMU_SUPPORT=y
+[symbols:IOMMU_SUPPORT]=m,y
+
+# device driver: VFIO Non-Priviledged userspace driver framework
+VFIO=m
+[symbols:VFIO]=m,y

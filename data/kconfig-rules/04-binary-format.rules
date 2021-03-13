@@ -1,0 +1,8 @@
+BINFMT_ELF=y
+BINFMT_SCRIPT=y
+BINFMT_MISC=y
+
+# compact 32-bit syscall support
+IA32_AOUT=y
+IA32_EMULATION=y
+COMPAT_32BIT_TIME=y

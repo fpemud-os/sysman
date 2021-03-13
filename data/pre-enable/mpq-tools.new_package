@@ -1,0 +1,7 @@
+[main]
+name = emerald
+url = https://github.com/emerald79/emerald-overlay
+package = app-arch/mpq-tools
+
+
+

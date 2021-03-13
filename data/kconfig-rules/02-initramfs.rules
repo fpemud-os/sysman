@@ -1,0 +1,5 @@
+BLK_DEV_INITRD=y
+INITRAMFS_SOURCE=""
+RD_XZ=y                                                                                 # same as "/General setup/Kernel compression mode"
+RD_LZMA=y                                                                               # it seems RD_XZ has no effect, we have to enable RD_LZMA, kernel bug?
+[prompt-regex-symbols:Support initial ramdisks compressed using .*:/General setup]=n

@@ -1,0 +1,4 @@
+[main]
+name = gslinux
+url = https://github.com/gslinux-overlay/gslinux
+package = app-arch/arqiver

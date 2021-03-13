@@ -1,0 +1,25 @@
+# menu: Character devices
+SERIAL_NONSTANDARD=n
+TTY_PRINTK=n
+IPMI_HANDLER=n                                                      # unfamiliar
+IPMB_DEVICE_INTERFACE=n                                             # unfamiliar
+TCG_TPM=n                                                           # unfamiliar
+TELCLOCK=n                                                          # unfamiliar
+XILLYBUS=n                                                          # unfamiliar
+NOZOMI=n                                                            # not support PCMCIA hardware
+MWAVE=n                                                             # unfamiliar
+TRACE_ROUTER=n                                                      # unfamiliar
+TRACE_SINK=n                                                        # unfamiliar
+
+# tty support
+TTY=y
+NULL_TTY=y                                                          # use /dev/ttynull as /dev/console for init process
+                                                                    # ttynull is not appeared in /sys/class/tty/console/active, strange?!
+
+# serial device is under tty subsystem, not a good design
+SERIAL_8250_16550A_VARIANTS=n                                       # enable it takes additional time at boot
+SERIAL_8250_RUNTIME_UARTS=0                                         # only support PNP serial device
+SERIAL_8250_EXTENDED=n
+[symbols:SERIAL_8250]=m,y
+[symbols:SERIAL_8250_PCI]=m,y
+#[symbols:/Device drivers/Character devices/Serial drivers]=n       # pylkc can not find this menu?!

@@ -1,0 +1,193 @@
+## system service ##################################################
+net-misc/chrony
+net-vpn/i2pd
+net-vpn/tor
+net-wireless/bluez
+net-wireless/iwd
+
+## platform: developing ############################################
+dev-java/openjdk
+dev-java/openjdk-bin
+dev-java/openjdk-jre-bin
+dev-util/electron
+dev-lang/perl
+dev-lang/python
+dev-lang/ruby
+dev-lang/go
+gui-wm/wayfire
+net-libs/nodejs
+
+## business server #################################################
+net-im/coturn
+
+## fonts: general ##################################################
+media-fonts/corefonts
+media-fonts/droid
+media-fonts/noto
+media-fonts/noto-cjk
+media-fonts/noto-emoji
+media-fonts/liberation-fonts
+media-fonts/ubuntu-font-family
+media-fonts/unifont
+# libreoffice opensymbol fonts?
+
+## fonts: chinese ##################################################
+media-fonts/source-han-sans
+media-fonts/wqy-microhei
+media-fonts/wqy-zenhei
+
+## fonts: japanese #################################################
+media-fonts/ipamonafont
+media-fonts/takao-fonts
+media-fonts/vlgothic
+
+## fonts: korean ###################################################
+media-fonts/baekmuk-fonts
+
+## utility: userspace file systems #################################
+gnome-base/gvfs
+net-fs/sshfs
+sys-fs/fuseiso
+sys-fs/fuse-exfat
+sys-fs/fuse-zip
+sys-fs/ntfs3g
+sys-fs/xfsprogs
+
+## utility: small tools ############################################
+app-arch/rar
+app-editors/hexedit
+app-misc/trash-cli
+app-text/dos2unix
+app-text/tree
+dev-util/clinfo
+dev-util/d-feet
+dev-util/meld
+gnome-base/dconf-editor
+net-analyzer/netcat
+net-analyzer/nmap
+net-analyzer/tcpdump
+net-analyzer/tcping
+net-ftp/filezilla
+net-misc/aria2
+net-misc/cadaver
+net-misc/nyx
+sys-apps/dmidecode
+sys-process/bpytop
+x11-misc/qt5ct
+virtual/eject
+
+## utility: browsers ###############################################
+www-client/firefox
+www-client/google-chrome
+www-client/microsoft-edge-dev
+
+## utility: os translator ##########################################
+app-emulation/anbox
+app-emulation/darling
+virtual/wine
+
+## utility: media player ###########################################
+media-video/celluloid
+media-video/mpv
+
+## utility: social #################################################
+net-im/zoom
+
+## utility: coding tools ###########################################
+app-editors/visual-studio-code-bin
+app-text/sloccount
+dev-python/autopep8
+dev-python/pyflakes
+dev-python/pycodestyle
+
+## utility: designing tools ########################################
+media-gfx/gimp
+media-gfx/inkscape
+media-gfx/freecad
+media-gfx/librecad
+
+## application: media center #######################################
+media-tv/kodi
+
+## application: single site browser ################################
+#app-ssb/w3a-bing
+#app-ssb/w3a-chiphell
+#app-ssb/w3a-gentoo
+#app-ssb/w3a-gentoo-bugs
+#app-ssb/w3a-gentoo-forums
+#app-ssb/w3a-github
+#app-ssb/w3a-sina
+#app-ssb/w3a-zhihu
+#app-ssb/w3a-phoronix
+#app-ssb/w3a-google
+#app-ssb/w3a-facebook
+#app-ssb/w3a-instagram
+#app-ssb/w3a-baidu
+#app-ssb/w3a-jd
+#app-ssb/w3a-taobao
+#app-ssb/w3a-cnbeta
+#app-ssb/w3a-linuxeden
+#app-ssb/w3a-gitee
+#app-ssb/w3a-ppxclub
+#app-ssb/w3a-yandex
+#app-ssb/w3a-duckduckgo
+#app-ssb/w3a-mihoyo-n0va
+#app-ssb/w3a-weibo
+#app-ssb/w3a-sohu
+#app-ssb/w3a-csdn
+#app-ssb/w3a-cnblogs
+#app-ssb/www.old-games.com
+
+## application: small games ########################################
+games-action/spacewar
+games-board/gnome-chess
+games-board/gnome-mahjongg
+games-board/gnome-mines
+games-misc/katawa-shoujo
+games-puzzle/2048-qt
+games-puzzle/crayon-physics-deluxe
+games-puzzle/numptyphysics
+games-puzzle/home-sheep-home2
+
+## application: serious games ######################################
+games-action/beachhead2002
+games-action/ciscoheat
+games-action/openliero
+games-action/supertuxkart
+games-fps/call-of-duty
+games-fps/call-of-duty2
+games-fps/counter-strike-source
+games-fps/freedoom
+games-fps/gta3-san-andreas
+games-fps/gta3-vice-city
+games-fps/half-life2
+games-fps/portal
+games-fps/portal2
+games-fps/xonotic
+games-kids/gcompris
+games-misc/angry-birds
+games-misc/angry-birds-rio
+games-misc/angry-birds-seasons
+games-misc/angry-birds-space
+games-misc/beholder
+games-misc/kerbal-space-program
+games-misc/neighbours-from-hell
+games-puzzle/braid-gog
+games-puzzle/braid-hb
+games-puzzle/limbo
+games-puzzle/loco-mania
+games-puzzle/neverball
+games-puzzle/world-of-goo-gog
+games-puzzle/world-of-goo-hb
+games-simulation/f22-lightning2
+games-simulation/need-for-speed8
+games-simulation/need-for-speed9
+games-simulation/need-for-speed10
+games-simulation/need-for-speed11
+games-simulation/simcity2000
+games-sports/stuntrally
+games-strategy/command-and-conquer-redalert
+games-strategy/command-and-conquer-redalert2
+games-strategy/plants-vs-zombies
+games-strategy/starcraft
+games-strategy/total-annihilation

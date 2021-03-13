@@ -1,0 +1,4 @@
+[main]
+name = sft
+url = https://github.com/SFTtech/gentoo-overlay
+package = games-board/sabaki

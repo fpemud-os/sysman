@@ -1,0 +1,4 @@
+[main]
+name = Yuego
+url = https://github.com/Yuego/overlay
+package = dev-python/w3lib

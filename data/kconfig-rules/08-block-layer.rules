@@ -1,0 +1,3 @@
+BLOCK=y
+BLK_DEV_BSG=y
+[symbols:/IO Schedulers]=y

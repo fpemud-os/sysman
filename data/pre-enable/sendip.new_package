@@ -1,0 +1,4 @@
+[main]
+name = yshurik
+url = https://github.com/yshurik/overlay
+package = net-misc/sendip

@@ -1,0 +1,36 @@
+# no rare network protocol
+ATM=n                           # Asynchronous Transfer Mode (ATM)
+DECNET=n                        # DECnet Support
+X25=n                           # CCITT X.25 Packet Layer
+HAMRADIO=n                      # Amateur Radio support
+CAN=n                           # CAN bus subsystem support
+NET_9P=n                        # Plan 9 Resource Sharing Support
+CAIF=n                          # CAIF Support
+CEPH_LIB=n                      # Ceph core library
+DCB=n                           # Data Center Bridging support
+RDS=n                           # The RDS Protocol
+MPLS=n                          # MultiProtocol Label Switching
+OPENVSWITCH=n                   # Open vSwitch
+BATMAN_ADV=n                    # B.A.T.M.A.N. Advanced Meshing Protocol
+
+# no uneccessary net-filter modules
+IP_SET=n
+IP_VS=n                         # not needed at all
+
+# no service
+IP_PNP=n                        # IP: kernel level autoconfiguration
+
+# these modules create default interfaces, which is bad design, so don't use them
+NET_SCH_TEQL=n                  # creates interface teql0
+IPDDP=n                         # creates interface ipddp0
+NET_IPGRE=n                     # creates interface gre0 and gretap0
+NET_IPVTI=n
+NET_IPIP=n                      # creates interface tunl0
+IPV6_VTI=n
+IPV6_GRE=n
+IPV6_SIT=n                      # creates interface sit0
+IPV6_TUNNEL=n                   # creates interface ip6tnl0
+
+# fallback selection
+[symbols:/Networking support/Networking options]=y
+[symbols:/Networking support]=m,y

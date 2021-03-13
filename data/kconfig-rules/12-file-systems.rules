@@ -1,0 +1,65 @@
+# global file system function selection
+FS_DAX=y
+FILE_LOCKING=y                                  # Enable POSIX file locking API
+INOTIFY_USER=y
+FANOTIFY=y
+QUOTA=y
+QUOTA_NETLINK_INTERFACE=y
+FSCACHE=m
+MISC_FILESYSTEMS=y
+NETWORK_FILESYSTEMS=y
+
+# in kernel file systems
+[symbols:PROC_FS]=y
+SYSFS=y
+[symbols:TMPFS]=y
+HUGETLBFS=y
+CONFIGFS_FS=y
+
+# common file systems
+EXT2_FS=m
+[symbols:EXT2_FS]=m,y
+EXT4_FS=m
+[symbols:EXT4_FS]=m,y
+XFS_FS=m
+[symbols:XFS_FS]=m,y
+F2FS_FS=m
+[symbols:F2FS_FS]=m,y
+
+# special file systems
+FUSE_FS=m
+[symbols:FUSE_FS]=m,y
+OVERLAY_FS=m
+[symbols:OVERLAY_FS]=m,y
+EFIVAR_FS=m
+[symbols:EFIVAR_FS]=m,y
+SQUASHFS=m
+/File systems/Miscellaneous filesystems/SquashFS 4.0 - .../File decompression options=SQUASHFS_FILE_DIRECT
+/File systems/Miscellaneous filesystems/SquashFS 4.0 - .../Decompressor parallelisation options=SQUASHFS_DECOMP_SINGLE
+SQUASHFS_4K_DEVBLK_SIZE=n
+SQUASHFS_EMBEDDED=n
+[symbols:SQUASHFS]=m,y
+
+# miscellaneous file systems
+ISO9660_FS=m
+[symbols:ISO9660_FS]=m,y
+UDF_FS=m
+[symbols:UDF_FS]=m,y
+MSDOS_FS=m
+[symbols:MSDOS_FS]=m,y
+VFAT_FS=m
+[symbols:VFAT_FS]=m,y
+HFS_FS=m
+[symbols:HFS_FS]=m,y
+HFSPLUS_FS=m
+[symbols:HFSPLUS_FS]=m,y
+CIFS=m
+[symbols:CIFS]=m,y
+
+# native language support
+NLS=y
+NLS_DEFAULT="iso8859-1"
+[symbols:NLS]=m
+
+# fallback selection
+[symbols:/File systems]=n

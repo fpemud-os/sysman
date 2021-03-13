@@ -1,0 +1,5 @@
+# menu: Hardware Monitoring support
+[symbols:HWMON]=m,y
+
+# menu: Generic Thermal sysfs driver
+[symbols:THERMAL]=m,y

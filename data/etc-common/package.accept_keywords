@@ -1,0 +1,75 @@
+# boot chain
+sys-boot/grub              -~x86 -~amd64
+sys-apps/systemd           -~x86 -~amd64
+
+# gcc/glibc/binutils
+sys-devel/gcc              -~x86 -~amd64
+sys-libs/glibc             -~x86 -~amd64
+sys-devel/binutils         -~x86 -~amd64
+sys-devel/libtool          -~x86 -~amd64
+
+# llvm
+sys-devel/llvm             -~x86 -~amd64
+sys-devel/clang            -~x86 -~amd64
+
+# boost library
+dev-libs/boost             -~x86 -~amd64
+dev-util/boost-build       -~x86 -~amd64
+
+# mono
+dev-lang/mono              -~x86 -~amd64
+
+# nasm
+dev-lang/nasm              -~x86 -~amd64
+
+# perl
+dev-lang/perl              -~x86 -~amd64
+dev-perl/*                 -~x86 -~amd64
+virtual/perl-*             -~x86 -~amd64
+
+# python
+dev-lang/python            -~x86 -~amd64
+
+# php
+# there're so many packages with no stable version
+#dev-lang/php               -~x86 -~amd64
+#dev-php/*                  -~x86 -~amd64
+
+# ruby
+dev-lang/ruby              -~x86 -~amd64
+
+# rust
+dev-lang/rust              -~x86 -~amd64
+dev-lang/rust-bin          -~x86 -~amd64
+virtual/rust               -~x86 -~amd64
+
+# vala
+dev-lang/vala              -~x86 -~amd64
+
+# nodejs
+net-libs/nodejs            -~x86 -~amd64
+
+# policykit
+sys-auth/polkit            -~x86 -~amd64
+
+# web component
+net-libs/webkit-gtk        -~x86 -~amd64
+dev-lang/spidermonkey      -~x86 -~amd64
+www-client/google-chrome   -~x86 -~amd64
+www-client/firefox         -~x86 -~amd64
+www-client/firefox-bin     -~x86 -~amd64
+
+# office
+app-office/libreoffice     -~x86 -~amd64
+app-office/libreoffice-bin -~x86 -~amd64
+
+# database
+dev-db/mysql               -~x86 -~amd64
+dev-db/mariadb             -~x86 -~amd64
+dev-db/postgresql          -~x86 -~amd64
+
+# ???
+#net-fs/samba               -~x86 -~amd64	# fixme, samba stable can not compile
+
+# stable lvm2 only supports "/dev/mapper/hdd-root", we need the newest "/dev/mapper/hdd.root"
+sys-fs/lvm2         ~amd64

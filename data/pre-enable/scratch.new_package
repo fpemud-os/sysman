@@ -1,0 +1,4 @@
+[main]
+name = wreathe
+url = https://github.com/ethus3h/wreathe-overlay
+package = games-kids/scratch

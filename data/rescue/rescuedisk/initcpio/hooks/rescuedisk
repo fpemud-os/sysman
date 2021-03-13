@@ -1,0 +1,117 @@
+# args: device, mountpoint, flags, opts
+_mnt_dev() {
+    local _dev="${1}"
+    local _mnt="${2}"
+    local _flg="${3}"
+    local _opts="${4}"
+
+    mkdir -p "${_mnt}"
+
+    msg ":: Mounting '${_dev}' to '${_mnt}'"
+
+    while ! poll_device "${_dev}" 30; do
+        echo "ERROR: '${_dev}' device did not show up after 30 seconds..."
+        echo "   Falling back to interactive prompt"
+        echo "   You can try to fix the problem manually, log out when you are finished"
+        launch_interactive_shell
+    done
+
+    if mount -o "${_opts}" "${_flg}" "${_dev}" "${_mnt}"; then
+        msg ":: Device '${_dev}' mounted successfully."
+    else
+        echo "ERROR; Failed to mount '${_dev}'"
+        echo "   Falling back to interactive prompt"
+        echo "   You can try to fix the problem manually, log out when you are finished"
+        launch_interactive_shell
+    fi
+}
+
+# args: source, newroot
+_mnt_overlayfs() {
+    local _src="${1}"
+    local _newroot="${2}"
+
+    msg ":: Mounting /run/rescue/cowspace (tmpfs) filesystem..."
+    mkdir -p /run/rescue/cowspace
+    mount -t tmpfs -o "size=256M,mode=0755" cowspace /run/rescue/cowspace
+
+    msg ":: Mounting new root ${_newroot} (overlayfs) filesystem..."
+    mkdir -p /run/rescue/cowspace/upperdir /run/rescue/cowspace/workdir
+    mount -t overlay -o lowerdir=${_src},upperdir=/run/rescue/cowspace/upperdir,workdir=/run/rescue/cowspace/workdir airootfs "${_newroot}"
+}
+
+# args: /path/to/image_file, mountpoint
+_mnt_sfs() {
+    local _img="${1}"
+    local _mnt="${2}"
+    local _img_fullname="${_img##*/}"
+    local _sfs_dev
+    local _sfs_size=`stat ${_img} -c "%s"`
+    local _copytoram_size=`expr ${_sfs_size} / 1024 / 1024 + 10`    # sfs-file-size-in-MB + 10MB
+
+    msg ":: Mounting /run/rescue/copytoram (tmpfs) filesystem..."
+    mkdir -p /run/rescue/copytoram
+    mount -t tmpfs -o "size=${_copytoram_size}m,mode=0755" copytoram /run/rescue/copytoram
+
+    msg -n ":: Copying squashfs image to RAM..."
+    if ! cp "${_img}" "/run/rescue/copytoram/${_img_fullname}" ; then
+        echo "ERROR: while copy '${_img}' to '/run/rescue/copytoram/${_img_fullname}'"
+        launch_interactive_shell
+    fi
+    _img="/run/rescue/copytoram/${_img_fullname}"
+
+    msg ":: Mounting ${_img}"
+    _sfs_dev=$(losetup --find --show --read-only "${_img}")
+    _mnt_dev "${_sfs_dev}" "${_mnt}" "-r" "defaults"
+}
+
+_verify_checksum() {
+    local _status
+    cd "/run/rescue/bootmnt/${basedir}/${arch}"
+    sha512sum -c airootfs.sha512 > /tmp/checksum.log 2>&1
+    _status=$?
+    cd "${OLDPWD}"
+    return ${_status}
+}
+
+# variables must be defined in kernel command line: arch, dev_uuid, basedir
+run_hook() {
+    arch="$(uname -m)"
+
+    # set mount handler
+    mount_handler="rescue_mount_handler"
+}
+
+# This function is called normally from init script, but it can be called
+# as chain from other mount handlers.
+# args: /path/to/newroot
+rescue_mount_handler() {
+    local _newroot="${1}"
+
+    if ! mountpoint -q "/run/rescue/bootmnt"; then
+        _mnt_dev "/dev/disk/by-uuid/${dev_uuid}" "/run/rescue/bootmnt" "-r" "defaults"
+    fi
+
+    if [[ -f "/run/rescue/bootmnt/${basedir}/${arch}/airootfs.sha512" ]]; then
+        msg -n ":: Self-test requested, please wait..."
+        if _verify_checksum; then
+            msg "done. Checksum is OK, continue booting."
+        else
+            echo "ERROR: one or more files are corrupted"
+            echo "see /tmp/checksum.log for details"
+            launch_interactive_shell
+        fi
+    else
+        echo "ERROR: ${basedir}/${arch}/airootfs.sha512 not found"
+        launch_interactive_shell
+    fi
+
+    _mnt_sfs "/run/rescue/bootmnt/${basedir}/${arch}/airootfs.sfs" "/run/rescue/airootfs"
+
+    _mnt_overlayfs "/run/rescue/airootfs" "${_newroot}"
+
+    umount -d /run/rescue/bootmnt
+    rmdir /run/rescue/bootmnt
+}
+
+# vim:ft=sh:ts=4:sw=4:et:

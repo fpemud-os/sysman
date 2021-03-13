@@ -1,0 +1,4 @@
+[main]
+name = danrepo
+url = https://github.com/ferion11/danrepo
+package = gnome-extra/yad

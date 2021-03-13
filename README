@@ -1,0 +1,254 @@
+sysman - System manager for Fpemud OS
+====================
+
+
+Basic Usage:
+
+  sysman show
+     * Show system information
+
+  sysman check [--deep] [--auto-fix]
+     * Check hardware (takes very long time if --deep is specified)
+     * Check partition table for all the harddisks
+     * Check storage layout
+     * Check operating system
+     * Check package warehouse
+     * Check users and groups
+     * Do other package specific checking
+     * Find cruft in system files
+
+  sysman update
+     * Synchronize repoisotries and overlays
+     * Update kernel, initramfs and bootloader
+     * Update @world
+     * Re-emerge all installed "-9999" packages
+     * Enlarge logical volumes in volume group "hdd" if neccessary
+
+  sysman clean
+     * Remove history files in /boot and /lib/modules
+     * Clean /var/cache/portage directory
+     * Do "perl-clean"
+     * Clean unused USE flags, re-emerge packages if neccessary
+     * Do "emerge --depclean"
+     * Optimize all logical volumes in volume group "hdd" (size, fragmentation)
+
+
+Storage Management:
+
+  sysman add-harddisk <devpath> [--mainboot]
+     * Initialize the new harddisk
+     * Add the new harddisk into current storage layout
+     * Recreate initramfs and bootloader
+
+  sysman remove-harddisk <devpath>
+     * Remove the harddisk from current storage layout
+     * Wipe the harddisk
+     * Recreate initramfs and bootloader
+
+  sysman enable-swap
+     * Create swap partitions or swap files
+     * Add and start swap mount unit
+
+  sysman disable-swap
+     * Disable all swap mount unit
+     * Remove swap partitions or swap files
+
+
+User and Group Management:
+
+  sysman add-user
+     * Add user to /etc/{passwd,shadow}, with a random initial password
+     * Create per-user group
+     * Add user to /etc/winpr/SAM
+     * Add user to /var/lib/samba/private/passdb.tdb
+     * Create home directory
+     * Create login keyring for this user
+     * Enable systemd-logind linger for this user
+     * User is in enabled state after addition
+
+  sysman remove-user
+     * Remove user from the places above
+
+  sysman reset-user-password
+     * Give a random password to user
+     * Recreate login keyring for user
+
+  sysman modify-user
+     * (Unimplemented yet)
+
+  sysman flush-user
+     * Flush user to all the places above.
+
+  sysman enable-user
+     * Enable user                   (Unimplemented yet)
+
+  sysman disable-user
+     * Kickout if the user is online (Unimplemented yet)
+     * Disable user                  (Unimplemented yet)
+
+  sysman add-group
+     * (Unimplemented yet)
+
+  sysman remove-group
+     * (Unimplemented yet)
+
+  sysman modify-group
+     * (Unimplemented yet)
+
+
+Package Management:
+
+  sysman install-overlay <overlay-name> <overlay-url>
+     * Install the given overlay
+     * All the packages are disabled by default
+
+  sysman uninstall-overlay <overlay-name>
+     * Uninstall the given overlay
+
+  sysman enable-overlay-package <overlay-name> <package-name>
+     * Enable the given overlay package
+     * Dependency is not auto resolved
+
+  sysman disable-overlay-package <overlay-name> <package-name>
+     * Disable the given overlay package
+     * Dependency is not auto resolved
+
+  sysman install-package [--test]
+     * Install the specified package
+     * Enlarge logical volumes in volume group "hdd" if neccessary
+
+  sysman uninstall-package
+     * Uninstall the specified package
+
+
+Rescue Facility:
+
+  sysman install-rescue-os
+     * Install an Arch Linux based rescue operation system into /boot
+
+  sysman uninstall-rescue-os
+     * Uninstall the rescue operation system
+
+  sysman build-rescue-disk <devpath>
+     * Build an Arch Linux based rescue disk
+     * Support cd-rw, dvd-rw, usb-stick, sd-card
+
+
+Deprecated usage:
+
+  sysman log-to-harddisk [--realtime]
+     * Logging to harddisk
+
+  sysman log-to-memory
+     * Logging to memory (default)
+     * Directory /var/log should be empty
+
+
+Storage layout:
+  there're 5 storage layouts:
+    1. bios-simple:
+    2. bios-lvm:
+    3. efi-simple:
+    4. efi-lvm:
+    5. efi-lvm-bcache:
+
+
+Kernel flag:
+  1. anbox
+  2. tbs
+
+
+Directory structure:
+  fpemud-os maintains directory /var/lib/portage:
+     /var/lib/portage
+       |-- repo-XXX
+       |     |-- ... (symlinks to ebuilds in repofiles directory)
+       |-- overlay-OVERLAY-NAME
+       |     |-- ... (symlinks to ebuilds in laymanfiles directory)
+       |-- config-archive
+       |     |-- ...
+       |-- config
+       |-- preserved_libs_registry
+       |-- world
+       |-- world_sets
+     /var/cache/portage
+       |-- laymanfiles
+       |     |-- OVERLAY-NAME
+       |           |-- ... (overlay files)
+       |-- kcache
+       |     |-- ...
+       |-- distfiles
+             |-- ...
+
+  "make.conf" must contain the following content:
+     /etc/portage/make.conf
+       ...
+       # Directories
+       DISTDIR="/var/cache/portage/distfiles"
+       ...
+
+  "dispatch-conf.conf" must contain the following content:
+     /etc/dispatch-conf.conf
+       ...
+       # Directory to archive replaced configs
+       archive-dir=${EPREFIX}/var/lib/portage/config-archive
+       ...
+
+  fpemud-os adds the following files in /etc/portage directory:
+    /etc/portage
+       |-- repos.conf
+       |     | -- ... (auto-filled)
+       |-- package.mask
+       |     |-- 01-base        -> /usr/share/fpemud-os-sysman/package.mask.base
+       |     |-- 02-base_bugfix -> /usr/share/fpemud-os-sysman/package.mask.base_bugfix
+       |     |-- bugfix
+       |-- package.unmask
+       |     |-- 01-base -> /usr/share/fpemud-os-sysman/package.unmask
+       |-- package.use
+       |     |-- 01-base -> /usr/share/fpemud-os-sysman/package.use.base
+       |     |-- 30-hardware
+       |     |-- 90-python-targets
+       |     |-- 90-ruby-targets
+       |     |-- 97-linguas
+       |     |-- 98-autouse-manual
+       |     |-- 99-autouse
+       |-- package.env
+       |     |-- 01-base -> /usr/share/fpemud-os-sysman/package.env
+       |-- package.accept_keywords
+       |     |-- 01-base -> /usr/share/fpemud-os-sysman/package.accept_keywords.base
+       |     |-- 90-for-repos
+       |     |-- 91-for-overlays
+       |     |-- 99-autokeyword
+       |-- package.license
+       |     |-- 01-base -> /usr/share/fpemud-os-sysman/package.license.base
+       |-- env
+             |-- 01-base -> /usr/share/fpemud-os-sysman/env.base
+                   | -- ...
+
+  fpemud-os apply custom patches for the following packages:
+    sys-auth/pambase
+    sys-apps/portage
+    sys-fs/lvm2
+    ...
+
+  fpemud-os uses auxiliary ebuild files which contains:
+    pkg_cruft_filter()        -- filter system files created by this package from cruft file list
+    pkg_cruft_filter_user()   -- filter home directory files created by this package from cruft file list
+    pkg_kconfig_require()     -- kconfig required by this package
+    pkg_check()               -- check files related to this package in system
+    pkg_check_user()          -- check files related to this package in home directory
+    pkg_no_parallelism()      -- parallelism can lead to build error for this package
+
+Notes:
+  Only root can run this tool.
+  Using option --keep to keep the working directory, for debugging purpose.
+
+  The content of user's keyring will be lost after "reset-user-password"
+  User should be disabled first when doing any write operations such as "reset-user-password".
+  /etc/winpr/SAM is used by net-misc/freerdp.
+  /var/lib/samba/private/passdb.tdb is used by net-fs/samba.
+  In fact, the login keyring is created when the user logins the first time by pam_gnome_keyring.
+
+  The following commands are deprecated:
+    /bin/passwd, /sbin/useradd, /sbin/usermod, /sbin/userdel
+    /sbin/groupadd, /sbin/groupmod, /sbin/groupdel, /sbin/groupmems

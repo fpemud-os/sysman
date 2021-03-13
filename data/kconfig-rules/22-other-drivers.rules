@@ -1,0 +1,20 @@
+[symbols:/Device Drivers/Character devices]=m,y
+
+# menu: LED Support
+[symbols:NEW_LEDS]=m,y
+
+# menu: Real Time Clock
+RTC_HCTOSYS=n                                            # no service
+RTC_SYSTOHC=n                                            # no service
+[symbols:RTC_CLASS]=m,y
+
+# menu: DMA Engine support
+[symbols:DMADEVICES]=m,y
+
+# menu: Multimedia support
+V4L_PLATFORM_DRIVERS=n                                   # no rare
+[symbols:MEDIA_SUPPORT]=m,y
+
+# menu: X86 Platform Specific Device Drivers
+X86_PLATFORM_DEVICES=y
+ACPI_WMI=m,y

@@ -1,0 +1,5 @@
+# menu: IEEE 1394 support
+[symbols:/Device Drivers/IEEE 1394 (FireWire) support]=m,y
+
+# menu: I2C support
+[symbols:/Device Drivers/I2C support]=m,y

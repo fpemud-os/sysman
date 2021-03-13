@@ -1,0 +1,4 @@
+[main]
+name = sakaki
+url = https://github.com/sakaki-/sakaki-tools
+package = sys-apps/me_cleaner

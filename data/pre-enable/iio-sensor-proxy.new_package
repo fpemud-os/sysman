@@ -1,0 +1,6 @@
+[main]
+name = poncho
+url = https://github.com/MeisterP/poncho-overlay
+package = gnome-extra/iio-sensor-proxy
+
+

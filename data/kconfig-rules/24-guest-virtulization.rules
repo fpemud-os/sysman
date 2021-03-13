@@ -1,0 +1,8 @@
+PARAVIRT_TIME_ACCOUNTING=n
+[symbols:HYPERVISOR_GUEST]=y
+
+[symbols:/Device drivers/Microsoft Hyper-V guest support]=m,y
+
+[symbols:/Device drivers/Virtio drivers]=m,y
+
+[symbols:/Device drivers/Xen driver support]=m,y

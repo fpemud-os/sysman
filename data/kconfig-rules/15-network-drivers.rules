@@ -1,0 +1,6 @@
+# menu: Network device support
+ARCNET=n                                                                                      # unfamiliar
+ISDN=n                                                                                        # rare, need special firmware
+[symbols:/Device Drivers/Network device support/Distributed Switch Architecture drivers]=n    # unfamiliar
+VMXNET3=n
+[symbols:/Device Drivers/Network device support]=m,y

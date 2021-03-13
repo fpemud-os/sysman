@@ -1,0 +1,5 @@
+[main]
+name = necromancy
+url = https://github.com/necrose99/necromancy-overlay
+package = dev-util/kivy-designer
+

@@ -1,0 +1,4 @@
+[main]
+name = tatsh
+url = https://github.com/Tatsh/tatsh-overlay
+package = games-action/re3

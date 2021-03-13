@@ -1,0 +1,21 @@
+# ssh server configuration file for all the fpemud's systems
+#
+# Features:
+#   1. disable root login
+
+PermitRootLogin no
+
+UsePAM yes
+
+PrintMotd no
+PrintLastLog no
+UsePrivilegeSeparation sandbox		# Default for new installations.
+
+# To disable tunneled clear text passwords, change to no here!
+PasswordAuthentication no
+
+# Override default of no subsystems
+Subsystem	sftp	/usr/lib64/misc/sftp-server
+
+# Allow client to pass locale environment variables #367017
+AcceptEnv LANG LC_*

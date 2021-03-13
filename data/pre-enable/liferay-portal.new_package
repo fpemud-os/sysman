@@ -1,0 +1,4 @@
+[main]
+name = cvut
+url = https://github.com/cvut/gentoo-overlay
+package = www-apps/liferay-portal

@@ -1,0 +1,28 @@
+# general policies:
+[regex-symbols:\bISCSI\b:/Device Drivers]=n              # no ISCSI
+BLK_DEV_DRBD=n                                           # no rare
+BLK_DEV_RBD=n                                            # no rare
+BLK_DEV_NBD=n                                            # network block device is wierd, I don't want to use it
+IIO=n                                                    # no rare
+RESET_CONTROLLER=n                                       # no rare
+
+# architectural selection
+POWER_SUPPLY=y
+
+# menu: Block devices
+[symbols:BLK_DEV]=m,y
+
+# menu: SCSI device support
+[symbols:/Device Drivers/SCSI device support]=m,y
+
+# menu: Serial ATA and Parallel ATA drivers
+[symbols:ATA]=m,y
+
+# menu: Multiple devices driver support
+[symbols:MD]=m,y
+
+# menu: NVME support
+[symbols:/Device Drivers/NVME Support]=m,y
+
+# menu: MMC/SD/SDIO card support
+[symbols:MMC]=m,y

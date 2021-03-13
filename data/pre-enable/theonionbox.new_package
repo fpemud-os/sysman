@@ -1,0 +1,4 @@
+[main]
+name = rain0r
+url = https://github.com/rain0r/hihn-overlay
+package = www-apps/theonionbox

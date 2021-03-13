@@ -1,0 +1,85 @@
+# basic kernel architecture
+64BIT=y
+/General setup/Kernel compression mode=KERNEL_XZ
+/General setup/Timers subsystem/Timer tick handling=NO_HZ_IDLE
+RELOCATABLE=y
+RANDOMIZE_BASE=y
+/General setup/Choose SLAB allocator=SLAB
+ZONE_DMA=y
+SMP=y
+NUMA=y
+MAXSMP=y
+[symbols:SCHED_MC]=y
+/General setup/Preemption Model=PREEMPT
+COMPACTION=y
+MIGRATION=y
+BOUNCE=y
+EFI=y
+
+# basic kernel functionality
+SWAP=y
+SYSVIPC=y
+POSIX_MQUEUE=y                       # depends on NET, which is a bad dependency
+CROSS_MEMORY_ATTACH=y
+FHANDLE=y
+HIGH_RES_TIMERS=y
+IKCONFIG=y
+IKCONFIG_PROC=y
+LOG_BUF_SHIFT=15
+LOG_CPU_MAX_BUF_SHIFT=12
+[symbols:CGROUPS]=y
+CHECKPOINT_RESTORE=y
+[symbols:NAMESPACES]=y
+RELAY=y
+CC_OPTIMIZE_FOR_SIZE=y
+COMPAT_BRK=n                        # "n" is the right choice
+COREDUMP=y
+AIO=y
+ADVISE_SYSCALLS=y
+SECCOMP=y
+
+# misc configuration
+[symbols:EXPERT]=y
+JUMP_LABEL=y
+SCHED_OMIT_FRAME_POINTER=y
+DMI=y
+[symbols:X86_MCE]=y
+CC_OPTIMIZE_FOR_PERFORMANCE=y
+GCC_PLUGINS=n
+
+# no service
+KSM=n
+TRANSPARENT_HUGEPAGE=n
+PM_AUTOSLEEP=n
+
+# no rare
+X86_EXTENDED_PLATFORM=n
+X86_INTEL_LPSS=n
+X86_AMD_PLATFORM_DEVICE=n
+X86_X32=n                           # X32 is rarely used
+
+# no heuristic
+SCHED_AUTOGROUP=n
+
+# no foreign fonts
+FONTS=n
+
+# enable some automation
+MAXSMP=y
+
+# enable auditing
+AUDIT=y
+AUDITSYSCALL=y
+
+# enable statistics, many monitor programs (bpytop) needs them
+[symbols:TASKSTATS]=y
+[symbols:TASK_XACCT]=y
+
+# no kernel hacking
+[symbols:/Kernel hacking]=n
+
+# no userspace drivers
+UIO=n
+
+# no VT
+VT=n

@@ -1,0 +1,12 @@
+# pci bus functionality
+[symbols:PCI]=m,y
+[symbols:HOTPLUG_PCI]=m,y
+PCI_IOV=y
+
+# no deprecated
+ISA_DMA_API=n                           # ISA-style DMA support, it's deprecated
+
+# some hardware that seems should not belong here
+PCCARD=n
+RAPIDIO=n
+X86_SYSFB=y

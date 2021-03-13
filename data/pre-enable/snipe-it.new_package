@@ -1,0 +1,6 @@
+[main]
+name = awesome
+url = https://gitlab.awesome-it.de/overlays/awesome.git
+package = www-apps/snipe-it
+
+

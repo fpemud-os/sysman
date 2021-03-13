@@ -1,0 +1,6 @@
+[main]
+name = raycic
+url = https://github.com/RayCic/raycic-overlay
+package = net-misc/universalmediaserver-bin
+
+

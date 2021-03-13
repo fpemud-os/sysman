@@ -1,0 +1,4 @@
+[main]
+name = NuLL3rr0r
+url = https://github.com/NuLL3rr0r/gentoo-overlay
+package = dev-db/neo4j-community

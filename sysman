@@ -1,0 +1,289 @@
+#!/usr/bin/python3
+# -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
+
+import os
+import sys
+import shutil
+import argparse
+
+if os.getuid() != 0:
+    print("You must run this command as root!")
+    sys.exit(1)
+
+sys.path.append("/usr/lib64/fpemud-os-sysman")
+from fm_util import FmUtil
+from fm_util import InfoPrinter
+from fm_util import SingletonProcess
+from fm_param import FmParam
+from sys_hw_info import FmHwInfoGetter
+from sys_pkgman import FmPkgman
+from sys_logging_manager import FmLoggingManager
+from sys_user_manager import FmUserManager
+from sys_storage_manager import FmStorageManager
+from sys_checker import FmSysChecker
+from sys_updater import FmSysUpdater
+from sys_cleaner import FmSysCleaner
+from sys_main import FmMain
+
+
+def getArgParser():
+    parser = argparse.ArgumentParser()
+
+    subparsers = parser.add_subparsers()
+
+    parser2 = subparsers.add_parser("show", help="Show system information")
+    parser2.set_defaults(op="show")
+
+    parser2 = subparsers.add_parser("check", help="Check the system")
+    parser2.set_defaults(op="check")
+    parser2.add_argument("--more-hardware-check", action="store_true")
+    parser2.add_argument("--more-filesystem-check", action="store_true")
+    parser2.add_argument("--auto-fix", action="store_true")
+
+    parser2 = subparsers.add_parser("update", help="Update the system")
+    parser2.set_defaults(op="update")
+    parser2.add_argument("--no-sync", action="store_true")
+
+    parser2 = subparsers.add_parser("stablize", help="Stablize the system")
+    parser2.set_defaults(op="stablize")
+
+    parser2 = subparsers.add_parser("clean", help="Clean the system")
+    parser2.set_defaults(op="clean")
+    parser2.add_argument("--pretend", action="store_true")
+
+    ###########################################################################
+
+    parser2 = subparsers.add_parser("add-harddisk", help="Add harddisk into storage layout")
+    parser2.set_defaults(op="hdd_add")
+    parser2.add_argument("devpath")
+    parser2.add_argument("--mainboot", action="store_true")
+    parser2.add_argument("--with-badblock", action="store_true")
+
+    parser2 = subparsers.add_parser("remove-harddisk", help="Remove harddisk from storage layout")
+    parser2.set_defaults(op="hdd_remove")
+    parser2.add_argument("devpath")
+
+    parser2 = subparsers.add_parser("enable-swap", help="Enable swap system-widely")
+    parser2.set_defaults(op="enable-swap")
+
+    parser2 = subparsers.add_parser("disable-swap", help="Disable swap system-widely")
+    parser2.set_defaults(op="disable-swap")
+
+    ###########################################################################
+
+    parser2 = subparsers.add_parser("add-user")
+    parser2.set_defaults(op="add_user")
+    parser2.add_argument("username")
+
+    parser2 = subparsers.add_parser("remove-user")
+    parser2.set_defaults(op="remove_user")
+    parser2.add_argument("username")
+
+    parser2 = subparsers.add_parser("reset-user-password")
+    parser2.set_defaults(op="reset_user_password")
+    parser2.add_argument("username")
+
+    parser2 = subparsers.add_parser("modify-user")
+    parser2.set_defaults(op="modify_user")
+    parser2.add_argument("username")
+
+    parser2 = subparsers.add_parser("flush-user")
+    parser2.set_defaults(op="flush_user")
+    parser2.add_argument("username")
+
+    parser2 = subparsers.add_parser("enable-user")
+    parser2.set_defaults(op="enable_user")
+    parser2.add_argument("username")
+
+    parser2 = subparsers.add_parser("disable-user")
+    parser2.set_defaults(op="disable_user")
+    parser2.add_argument("username")
+
+    parser2 = subparsers.add_parser("add-group")
+    parser2.set_defaults(op="add_group")
+    parser2.add_argument("groupname")
+
+    parser2 = subparsers.add_parser("remove-group")
+    parser2.set_defaults(op="remove_group")
+    parser2.add_argument("groupname")
+
+    parser2 = subparsers.add_parser("modify-group")
+    parser2.set_defaults(op="modify_group")
+    parser2.add_argument("groupname")
+
+    ###########################################################################
+
+    parser2 = subparsers.add_parser("install-package", help="Install a package")
+    parser2.set_defaults(op="install-package")
+    parser2.add_argument("--test", action="store_true")
+    parser2.add_argument("package_name", metavar="package-name")
+
+    parser2 = subparsers.add_parser("uninstall-package", help="Un-install a package")
+    parser2.set_defaults(op="uninstall-package")
+
+    parser2 = subparsers.add_parser("install-overlay", help="Install an overlay")
+    parser2.set_defaults(op="install-overlay")
+    parser2.add_argument("overlay_name", metavar="overlay-name")
+    parser2.add_argument("overlay_url", metavar="overlay-url")
+
+    parser2 = subparsers.add_parser("uninstall-overlay", help="Uninstall an overlay")
+    parser2.set_defaults(op="uninstall-overlay")
+    parser2.add_argument("overlay_name", metavar="overlay-name")
+
+    parser2 = subparsers.add_parser("enable-overlay-package", help="Enable an overlay package")
+    parser2.set_defaults(op="enable-overlay-package")
+    parser2.add_argument("overlay_name", metavar="overlay-name")
+    parser2.add_argument("package_name", metavar="package-name")
+
+    parser2 = subparsers.add_parser("disable-overlay-package", help="Disable an overlay package")
+    parser2.set_defaults(op="disable-overlay-package")
+    parser2.add_argument("overlay_name", metavar="overlay-name")
+    parser2.add_argument("package_name", metavar="package-name")
+
+    ###########################################################################
+
+    parser2 = subparsers.add_parser("install-rescue-os", help="Install rescue operating system")
+    parser2.set_defaults(op="install-rescue-os")
+
+    parser2 = subparsers.add_parser("uninstall-rescue-os", help="Uninstall rescue operating system")
+    parser2.set_defaults(op="uninstall-rescue-os")
+
+    parser2 = subparsers.add_parser("build-rescue-disk", help="Build an rescue disk")
+    parser2.set_defaults(op="build-rescue-disk")
+    parser2.add_argument("devpath")
+
+    ###########################################################################
+
+    parser2 = subparsers.add_parser("log-to-memory", help="Log to memory")
+    parser2.set_defaults(op="log-to-memory")
+
+    parser2 = subparsers.add_parser("log-to-harddisk", help="Log to harddisk")
+    parser2.set_defaults(op="log-to-harddisk")
+    parser2.add_argument("--realtime", action="store_true")
+
+    return parser
+
+
+###############################################################################
+
+param = FmParam()
+args = getArgParser().parse_args()
+
+if "FPEMUD_REFSYSTEM_PREPARE" in os.environ:
+    # prepare mode:
+    #   we are running in a chrooted environment in the host machine.
+    #   no storage layout
+    #   no mount point should be manipulated.
+    #   don't create initramfs or install any boot-loader.
+    param.runMode = "prepare"
+elif "FPEMUD_REFSYSTEM_SETUP" in os.environ:
+    # setup mode:
+    #   we are running in a chrooted environment in the target machine.
+    #   storage layout has been created, storage device has been mounted.
+    #   network is assumed as not available.
+    #   we want to render the target machine bootable with as few operations as possible.
+    param.runMode = "setup"
+else:
+    # normal mode
+    param.runMode = "normal"
+
+try:
+    with SingletonProcess(param.singletonFile):
+        FmUtil.mkDirAndClear(param.tmpDir)
+        FmUtil.ensureDir(param.tmpDirOnHdd)
+
+        param.infoPrinter = InfoPrinter()
+        param.hwInfoGetter = FmHwInfoGetter()
+        param.storageManager = FmStorageManager(param)
+        param.pkgManager = FmPkgman(param)
+        param.logManager = FmLoggingManager(param)
+        param.userManager = FmUserManager(param)
+        param.sysChecker = FmSysChecker(param)
+        param.sysUpdater = FmSysUpdater(param)
+        param.sysCleaner = FmSysCleaner(param)
+
+        if args.op == "check":
+            param.sysChecker.doSysCheck(args.auto_fix, args.more_hardware_check, args.more_filesystem_check)
+        else:
+            param.sysChecker.doPostCheck()
+            if args.op == "show":
+                FmMain(param).doShow()
+            elif args.op == "update":
+                param.sysUpdater.update(not args.no_sync, True)
+            elif args.op == "stablize":
+                param.sysUpdater.stablize()
+            elif args.op == "clean":
+                param.sysCleaner.clean(args.pretend)
+            elif args.op == "hdd_add":
+                if param.runMode == "prepare":
+                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
+                FmMain(param).doHddAdd(args.devpath, args.mainboot, args.with_badblock)
+            elif args.op == "hdd_remove":
+                if param.runMode == "prepare":
+                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
+                FmMain(param).doHddRemove(args.devpath)
+            elif args.op == "add_user":
+                param.userManager.addUser(args.username)
+            elif args.op == "remove_user":
+                param.userManager.removeUser(args.username)
+            elif args.op == "reset_user_password":
+                param.userManager.resetUserPassword(args.username)
+            elif args.op == "modify_user":
+                FmMain(param).modifyUser(args.username)
+            elif args.op == "flush_user":
+                param.userManager.flushUser(args.username)
+            elif args.op == "enable_user":
+                FmMain(param).enableUser(args.username)
+            elif args.op == "disable_user":
+                FmMain(param).disableUser(args.username)
+            elif args.op == "add_group":
+                FmMain(param).addGroup()
+            elif args.op == "remove_group":
+                FmMain(param).removeGroup()
+            elif args.op == "modify_group":
+                FmMain(param).modifyGroup()
+            elif args.op == "install-overlay":
+                FmMain(param).doAddOverlay(args.overlay_name, args.overlay_url)
+            elif args.op == "uninstall-overlay":
+                FmMain(param).doRemoveOverlay(args.overlay_name)
+            elif args.op == "enable-overlay-package":
+                FmMain(param).doEnableOverlayPkg(args.overlay_name, args.package_name)
+            elif args.op == "disable-overlay-package":
+                FmMain(param).doDisableOverlayPkg(args.overlay_name, args.package_name)
+            elif args.op == "enable-swap":
+                if param.runMode == "prepare":
+                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
+                FmMain(param).doEnableSwap()
+            elif args.op == "disable-swap":
+                if param.runMode == "prepare":
+                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
+                FmMain(param).doDisableSwap()
+            elif args.op == "install-package":
+                param.pkgManager.installPackage(args.package_name, args.test)
+            elif args.op == "uninstall-package":
+                param.pkgManager.uninstallPackage(args.package_name)
+            elif args.op == "install-rescue-os":
+                if param.runMode in ["prepare", "setup"]:
+                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
+                FmMain(param).installRescueOs()
+            elif args.op == "uninstall-rescue-os":
+                if param.runMode in ["prepare", "setup"]:
+                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
+                FmMain(param).uninstallRescueOs()
+            elif args.op == "build-rescue-disk":
+                if param.runMode in ["prepare", "setup"]:
+                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
+                FmMain(param).buildRescueDisk(args.devpath)
+            elif args.op == "log-to-memory":
+                FmMain(param).logToMemory()
+            elif args.op == "log-to-harddisk":
+                FmMain(param).logToDisk(args.realtime)
+            else:
+                assert False
+
+        shutil.rmtree(param.tmpDirOnHdd)
+        shutil.rmtree(param.tmpDir)
+
+except SingletonProcess.AlreadyExistException:
+    print("Another sysman instance is running.")
+    sys.exit(1)

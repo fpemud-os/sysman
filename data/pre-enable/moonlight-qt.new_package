@@ -1,0 +1,4 @@
+[main]
+name = snailcat
+url = https://github.com/nightspc/snailcat
+package = net-misc/moonlight-qt

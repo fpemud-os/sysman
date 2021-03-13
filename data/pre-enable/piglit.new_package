@@ -1,0 +1,4 @@
+[main]
+name = fsvm88
+url = https://github.com/fsvm88/gentoo-local-overlay
+package = x11-apps/piglit

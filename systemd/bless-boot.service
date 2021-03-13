@@ -1,0 +1,14 @@
+# It is a modified version of systemd-bless-boot.service
+
+[Unit]
+Description=Mark the current boot process as good
+DefaultDependencies=no
+Requires=boot-complete.target
+After=local-fs.target boot-complete.target
+Conflicts=shutdown.target
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/grub-editenv - unset recordfail

@@ -1,0 +1,4 @@
+[main]
+name = ephemer0l
+url = https://github.com/ephemer0l/ephemer0l-overlay.git
+package = net-ftp/pftp

@@ -1,0 +1,8 @@
+[symbols:MICROCODE]=m,y
+X86_MSR=y
+X86_CPUID=y
+[symbols:MTRR]=y
+X86_PAT=y
+
+HOTPLUG_CPU=y
+BOOTPARAM_HOTPLUG_CPU0=y

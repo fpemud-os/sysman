@@ -1,0 +1,4 @@
+[main]
+name = ssnb
+url = https://github.com/samuelbernardo/ssnb-overlay
+package = dev-util/eclipse-sdk-bin

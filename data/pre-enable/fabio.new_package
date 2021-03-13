@@ -1,0 +1,4 @@
+[main]
+name = damo
+url = https://github.com/damobrisbane/damo-overlay
+package = net-proxy/fabio

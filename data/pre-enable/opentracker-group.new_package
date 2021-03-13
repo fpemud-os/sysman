@@ -1,0 +1,4 @@
+[main]
+name = junta
+url = https://github.com/beelze/junta
+package = acct-group/opentracker

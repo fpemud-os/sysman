@@ -1,0 +1,4 @@
+[main]
+name = oiledmachine
+url = https://github.com/orsonteodoro/oiledmachine-overlay
+package = dev-libs/libappimage

@@ -1,0 +1,219 @@
+# global function support
+*/*                                                        adns
+*/*                                                        cjk
+*/*                                                        colord
+*/*                                                        dbus
+*/*                                                        fontconfig truetype
+*/*                                                        gstreamer
+*/*                                                        icu
+*/*                                                        ios
+*/*                                                        libsecret gnome-keyring
+*/*                                                        nsplugin
+*/*                                                        policykit
+*/*                                                        systemd
+*/*                                                        xattr
+*/*                                                        realtime
+*/*                                                        ipv6
+*/*                                                        INPUT_DEVICES: -* libinput
+
+# api support
+*/*                                                        aio
+*/*                                                        cairo
+*/*                                                        caps
+*/*                                                        device-mapper
+*/*                                                        glade qml
+*/*                                                        gnutls
+*/*                                                        gudev introspection
+*/*                                                        opencl
+*/*                                                        opencv
+*/*                                                        drm gbm
+*/*                                                        egl eglfs gles2 gles2-only gles3 opengl
+*/*                                                        gallium vulkan
+*/*                                                        openvg
+*/*                                                        vaapi vdpau
+*/*                                                        v4l
+*/*                                                        readline
+*/*                                                        startup-notification
+*/*                                                        udev
+*/*                                                        wayland
+
+# video format related flags
+*/*                                                        bluray dv dvb dvd mms mpeg theora vcd x264 x265 xvid vpx
+
+# audio format related flags
+*/*                                                        a52 aac airplay alac cdda dts flac lame mad mp3 musepack ogg opus speex vorbis wavpack
+
+# image format related flags
+*/*                                                        apng exif gif jpeg jpeg2k mng png svg tiff webp wmf
+
+# document format support
+*/*                                                        djvu xps
+
+# compress format support
+*/*                                                        bzip2 gzip lz4 lzma lzo szip xz
+
+# disable deprecated USE flags
+*/*                                                        -deprecated
+*/*                                                        -fallback
+
+# sys-auth/consolekit is deprecated
+*/*                                                        -consolekit
+
+# ssh1 protocol is deprecated
+*/*                                                        -ssh1
+
+# don't use media-video/libav
+*/*                                                                                                       -libav
+
+# media-libs/libquvi depends on dev-lang/lua[deprecated]
+*/*                                                                                                       -quvi
+
+# media-libs/libdv depends on libsdl-version-1, which is deprecated
+*/*                                                                                                       -dv
+
+# disable complex protocol: Active Directory
+*/*                                                                                                       -ads
+
+# disable complex protocol: WebDAV
+*/*                                                                                                       -webdav
+
+# disable VLC support
+*/*                                                                                                       -vlc
+
+# disable DE related flags as much as possible
+*/*                                                                                                       -gnome -kde
+
+# don't enable upnp by default
+*/*                                                                                                       -upnp
+
+# preference: gstreamer -> pipewire -> pulseaudio -> alsa
+app-emulation/wine-vanilla                                                                                pulseaudio -alsa     # gstreamer support in wine is not a pulseaudio replacement
+app-emulation/wine-staging                                                                                pulseaudio -alsa
+dev-util/electron                                                                                         pulseaudio            # doesn't support gstreamer
+games-emulation/dosbox                                                                                    alsa                  # doesn't support gstreamer and pulseaudio
+media-libs/libsdl                                                                                         pulseaudio            # doesn't support gstreamer
+media-libs/libsdl2                                                                                        pulseaudio            # doesn't support gstreamer
+media-video/mpv                                                                                           alsa                  # it seems v4l needs alsa
+net-im/zoom                                                                                               pulseaudio            # doesn't support gstreamer
+
+# use dev-python/python-magic instead
+sys-apps/file                                                                                             -python
+
+# according to avahi homepage, d-bus api is for third-party
+net-dns/avahi                                                                                             -python
+
+# lzo and lz4 is mutile exclusive for openvpn
+net-vpn/openvpn                                                                                           -lz4
+
+# as a network utility, dbus is uneccessary for dnsmasq
+net-dns/dnsmasq                                                                                           -dbus
+
+# we need to run 32bit windows program with wine
+virtual/wine                                                                                              abi_x86_32
+
+# package which is badly written so that its doc flag is critical
+dev-ruby/bundler                                                                                           doc     # so as to install man pages
+
+# we use systemd only as an init system
+sys-process/procps                                                                                         -systemd
+net-misc/networkmanager                                                                                    -systemd
+
+# use full power of qemu, especially when there's no extra dependencies
+app-emulation/qemu                                                                                         tci
+app-emulation/qemu                                                                                         QEMU_SOFTMMU_TARGETS: *
+app-emulation/qemu                                                                                         QEMU_USER_TARGETS: *
+
+# enable this for dbus related packages, what it is for?
+*/*                                                                                                        user-session
+
+# we use /dev/node permission modification and FUSE to deal with removable block devices
+*/*                                                                                                        -udisks
+
+# tcp-wrappers is not a full-fledged firewall, so don't use it
+*/*                                                                                                        -tcpd
+
+# don't use python2.x
+*/*                                                                                                        -python_targets_python2_7
+*/*                                                                                                        -python_single_target_python2_7
+
+# for networkmanager, "nss" is deprecated by "gnutls", "wext" is deprecated
+net-misc/networkmanager                                                                                    -nss -wext
+
+# select between qt4 and qt5
+*/*                                                                                                        -qt4
+media-video/smplayer                                                                                       qt5
+net-analyzer/wireshark                                                                                     qt5
+net-p2p/bitcoin-qt                                                                                         qt5
+
+# select between gtk2 and gtk3
+*/*                                                                                                        -gtk2
+net-misc/spice-gtk                                                                                         gtk3
+
+# auto-ip support
+net-dns/avahi                                                                                              autoipd
+net-misc/networkmanager                                                                                    zeroconf
+
+# enable game expansion pack
+games-strategy/command-and-conquer-redalert                                                                counterstrike aftermath
+games-strategy/total-annihilation                                                                          core-contingency battle-tactics
+
+# use gnome-base/gsettings-desktop-schemas, which is a good work of gnome, all DEs should accept it
+media-libs/libcanberra                                                                                     gnome
+
+# the big, complex net-nds/openldap is definitely not suitable for desktop usage
+# this package should be masked, BUT, many important packages still has mandatory dependence on it
+net-nds/openldap                                                                                           -* minimal
+
+# systemd preference
+sys-apps/systemd                                                                                           -sysv-utils
+sys-apps/systemd                                                                                           vanilla
+
+# monitoring daemon is not needed
+sys-apps/smartmontools                                                                                     -caps -daemon -systemd
+
+# lightdm-gtk-greeter should not be installed by dependency resolving
+x11-misc/lightdm                                                                                           -gtk
+
+# we use wayland
+*/*                                                                                                        -X
+app-emulation/wine-vanilla                                                                                 X            # wine has no wayland support, it has to use Xwayland
+app-emulation/wine-staging                                                                                 X
+dev-util/electron                                                                                          X -wayland   # electron wayland support needs ozone which is broken now
+gui-wm/wayfire                                                                                             X            # enable Xwayland
+
+# don't use package built-in component
+app-editors/vscode                                                                                         system-electron system-ripgrep
+net-libs/nodejs                                                                                            system-icu
+net-im/zoom                                                                                                -bundled-qt
+
+# for /usr merge
+*/*                                                                                                        -split-usr
+
+# package specified flags
+net-wireless/iwd                                                    -systemd                            # don't use systemd-resolve
+sys-apps/systemd                                                    -gcrypt -resolvconf
+app-emulation/qemu                                                  usb
+gnome-base/gvfs                                                     afp archive fuse gphoto2 mtp samba
+net-fs/cifs-utils                                                   -acl
+net-fs/samba                                                        -pam
+sys-auth/polkit                                                     -pam            # split polkit and pam totally
+media-tv/kodi                                                       cec -airplay
+media-libs/opencv                                                   gtk
+app-misc/hivex                                                      -perl           # why app-misc/hivex use +perl in ebuild file?
+media-plugins/gst-plugins-meta                                      pulseaudio      # enable pulseaudio currently
+net-wireless/iwd                                                    -crda
+media-libs/mesa                                                     gbm osmesa
+net-misc/freerdp                                                    cups ffmpeg smartcard usb
+net-misc/xrdp                                                       fuse
+sys-block/gparted                                                   f2fs fat hfs jfs ntfs reiserfs udf xfs
+media-libs/libcanberra                                              -udev
+www-apps/gogs                                                       -pam
+dev-games/mygui                                                     -opengl         # mygui[ogre] is more common, ogre is an opengl wrapper
+*/*                                                                 glamor -xa -xv -xvmc				# xorg related
+net-misc/networkmanager                                             -modemmanager
+dev-lang/php                                                        gd              # it seems many other use flag needs it
+media-gfx/imagemagick                                               -openmp         # bug 547922
+
+# 
+x11-base/xorg-server                        -elogind                        # why it enables by default?
+x11-base/xorg-server						-suid -systemd -udev -xorg

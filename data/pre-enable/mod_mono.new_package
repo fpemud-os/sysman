@@ -1,0 +1,4 @@
+[main]
+name = dotnet
+url = https://github.com/gentoo/dotnet
+package = www-apache/mod_mono

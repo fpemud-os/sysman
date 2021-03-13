@@ -1,0 +1,16 @@
+SUSPEND=y
+HIBERNATION=y
+
+ACPI_EC_DEBUGFS=n
+ACPI_CUSTOM_METHOD=n
+ACPI_REDUCED_HARDWARE_ONLY=n       # Hardware-reduced ACPI support only
+[symbols:ACPI]=m,y
+
+[symbols:SFI]=m,y
+
+[symbols:/Power management and ACPI options/CPU Frequency scaling]=y
+
+INTEL_IDLE=y
+[symbols:/Power management and ACPI options/CPU Idle]=y
+
+X86_PM_TIMER=y

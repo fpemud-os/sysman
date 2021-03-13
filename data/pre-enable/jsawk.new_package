@@ -1,0 +1,4 @@
+[main]
+name = fulhax
+url = https://github.com/fulhax/fulhax-overlay
+package = sys-apps/jsawk
