@@ -866,7 +866,7 @@ class FmUtil:
             return False
 
         ueventFile = "/sys/block/%s/device/uevent" % (devName)
-        if "DRIVER=sd" not in pathlib.Path(ueventFile).read_text().split("\n")
+        if "DRIVER=sd" not in pathlib.Path(ueventFile).read_text().split("\n"):
             return False
 
         return True
