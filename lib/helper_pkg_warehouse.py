@@ -187,6 +187,9 @@ class PkgWarehouse:
                             useSet.add(use[len("+l10n_"):])
 
         useList = sorted(list(useSet))
+        if "nb" in useList:
+            # trick: we keep "no" since "nb" and "no" conflict, see https://bugs.gentoo.org/775734
+            useList.remove("nb")
         fnContent = "*/*     L10N: %s" % (" ".join(useList))
 
         if checkOrRefresh:
