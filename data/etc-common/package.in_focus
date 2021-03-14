@@ -91,6 +91,7 @@ media-video/celluloid
 media-video/mpv
 
 ## utility: social #################################################
+net-im/slack
 net-im/zoom
 
 ## utility: coding tools ###########################################
