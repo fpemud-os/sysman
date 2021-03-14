@@ -176,6 +176,7 @@ class PkgWarehouse:
         usefn = os.path.join(FmConst.portageCfgUseDir, "%s-%s" % (id, name))
         portree = portage.db[portage.root]["porttree"]
 
+        # get all languages
         useSet = set()
         for repoName in self.repoman.getRepositoryList():
             for pkgName in FmUtil.repoGetEbuildDirList(self.repoman.getRepoDir(repoName)):
@@ -186,12 +187,15 @@ class PkgWarehouse:
                         elif use.startswith("+l10n_"):
                             useSet.add(use[len("+l10n_"):])
 
+        # trick: we keep "no" since "nb" and "no" conflict, see https://bugs.gentoo.org/775734
+        if "nb" in useSet and "no" in useSet:
+            useSet.remove("nb")
+
+        # construct L10N line
         useList = sorted(list(useSet))
-        if "nb" in useList:
-            # trick: we keep "no" since "nb" and "no" conflict, see https://bugs.gentoo.org/775734
-            useList.remove("nb")
         fnContent = "*/*     L10N: %s" % (" ".join(useList))
 
+        # file operation
         if checkOrRefresh:
             if not os.path.exists(usefn):
                 raise Exception("\"%s\" does not exist" % (usefn))
