@@ -926,17 +926,17 @@ class FmSysChecker:
         if not bFullCheck:
             return
 
-        for oname in self.pkgwh.layman.getOverlayList():
-            oDir = self.pkgwh.layman.getOverlayDir(oname)
+        for overlayName in self.pkgwh.layman.getOverlayList():
+            oDir = self.pkgwh.layman.getOverlayDir(overlayName)
 
             # transient overlay must has at least one enabled package
-            if self.pkgwh.layman.getOverlayType(oname) == "transient":
+            if self.pkgwh.layman.getOverlayType(overlayName) == "transient":
                 if len(FmUtil.repoGetEbuildDirList(oDir)) == 0:
                     if self.bAutoFix:
-                        self.pkgwh.layman.removeOverlay(oname)
+                        self.pkgwh.layman.removeOverlay(overlayName)
                         continue
                     else:
-                        self.infoPrinter.printError("Overlay \"%s\" has no enabled package." % (oname))
+                        self.infoPrinter.printError("Overlay \"%s\" has no enabled package." % (overlayName))
 
             # there should be no same ebuild directory between repository and overlay
             if True:
@@ -948,22 +948,22 @@ class FmSysChecker:
                 oDirInfo = set(FmUtil.repoGetEbuildDirList(oDir))
                 for k, v in infoDict.items():
                     for vi in list(v & oDirInfo):
-                        if self.bAutoFix and self.pkgwh.layman.getOverlayType(oname) == "trusted":
+                        if self.bAutoFix and self.pkgwh.layman.getOverlayType(overlayName) == "trusted":
                             FmUtil.repoRemovePackageAndCategory(oDir, vi)
                         else:
-                            self.infoPrinter.printError("Repository \"%s\" and overlay \"%s\" has same package \"%s\"." % (k, oname, vi))
+                            self.infoPrinter.printError("Repository \"%s\" and overlay \"%s\" has same package \"%s\"." % (k, overlayName, vi))
 
             # overlays should not have same repo_name
             if True:
-                overlayRepoName = self.pkgwh.layman.getOverlayMetadata(oname, "repo-name")
+                overlayRepoName = self.pkgwh.layman.getOverlayMetadata(overlayName, "repo-name")
                 for repoName in self.pkgwh.repoman.getRepositoryList():
                     if self.pkgwh.repoman.getRepoMetadata(repoName, "repo-name") == overlayRepoName:
-                        self.infoPrinter.printError("Repository \"%s\" and overlay \"%s\" has same repo_name." % (repoName, oname))
+                        self.infoPrinter.printError("Repository \"%s\" and overlay \"%s\" has same repo_name." % (repoName, overlayName))
                 for oname2 in self.pkgwh.layman.getOverlayList():
-                    if oname == oname2:
+                    if overlayName == oname2:
                         continue
                     if self.pkgwh.layman.getOverlayMetadata(oname2, "repo-name") == overlayRepoName:
-                        self.infoPrinter.printError("Overlay \"%s\" and \"%s\" has same repo_name." % (oname2, oname))
+                        self.infoPrinter.printError("Overlay \"%s\" and \"%s\" has same repo_name." % (oname2, overlayName))
 
             # there should be no same set files between overlays
             if True:
@@ -972,13 +972,13 @@ class FmSysChecker:
                     oSetDir = os.path.join(self.pkgwh.layman.getOverlayFilesDir(oname2), "set")
                     infoDict[oname2] = set(os.listdir(oSetDir)) if os.path.exists(oSetDir) else set()
                 for oname2 in self.pkgwh.layman.getOverlayList():
-                    if oname == oname2:
+                    if overlayName == oname2:
                         continue
-                    vi = list(infoDict[oname] & infoDict[oname2])
+                    vi = list(infoDict[overlayName] & infoDict[oname2])
                     if len(vi) == 0:
                         continue
                     for f in vi:
-                        self.infoPrinter.printError("Overlay \"%s\" and \"%s\" has same set file \"%s\"" % (oname, oname2, f))
+                        self.infoPrinter.printError("Overlay \"%s\" and \"%s\" has same set file \"%s\"" % (overlayName, oname2, f))
 #                    for f in vi:
 #                        fname1 = os.path.join(self.pkgwh.layman.getOverlayFilesDir(k), "set", f)
 #                        fname2 = os.path.join(self.pkgwh.layman.getOverlayFilesDir(k2), "set", f)

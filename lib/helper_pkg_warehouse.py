@@ -602,7 +602,7 @@ class EbuildOverlays:
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
 
-        vcsType = self._createOverlayFilesDir(overlayName, overlayFilesDir, overlayUrl)
+        vcsType = self._createOverlayFilesDir(overlayName, overlayFilesDir, None, overlayUrl)
         try:
             self._removeOverlayFilesDirDuplicatePackage(overlayFilesDir)
             self._createTrustedOverlayDir(overlayName, overlayDir, overlayFilesDir)
@@ -621,7 +621,7 @@ class EbuildOverlays:
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
 
-        vcsType = self._createOverlayFilesDir(overlayName, overlayFilesDir, overlayUrl)
+        vcsType = self._createOverlayFilesDir(overlayName, overlayFilesDir, None, overlayUrl)
         try:
             self._createTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
             repoName = FmUtil.repoGetRepoName(overlayDir)
@@ -699,7 +699,7 @@ class EbuildOverlays:
             # doesn't exist or is invalid
             if not os.path.exists(overlayFilesDir) or not os.path.isdir(overlayFilesDir):
                 if bAutoFix:
-                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, overlayUrl)
+                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, None, overlayUrl)
                     assert ret == vcsType
                     self._removeOverlayFilesDirDuplicatePackage(overlayFilesDir)
                     self._createTrustedOverlayDir(overlayName, overlayDir, overlayFilesDir)
@@ -713,7 +713,7 @@ class EbuildOverlays:
             # doesn't exist or is invalid
             if not os.path.exists(overlayFilesDir) or not os.path.isdir(overlayFilesDir):
                 if bAutoFix:
-                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, overlayUrl)
+                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, None, overlayUrl)
                     assert ret == vcsType
                     self._createTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
                 else:
@@ -862,23 +862,24 @@ class EbuildOverlays:
         domainName = urllib.parse.urlparse(overlayUrl).hostname
         return not FmUtil.isDomainNamePrivate(domainName)
 
-    def _createOverlayFilesDir(self, overlayName, overlayFilesDir, overlayUrl):
-        while True:
-            # vcs-type:git
-            rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/git", "ls-remote", overlayUrl)
+    def _createOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
+        while vcsType is None:
+            rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/git", "ls-remote", url)
             if rc == 0:
-                FmUtil.gitPullOrClone(overlayFilesDir, overlayUrl)
-                ret = "git"
+                vcsType = "git"
                 break
-
-            # vcs-type:svn
-            rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/svn", "ls", overlayUrl)
+            rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/svn", "ls", url)
             if rc == 0:
-                FmUtil.svnUpdateOrCheckout(overlayFilesDir, overlayUrl)
-                ret = "svn"
+                vcsType = "svn"
                 break
-
             raise Exception("unknow overlay vcs type")
+
+        if vcsType == "git":
+            FmUtil.gitPullOrClone(overlayFilesDir, url)
+        elif vcsType == "svn":
+            FmUtil.svnUpdateOrCheckout(overlayFilesDir, url)
+        else:
+            assert False
 
         if self.__overlayHasPatch(overlayName, ["pkgwh-n-patch", "pkgwh-s-patch"]):
             print("Patching...")
@@ -886,13 +887,13 @@ class EbuildOverlays:
             self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch", False)
             print("Done.")
 
-        return ret
+        return vcsType
 
-    def _syncOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, overlayUrl):
+    def _syncOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
-            FmUtil.gitPullOrClone(overlayFilesDir, overlayUrl)
+            FmUtil.gitPullOrClone(overlayFilesDir, url)
         elif vcsType == "svn":
-            FmUtil.svnUpdateOrCheckout(overlayFilesDir, overlayUrl)
+            FmUtil.svnUpdateOrCheckout(overlayFilesDir, url)
         else:
             assert False
 
@@ -1099,43 +1100,56 @@ class CloudOverlayDb:
         self.infoDict = {
             "gentoo-official": {
                 "remoteUrl": "https://api.gentoo.org/overlays/repositories.xml",
-                "localFullFn": os.path.join(FmConst.cloudOverlayDbDir, "gentoo-official.xml"),
-                "rootElem": None,
+                "localFn": "gentoo-official.xml",
+                "parseResult": None,
             }
         }
 
-    def refresh(self):
+    def updateCache(self):
+        FmUtil.ensureDir(FmConst.cloudOverlayDbDir)
         for val in self.infoDict.values():
-            FmUtil.wgetDownload(val["remoteUrl"], val["localFullFn"])
+            FmUtil.wgetDownload(val["remoteUrl"], os.path.join(FmConst.cloudOverlayDbDir, val["localFn"]))
 
-    def isOverlayExists(self, overlayName):
-        return self._getRepoNode(overlayName) is not None
+    def hasOverlay(self, overlayName):
+        return self._getOverlayVcsTypeAndUrl(overlayName) is not None
 
     def getOverlayVcsTypeAndUrl(self, overlayName):
-        repoTag = self._getRepoNode(overlayName)
-        assert repoTag is not None
+        ret = self._getOverlayVcsTypeAndUrl(overlayName)
+        assert ret is not None
+        return ret
 
-        for sourceTag in repoTag.xpath("./source"):
-            vcsType = sourceTag.attr["type"]
-            url = sourceTag.text
-            if vcsType == "git":
-                if url.startswith("https://") or url.startswith("http://") or url.startswith("git://"):
-                    return (vcsType, url)
-            elif vcsType == "svn":
-                if url.startswith("https://") or url.startswith("http://"):
-                    return (vcsType, url)
-            elif vcsType == "mercurial":
-                if url.startswith("https://") or url.startswith("http://"):
-                    return (vcsType, url)
-            else:
-                raise Exception("invalid source type \"%s\" for overlay \"%s\"" % (vcsType, overlayName))
-        raise Exception("no appropriate source for overlay \"%s\"" % (overlayName))
-
-    def _getRepoNode(self, overlayName):
+    def _getOverlayVcsTypeAndUrl(self, overlayName):
         for val in self.infoDict.values():
-            if val["rootElem"] is None:
-                val["rootElem"] = lxml.etree.parse(val["localFullFn"]).getroot()
-            repoTagList = [x.parent for x in val["rootElem"].xpath(".//repo/name[text()='%s']" % (overlayName))]
-            if len(repoTagList) > 0:
-                return repoTagList[0]
+            if val["parseResult"] is None:
+                val["parseResult"] = self.__parse(os.path.join(FmConst.cloudOverlayDbDir, val["localFn"]))
+            if overlayName in val["parseResult"]:
+                return val["parseResult"][overlayName]
         return None
+
+    def __parse(self, fullfn):
+        ret = dict()
+        rootElem = lxml.etree.parse(fullfn).getroot()
+        for nameTag in rootElem.xpath(".//repo/name"):
+            overlayName = nameTag.text
+            if overlayName in ret:
+                raise Exception("duplicate overlay \"%s\"" % (overlayName))
+            for sourceTag in nameTag.parent.xpath("./source"):
+                vcsType = sourceTag.attr["type"]
+                url = sourceTag.text
+                if vcsType == "git":
+                    if url.startswith("https://") or url.startswith("http://") or url.startswith("git://"):
+                        ret[overlayName] = (vcsType, url)
+                        break
+                elif vcsType == "svn":
+                    if url.startswith("https://") or url.startswith("http://"):
+                        ret[overlayName] = (vcsType, url)
+                        break
+                elif vcsType == "mercurial":
+                    if url.startswith("https://") or url.startswith("http://"):
+                        ret[overlayName] = (vcsType, url)
+                        break
+                else:
+                    raise Exception("invalid source type \"%s\" for overlay \"%s\"" % (vcsType, overlayName))
+            if overlayName not in ret:
+                raise Exception("no appropriate source for overlay \"%s\"" % (overlayName))
+        return ret

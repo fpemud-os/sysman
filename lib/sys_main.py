@@ -15,6 +15,7 @@ from helper_boot_rescueos import RescueOs
 from helper_boot_rescueos import RescueDiskBuilder
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
+from helper_pkg_warehouse import CloudOverlayDb
 from sys_hw_info import HwInfoPcBranded
 from sys_hw_info import HwInfoPcAssembled
 from sys_hw_info import DevHwInfoDb
@@ -400,6 +401,13 @@ class FmMain:
         self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.hwInfoGetter.current(), layout)
 
     def doAddOverlay(self, overlayName, overlayUrl):
+        if overlayUrl is None:
+            cloudDb = CloudOverlayDb()
+            cloudDb.updateCache()
+            if not cloudDb.hasOverlay(overlayName):
+                raise Exception("overlay \"%s\" is not in cloud database, overlay URL must be specified" % (overlayName))
+            vcsType, overlayUrl = cloudDb.getOverlayVcsTypeAndUrl(overlayName)
+
         EbuildOverlays().addTransientOverlay(overlayName, overlayUrl)
 
     def doRemoveOverlay(self, overlayName):

@@ -124,7 +124,7 @@ def getArgParser():
     parser2 = subparsers.add_parser("install-overlay", help="Install an overlay")
     parser2.set_defaults(op="install-overlay")
     parser2.add_argument("overlay_name", metavar="overlay-name")
-    parser2.add_argument("overlay_url", metavar="overlay-url")
+    parser2.add_argument("overlay_url", metavar="overlay-url", required=False)
 
     parser2 = subparsers.add_parser("uninstall-overlay", help="Uninstall an overlay")
     parser2.set_defaults(op="uninstall-overlay")
