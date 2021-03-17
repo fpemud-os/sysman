@@ -43,10 +43,6 @@ app-cdr/nrg2iso
 # use qemu directly, so libvirt is not needed
 app-emulation/libvirt
 
-# replaced by fpemud-refsystem
-app-portage/layman
-app-eselect/eselect-repository              # this package is promising, but lacks enable/disable single package function
-
 # not active developed and "equery hasuse -p" can do its job
 app-portage/euses
 
