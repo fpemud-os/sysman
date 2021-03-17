@@ -113,9 +113,6 @@ sys-fs/f2fs-tools
 # these packages installs key files in /usr/src, which is bad
 dev-cpp/gmock
 
-# don't use bleeding edge wine
-app-emulation/wine-staging
-
 # use net-misc/chrony instead
 net-misc/ntp
 net-misc/ntpclient
