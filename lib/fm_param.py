@@ -37,6 +37,7 @@ class FmConst:
     configArchiveDir = os.path.join(portageDataDir, "config-archive")
     worldFile = os.path.join(portageDataDir, "world")
 
+    cloudOverlayDbDir = os.path.join(portageCacheDir, "overlay-db")
     laymanfilesDir = os.path.join(portageCacheDir, "laymanfiles")
     distDir = os.path.join(portageCacheDir, "distfiles")
     kcacheDir = os.path.join(portageCacheDir, "kcache")

@@ -8,6 +8,7 @@ import shutil
 import portage
 import fileinput
 import configparser
+import lxml.etree
 import urllib.parse
 from datetime import datetime
 from fm_util import FmUtil
@@ -1090,3 +1091,51 @@ class OverlayCheckError(Exception):
 
     def __init__(self, message):
         self.message = message
+
+
+class CloudOverlayDb:
+
+    def __init__(self):
+        self.infoDict = {
+            "gentoo-official": {
+                "remoteUrl": "https://api.gentoo.org/overlays/repositories.xml",
+                "localFullFn": os.path.join(FmConst.cloudOverlayDbDir, "gentoo-official.xml"),
+                "rootElem": None,
+            }
+        }
+
+    def refresh(self):
+        for val in self.infoDict.values():
+            FmUtil.wgetDownload(val["remoteUrl"], val["localFullFn"])
+
+    def isOverlayExists(self, overlayName):
+        return self._getRepoNode(overlayName) is not None
+
+    def getOverlayVcsTypeAndUrl(self, overlayName):
+        repoTag = self._getRepoNode(overlayName)
+        assert repoTag is not None
+
+        for sourceTag in repoTag.xpath("./source"):
+            vcsType = sourceTag.attr["type"]
+            url = sourceTag.text
+            if vcsType == "git":
+                if url.startswith("https://") or url.startswith("http://") or url.startswith("git://"):
+                    return (vcsType, url)
+            elif vcsType == "svn":
+                if url.startswith("https://") or url.startswith("http://"):
+                    return (vcsType, url)
+            elif vcsType == "mercurial":
+                if url.startswith("https://") or url.startswith("http://"):
+                    return (vcsType, url)
+            else:
+                raise Exception("invalid source type \"%s\" for overlay \"%s\"" % (vcsType, overlayName))
+        raise Exception("no appropriate source for overlay \"%s\"" % (overlayName))
+
+    def _getRepoNode(self, overlayName):
+        for val in self.infoDict.values():
+            if val["rootElem"] is None:
+                val["rootElem"] = lxml.etree.parse(val["localFullFn"]).getroot()
+            repoTagList = [x.parent for x in val["rootElem"].xpath(".//repo/name[text()='%s']" % (overlayName))]
+            if len(repoTagList) > 0:
+                return repoTagList[0]
+        return None
