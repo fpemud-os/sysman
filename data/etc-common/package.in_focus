@@ -104,6 +104,7 @@ app-text/sloccount
 dev-python/autopep8
 dev-python/pyflakes
 dev-python/pycodestyle
+#dbdesigner
 
 ## utility: designing tools ########################################
 media-gfx/gimp

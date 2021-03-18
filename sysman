@@ -124,7 +124,8 @@ def getArgParser():
     parser2 = subparsers.add_parser("install-overlay", help="Install an overlay")
     parser2.set_defaults(op="install-overlay")
     parser2.add_argument("overlay_name", metavar="overlay-name")
-    parser2.add_argument("overlay_url", metavar="overlay-url", required=False)
+    parser2.add_argument("--vcs-type")
+    parser2.add_argument("--url")
 
     parser2 = subparsers.add_parser("uninstall-overlay", help="Uninstall an overlay")
     parser2.set_defaults(op="uninstall-overlay")
@@ -243,7 +244,7 @@ try:
             elif args.op == "modify_group":
                 FmMain(param).modifyGroup()
             elif args.op == "install-overlay":
-                FmMain(param).doAddOverlay(args.overlay_name, args.overlay_url)
+                FmMain(param).doAddOverlay(args.overlay_name, args.url)
             elif args.op == "uninstall-overlay":
                 FmMain(param).doRemoveOverlay(args.overlay_name)
             elif args.op == "enable-overlay-package":
