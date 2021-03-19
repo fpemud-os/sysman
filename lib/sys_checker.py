@@ -16,6 +16,7 @@ from fm_param import FmConst
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import RepositoryCheckError
 from helper_pkg_warehouse import OverlayCheckError
+from helper_pkg_warehouse import CloudOverlayDb
 from helper_pkg_merger import PkgMerger
 from sys_storage_manager import FmStorageLayoutBiosSimple
 from sys_storage_manager import FmStorageLayoutBiosLvm
@@ -926,8 +927,19 @@ class FmSysChecker:
         if not bFullCheck:
             return
 
+        overlayDb = CloudOverlayDb()
         for overlayName in self.pkgwh.layman.getOverlayList():
             oDir = self.pkgwh.layman.getOverlayDir(overlayName)
+
+            # compare overlay vcs-type and name with cloud database, use cache only
+            if overlayDb.hasOverlay(overlayName):
+                ret = overlayDb.getOverlayVcsTypeAndUrl(overlayName)
+                if ret != self.pkgwh.layman.getOverlayVcsTypeAndUrl(overlayName):
+                    if self.bAutoFix:
+                        # FIXME"
+                        self.infoPrinter.printError("Overlay \"%s\" should have vcs-type \"%s\" and url \"%s\", same with the cloud overlay database." % (overlayName, ret[0], ret[1]))
+                    else:
+                        self.infoPrinter.printError("Overlay \"%s\" should have vcs-type \"%s\" and url \"%s\", same with the cloud overlay database." % (overlayName, ret[0], ret[1]))
 
             # transient overlay must has at least one enabled package
             if self.pkgwh.layman.getOverlayType(overlayName) == "transient":

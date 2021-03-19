@@ -400,15 +400,23 @@ class FmMain:
 
         self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.hwInfoGetter.current(), layout)
 
-    def doAddOverlay(self, overlayName, overlayUrl):
-        if overlayUrl is None:
-            cloudDb = CloudOverlayDb()
-            cloudDb.updateCache()
-            if not cloudDb.hasOverlay(overlayName):
-                raise Exception("overlay \"%s\" is not in cloud database, overlay URL must be specified" % (overlayName))
-            vcsType, overlayUrl = cloudDb.getOverlayVcsTypeAndUrl(overlayName)
+    def doAddOverlay(self, overlayName, vcsType, url):
+        # update overlay database
+        self.infoPrinter.printInfo(">> Updating overlay database...")
+        cloudDb = CloudOverlayDb()
+        cloudDb.updateCache()
+        print("")
 
-        EbuildOverlays().addTransientOverlay(overlayName, overlayUrl)
+        # install overlay
+        if vcsType is None or url is None:
+            if not cloudDb.hasOverlay(overlayName):
+                raise Exception("overlay \"%s\" is not in overlay database, --vcs-type and --url must be specified" % (overlayName))
+            vcsType, url = cloudDb.getOverlayVcsTypeAndUrl(overlayName)
+            self.infoPrinter.printInfo(">> Installing %s overlay \"%s\" from \"%s\"..." % (vcsType, overlayName, url))
+        else:
+            self.infoPrinter.printInfo(">> Installing overlay...")
+        EbuildOverlays().addTransientOverlay(overlayName, vcsType, url)
+        print("")
 
     def doRemoveOverlay(self, overlayName):
         EbuildOverlays().removeOverlay(overlayName)

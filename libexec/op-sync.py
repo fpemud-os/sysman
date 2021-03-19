@@ -56,8 +56,9 @@ if item == "add-trusted-overlay":
 
 if item == "add-transient-overlay":
     overlayName = sys.argv[2]
-    overlayUrl = sys.argv[3]
-    EbuildOverlays().addTransientOverlay(overlayName, overlayUrl)
+    overlayVcsType = sys.argv[3]
+    overlayUrl = sys.argv[4]
+    EbuildOverlays().addTransientOverlay(overlayName, overlayVcsType, overlayUrl)
     sys.exit(0)
 
 if item == "enable-overlay-package":

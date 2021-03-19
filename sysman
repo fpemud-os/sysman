@@ -244,7 +244,7 @@ try:
             elif args.op == "modify_group":
                 FmMain(param).modifyGroup()
             elif args.op == "install-overlay":
-                FmMain(param).doAddOverlay(args.overlay_name, args.url)
+                FmMain(param).doAddOverlay(args.overlay_name, args.vcs_type, args.url)
             elif args.op == "uninstall-overlay":
                 FmMain(param).doRemoveOverlay(args.overlay_name)
             elif args.op == "enable-overlay-package":

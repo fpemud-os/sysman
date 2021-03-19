@@ -106,7 +106,7 @@ class FmSysUpdater:
             for oname, data in pkgwh.getPreEnablePackages().items():
                 if not pkgwh.layman.isOverlayExist(oname):
                     self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % (oname))
-                    argstr = "add-transient-overlay %s \'%s\'" % (oname, data[0])
+                    argstr = "add-transient-overlay %s %s \'%s\'" % (oname, "git", data[0])
                     if buildServer is None:
                         FmUtil.shellExec(self.opSync + " " + argstr)
                     else:

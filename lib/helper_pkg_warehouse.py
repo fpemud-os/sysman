@@ -613,7 +613,7 @@ class EbuildOverlays:
             shutil.rmtree(overlayDir)       # keep overlay files directory
             raise
 
-    def addTransientOverlay(self, overlayName, overlayUrl):
+    def addTransientOverlay(self, overlayName, overlayVcsType, overlayUrl):
         if self.isOverlayExist(overlayName):
             raise Exception("the specified overlay has already been installed")
 
@@ -621,12 +621,12 @@ class EbuildOverlays:
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
 
-        vcsType = self._createOverlayFilesDir(overlayName, overlayFilesDir, None, overlayUrl)
+        self._createOverlayFilesDir(overlayName, overlayFilesDir, overlayVcsType, overlayUrl)
         try:
             self._createTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
             repoName = FmUtil.repoGetRepoName(overlayDir)
             with open(cfgFile, "w") as f:
-                f.write(self._generateCfgReposFile(overlayName, overlayDir, "transient", vcsType, overlayUrl, repoName))
+                f.write(self._generateCfgReposFile(overlayName, overlayDir, "transient", overlayVcsType, overlayUrl, repoName))
         except:
             shutil.rmtree(overlayDir)       # keep overlay files directory
             raise
@@ -863,21 +863,16 @@ class EbuildOverlays:
         return not FmUtil.isDomainNamePrivate(domainName)
 
     def _createOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
-        while vcsType is None:
-            rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/git", "ls-remote", url)
-            if rc == 0:
-                vcsType = "git"
-                break
-            rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/svn", "ls", url)
-            if rc == 0:
-                vcsType = "svn"
-                break
-            raise Exception("unknow overlay vcs type")
-
         if vcsType == "git":
             FmUtil.gitPullOrClone(overlayFilesDir, url)
         elif vcsType == "svn":
             FmUtil.svnUpdateOrCheckout(overlayFilesDir, url)
+        elif vcsType == "mercurial":
+            # FIXME
+            assert False
+        elif vcsType == "rsync":
+            # FIXME
+            assert False
         else:
             assert False
 
@@ -1097,18 +1092,16 @@ class OverlayCheckError(Exception):
 class CloudOverlayDb:
 
     def __init__(self):
-        self.infoDict = {
-            "gentoo-official": {
-                "remoteUrl": "https://api.gentoo.org/overlays/repositories.xml",
-                "localFn": "gentoo-official.xml",
-                "parseResult": None,
-            }
+        self.itemDict = {
+            "gentoo-official-overlays": "https://api.gentoo.org/overlays/repositories.xml",
         }
+        self.parseDict = dict()
 
     def updateCache(self):
         FmUtil.ensureDir(FmConst.cloudOverlayDbDir)
-        for val in self.infoDict.values():
-            FmUtil.wgetDownload(val["remoteUrl"], os.path.join(FmConst.cloudOverlayDbDir, val["localFn"]))
+        for itemName, url in self.itemDict.items():
+            FmUtil.wgetDownloadIfNewer(url, os.path.join(FmConst.cloudOverlayDbDir, itemName))
+            self.parseDict[itemName] = None
 
     def hasOverlay(self, overlayName):
         return self._getOverlayVcsTypeAndUrl(overlayName) is not None
@@ -1119,11 +1112,15 @@ class CloudOverlayDb:
         return ret
 
     def _getOverlayVcsTypeAndUrl(self, overlayName):
-        for val in self.infoDict.values():
-            if val["parseResult"] is None:
-                val["parseResult"] = self.__parse(os.path.join(FmConst.cloudOverlayDbDir, val["localFn"]))
-            if overlayName in val["parseResult"]:
-                return val["parseResult"][overlayName]
+        for itemName in self.itemDict.keys():
+            if self.parseDict.get(itemName) is None:
+                fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)
+                if os.path.exists(fullfn):
+                    self.parseDict[itemName] = self.__parse(fullfn)
+                else:
+                    self.parseDict[itemName] = dict()
+            if overlayName in self.parseDict[itemName]:
+                return self.parseDict[itemName][overlayName]
         return None
 
     def __parse(self, fullfn):
@@ -1149,8 +1146,8 @@ class CloudOverlayDb:
                         ret[overlayName] = (vcsType, url)
                         break
                 elif vcsType == "rsync":
-                        ret[overlayName] = (vcsType, url)
-                        break
+                    ret[overlayName] = (vcsType, url)
+                    break
                 else:
                     raise Exception("invalid source type \"%s\" for overlay \"%s\"" % (vcsType, overlayName))
             if overlayName not in ret:
