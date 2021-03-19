@@ -50,8 +50,9 @@ if item == "sync-overlay":
 
 if item == "add-trusted-overlay":
     overlayName = sys.argv[2]
-    overlayUrl = sys.argv[3]
-    EbuildOverlays().addTrustedOverlay(overlayName, overlayUrl)
+    overlayVcsType = sys.argv[3]
+    overlayUrl = sys.argv[4]
+    EbuildOverlays().addTrustedOverlay(overlayName, overlayVcsType, overlayUrl)
     sys.exit(0)
 
 if item == "add-transient-overlay":

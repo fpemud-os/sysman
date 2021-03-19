@@ -594,7 +594,7 @@ class EbuildOverlays:
         else:
             assert False
 
-    def addTrustedOverlay(self, overlayName, overlayUrl):
+    def addTrustedOverlay(self, overlayName, overlayVcsType, overlayUrl):
         if self.isOverlayExist(overlayName):
             raise Exception("the specified overlay has already been installed")
 
@@ -602,7 +602,7 @@ class EbuildOverlays:
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
 
-        vcsType = self._createOverlayFilesDir(overlayName, overlayFilesDir, None, overlayUrl)
+        vcsType = self._createOverlayFilesDir(overlayName, overlayFilesDir, overlayVcsType, overlayUrl)
         try:
             self._removeOverlayFilesDirDuplicatePackage(overlayFilesDir)
             self._createTrustedOverlayDir(overlayName, overlayDir, overlayFilesDir)
@@ -699,7 +699,7 @@ class EbuildOverlays:
             # doesn't exist or is invalid
             if not os.path.exists(overlayFilesDir) or not os.path.isdir(overlayFilesDir):
                 if bAutoFix:
-                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, None, overlayUrl)
+                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                     assert ret == vcsType
                     self._removeOverlayFilesDirDuplicatePackage(overlayFilesDir)
                     self._createTrustedOverlayDir(overlayName, overlayDir, overlayFilesDir)
@@ -713,7 +713,7 @@ class EbuildOverlays:
             # doesn't exist or is invalid
             if not os.path.exists(overlayFilesDir) or not os.path.isdir(overlayFilesDir):
                 if bAutoFix:
-                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, None, overlayUrl)
+                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                     assert ret == vcsType
                     self._createTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
                 else:
