@@ -935,11 +935,8 @@ class FmSysChecker:
             if overlayDb.hasOverlay(overlayName):
                 ret = overlayDb.getOverlayVcsTypeAndUrl(overlayName)
                 if ret != self.pkgwh.layman.getOverlayVcsTypeAndUrl(overlayName):
-                    if self.bAutoFix:
-                        # FIXME"
-                        self.infoPrinter.printError("Overlay \"%s\" should have vcs-type \"%s\" and url \"%s\", same with the cloud overlay database." % (overlayName, ret[0], ret[1]))
-                    else:
-                        self.infoPrinter.printError("Overlay \"%s\" should have vcs-type \"%s\" and url \"%s\", same with the cloud overlay database." % (overlayName, ret[0], ret[1]))
+                    # it's hard to auto fix
+                    self.infoPrinter.printError("Overlay \"%s\" should have VCS type \"%s\" and URL \"%s\", same with the cloud overlay database." % (overlayName, ret[0], ret[1]))
 
             # transient overlay must has at least one enabled package
             if self.pkgwh.layman.getOverlayType(overlayName) == "transient":

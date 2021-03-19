@@ -1124,32 +1124,35 @@ class CloudOverlayDb:
         return None
 
     def __parse(self, fullfn):
+        cList = [
+            ("git", "https"),
+            ("git", "http"),
+            ("git", "git"),
+            ("svn", "https"),
+            ("svn", "http"),
+            ("mercurial", "https"),
+            ("mercurial", "http"),
+            ("rsync", "rsync"),
+        ]
+
         ret = dict()
         rootElem = lxml.etree.parse(fullfn).getroot()
         for nameTag in rootElem.xpath(".//repo/name"):
             overlayName = nameTag.text
             if overlayName in ret:
                 raise Exception("duplicate overlay \"%s\"" % (overlayName))
-            for sourceTag in nameTag.xpath("../source"):
-                vcsType = sourceTag.get("type")
-                url = sourceTag.text
-                if vcsType == "git":
-                    if url.startswith("https://") or url.startswith("http://") or url.startswith("git://"):
-                        ret[overlayName] = (vcsType, url)
+
+            for vcsType, urlPrefix in cList:
+                for sourceTag in nameTag.xpath("../source"):
+                    tVcsType = sourceTag.get("type")
+                    tUrl = sourceTag.text
+                    if tVcsType == vcsType and tUrl.startswith(urlPrefix + "://"):
+                        ret[overlayName] = (tVcsType, tUrl)
                         break
-                elif vcsType == "svn":
-                    if url.startswith("https://") or url.startswith("http://"):
-                        ret[overlayName] = (vcsType, url)
-                        break
-                elif vcsType == "mercurial":
-                    if url.startswith("https://") or url.startswith("http://"):
-                        ret[overlayName] = (vcsType, url)
-                        break
-                elif vcsType == "rsync":
-                    ret[overlayName] = (vcsType, url)
+                if overlayName in ret:
                     break
-                else:
-                    raise Exception("invalid source type \"%s\" for overlay \"%s\"" % (vcsType, overlayName))
+
             if overlayName not in ret:
                 raise Exception("no appropriate source for overlay \"%s\"" % (overlayName))
+
         return ret

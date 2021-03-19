@@ -16,6 +16,7 @@ from helper_boot_kernel import FkmKCache
 from helper_boot_initramfs import FkmInitramfsBuilder
 from helper_build_server import BuildServerSelector
 from helper_pkg_warehouse import PkgWarehouse
+from helper_pkg_warehouse import CloudOverlayDb
 from helper_dyncfg import DynCfgModifier
 
 
@@ -80,6 +81,9 @@ class FmSysUpdater:
                 self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-repo %s" % (repoName), repoDir)
                 print("")
 
+            # sync cloud overlay database
+            overlayDb = CloudOverlayDb()
+
             # sync overlay directories
             for oname in pkgwh.layman.getOverlayList():
                 self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (oname))
@@ -90,7 +94,9 @@ class FmSysUpdater:
             for oname, ourl in pkgwh.getPreEnableOverlays().items():
                 if not pkgwh.layman.isOverlayExist(oname):
                     self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % (oname))
-                    argstr = "add-trusted-overlay %s \'%s\'" % (oname, ourl)
+                    if overlayDb.hasOverlay(oname):
+                        vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
+                    argstr = "add-trusted-overlay %s %s \'%s\'" % (oname, "git", ourl)
                     if buildServer is None:
                         FmUtil.shellExec(self.opSync + " " + argstr)
                     else:
@@ -104,9 +110,12 @@ class FmSysUpdater:
 
             # add pre-enabled overlays by pre-enabled package
             for oname, data in pkgwh.getPreEnablePackages().items():
+                ourl = data[0]
                 if not pkgwh.layman.isOverlayExist(oname):
                     self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % (oname))
-                    argstr = "add-transient-overlay %s %s \'%s\'" % (oname, "git", data[0])
+                    if overlayDb.hasOverlay(oname):
+                        vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
+                    argstr = "add-transient-overlay %s %s \'%s\'" % (oname, "git", ourl)
                     if buildServer is None:
                         FmUtil.shellExec(self.opSync + " " + argstr)
                     else:
