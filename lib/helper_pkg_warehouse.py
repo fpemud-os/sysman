@@ -1133,8 +1133,8 @@ class CloudOverlayDb:
             overlayName = nameTag.text
             if overlayName in ret:
                 raise Exception("duplicate overlay \"%s\"" % (overlayName))
-            for sourceTag in nameTag.parent.xpath("./source"):
-                vcsType = sourceTag.attr["type"]
+            for sourceTag in nameTag.xpath("../source"):
+                vcsType = sourceTag.get("type")
                 url = sourceTag.text
                 if vcsType == "git":
                     if url.startswith("https://") or url.startswith("http://") or url.startswith("git://"):
@@ -1146,6 +1146,9 @@ class CloudOverlayDb:
                         break
                 elif vcsType == "mercurial":
                     if url.startswith("https://") or url.startswith("http://"):
+                        ret[overlayName] = (vcsType, url)
+                        break
+                elif vcsType == "rsync":
                         ret[overlayName] = (vcsType, url)
                         break
                 else:
