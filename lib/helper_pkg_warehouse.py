@@ -4,6 +4,7 @@
 import os
 import re
 import glob
+import time
 import shutil
 import portage
 import fileinput
@@ -1093,14 +1094,21 @@ class CloudOverlayDb:
 
     def __init__(self):
         self.itemDict = {
-            "gentoo-official-overlays": "https://api.gentoo.org/overlays/repositories.xml",
+            "gentoo-official-overlays": ("Gentoo Offcial Overlay Database", "https://api.gentoo.org/overlays/repositories.xml"),
         }
-        self.parseDict = dict()
+        self.parseDict = {k: None for k in self.itemDict}
 
     def updateCache(self):
         FmUtil.ensureDir(FmConst.cloudOverlayDbDir)
-        for itemName, url in self.itemDict.items():
-            FmUtil.wgetDownloadIfNewer(url, os.path.join(FmConst.cloudOverlayDbDir, itemName))
+        for itemName, val in self.itemDict.items():
+            dispName, url = val
+            fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)
+            while True:
+                tm = self._downloadDbFile(url, fullfn)
+                if tm is not None:
+                    break
+                time.sleep(1.0)
+            print("%s: %s" % (dispName, tm.strftime("%Y%m%d%H%M%S")))
             self.parseDict[itemName] = None
 
     def hasOverlay(self, overlayName):
@@ -1111,9 +1119,25 @@ class CloudOverlayDb:
         assert ret is not None
         return ret
 
+    def _downloadDbFile(self, url, fullfn):
+        try:
+            if os.path.exists(fullfn):
+                resp = urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=FmUtil.urlopenTimeout())
+                remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
+                localTm = datetime.utcfromtimestamp(os.path.getmtime(fullfn))
+                if remoteTm <= localTm:
+                    return localTm
+            dummy, resp = urllib.request.urlretrieve(url, fullfn)
+            remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
+            os.utime(fullfn, (remoteTm.timestamp(), remoteTm.timestamp()))
+            return remoteTm
+        except Exception as e:
+            print("Failed to acces %s, %s" % (url, e))
+            return None
+
     def _getOverlayVcsTypeAndUrl(self, overlayName):
         for itemName in self.itemDict.keys():
-            if self.parseDict.get(itemName) is None:
+            if self.parseDict[itemName] is None:
                 fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)
                 if os.path.exists(fullfn):
                     self.parseDict[itemName] = self.__parse(fullfn)

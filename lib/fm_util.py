@@ -1884,11 +1884,6 @@ class FmUtil:
             FmUtil.cmdExec("/usr/bin/wget", *param, "-O", localFile, url)
 
     @staticmethod
-    def wgetDownloadIfNewer(url, localFile):
-        param = FmUtil.wgetCommonDownloadParam().split()
-        FmUtil.cmdExec("/usr/bin/wget", "-N", *param, "-O", localFile, url)
-
-    @staticmethod
     def wgetCommonDownloadParam():
         return "-q --show-progress -t 0 -w 60 --random-wait -T 60 --passive-ftp"
 

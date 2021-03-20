@@ -13,6 +13,7 @@ from helper_boot import FkmMountBootDirRw
 from helper_boot_kernel import FkmBootEntry
 from helper_boot_kernel import FkmBuildTarget
 from helper_boot_kernel import FkmKCache
+from helper_boot_kernel import FkmKCacheUpdater
 from helper_boot_initramfs import FkmInitramfsBuilder
 from helper_build_server import BuildServerSelector
 from helper_pkg_warehouse import PkgWarehouse
@@ -36,8 +37,9 @@ class FmSysUpdater:
         layout = self.param.storageManager.getStorageLayout()
         helperBootDir = FkmBootDir()
         helperBootLoader = FkmBootLoader()
-        kcache = FkmKCache()
         pkgwh = PkgWarehouse()
+        overlayDb = CloudOverlayDb()
+        kcache = FkmKCache()
 
         # set system to unstable status
         with FkmMountBootDirRw(layout):
@@ -71,7 +73,10 @@ class FmSysUpdater:
         if bSync:
             # update cache
             self.infoPrinter.printInfo(">> Getting system component version...")
-            self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-kcache", FmConst.kcacheDir)
+            kcacheUpdater = FkmKCacheUpdater()
+            kcacheUpdater.checkCache()
+            kcacheUpdater.syncCache()
+            overlayDb.updateCache()
             print("")
 
             # sync repository directories
@@ -80,9 +85,6 @@ class FmSysUpdater:
                 self.infoPrinter.printInfo(">> Synchronizing repository \"%s\"..." % (repoName))
                 self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-repo %s" % (repoName), repoDir)
                 print("")
-
-            # sync cloud overlay database
-            overlayDb = CloudOverlayDb()
 
             # sync overlay directories
             for oname in pkgwh.layman.getOverlayList():

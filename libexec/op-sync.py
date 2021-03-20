@@ -3,7 +3,6 @@
 
 import sys
 sys.path.append('/usr/lib64/fpemud-os-sysman')
-from helper_boot_kernel import FkmKCacheUpdater
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
@@ -11,12 +10,6 @@ from helper_pkg_merger import PkgMerger
 
 
 item = sys.argv[1]
-
-if item == "sync-kcache":
-    kcacheUpdater = FkmKCacheUpdater()
-    kcacheUpdater.checkCache()
-    kcacheUpdater.syncCache()
-    sys.exit(0)
 
 if item == "sync-repo":
     repoName = sys.argv[2]
