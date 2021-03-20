@@ -72,7 +72,7 @@ class FmSysUpdater:
         # do sync
         if bSync:
             # update cache
-            self.infoPrinter.printInfo(">> Getting system component version...")
+            self.infoPrinter.printInfo(">> Retrieving general information...")
             kcacheUpdater = FkmKCacheUpdater()
             kcacheUpdater.checkCache()
             kcacheUpdater.syncCache()
