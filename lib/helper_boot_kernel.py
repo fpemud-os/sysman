@@ -533,10 +533,6 @@ class FkmKCache:
 
         self.ksyncFile = os.path.join(FmConst.kcacheDir, "ksync.txt")
 
-    def check(self):
-        if not os.path.exists(FmConst.kcacheDir):
-            raise Exception("\"%s\" is not a directory" % (FmConst.kcacheDir))
-
     def syncCache(self):
         # get kernel version from internet
         if True:

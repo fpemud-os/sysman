@@ -72,7 +72,6 @@ class FmSysUpdater:
         if bSync:
             # update cache
             self.infoPrinter.printInfo(">> Retrieving general information...")
-            kcache.check()
             kcache.syncCache()
             overlayDb.updateCache()
             print("")
