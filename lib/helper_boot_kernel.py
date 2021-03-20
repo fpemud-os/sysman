@@ -607,6 +607,38 @@ class FkmKCache:
         fn = os.path.join(FmConst.kcacheDir, fn)
         return fn
 
+    def getOldKernelFileList(self, cbe):
+        kernelFileList = []
+        for f in os.listdir(FmConst.kcacheDir):
+            if f.startswith("linux-") and f.endswith(".tar.xz") and not f.startswith("linux-firmware-"):
+                if FmUtil.compareVersion(f.replace("linux-", "").replace(".tar.xz", ""), cbe.buildTarget.verstr) < 0:
+                    kernelFileList.append(f)    # remove lower version
+            elif f.startswith("linux-") and f.endswith(".tar.sign") and not f.startswith("linux-firmware-"):
+                if FmUtil.compareVersion(f.replace("linux-", "").replace(".tar.sign", ""), cbe.buildTarget.verstr) < 0:
+                    kernelFileList.append(f)    # remove lower version
+        return sorted(kernelFileList)
+
+    def getOldFirmwareFileList(self):
+        fileList = []
+        for f in os.listdir(FmConst.kcacheDir):
+            if f.startswith("linux-firmware-") and f.endswith(".tar.xz"):
+                fileList.append(f)
+                fileList.append(f.replace(".xz", ".sign"))
+        fileList = sorted(fileList)
+        if len(fileList) > 0:
+            fileList = fileList[:-2]
+        return fileList
+
+    def getOldWirelessRegDbFileList(self):
+        fileList = []
+        for f in os.listdir(FmConst.kcacheDir):
+            if f.startswith("wireless-regdb-") and f.endswith(".tar.xz"):
+                fileList.append(f)
+        fileList = sorted(fileList)
+        if len(fileList) > 0:
+            fileList = fileList[:-1]
+        return fileList
+
     def _readDataFromKsyncFile(self, prefix):
         indexDict = {
             "kernel": 0,
@@ -819,38 +851,6 @@ class FkmKCacheUpdater:
     def updateVhbaModuleCache(self):
         tdir = os.path.join(FmConst.kcacheDir, "vhba_module")
         FmUtil.gitPullOrClone(tdir, "https://github.com/cdemu/cdemu")
-
-    def getOldKernelFileList(self, cbe):
-        kernelFileList = []
-        for f in os.listdir(FmConst.kcacheDir):
-            if f.startswith("linux-") and f.endswith(".tar.xz") and not f.startswith("linux-firmware-"):
-                if FmUtil.compareVersion(f.replace("linux-", "").replace(".tar.xz", ""), cbe.buildTarget.verstr) < 0:
-                    kernelFileList.append(f)    # remove lower version
-            elif f.startswith("linux-") and f.endswith(".tar.sign") and not f.startswith("linux-firmware-"):
-                if FmUtil.compareVersion(f.replace("linux-", "").replace(".tar.sign", ""), cbe.buildTarget.verstr) < 0:
-                    kernelFileList.append(f)    # remove lower version
-        return sorted(kernelFileList)
-
-    def getOldFirmwareFileList(self):
-        fileList = []
-        for f in os.listdir(FmConst.kcacheDir):
-            if f.startswith("linux-firmware-") and f.endswith(".tar.xz"):
-                fileList.append(f)
-                fileList.append(f.replace(".xz", ".sign"))
-        fileList = sorted(fileList)
-        if len(fileList) > 0:
-            fileList = fileList[:-2]
-        return fileList
-
-    def getOldWirelessRegDbFileList(self):
-        fileList = []
-        for f in os.listdir(FmConst.kcacheDir):
-            if f.startswith("wireless-regdb-") and f.endswith(".tar.xz"):
-                fileList.append(f)
-        fileList = sorted(fileList)
-        if len(fileList) > 0:
-            fileList = fileList[:-1]
-        return fileList
 
     def _findKernelVersion(self, typename):
         try:
