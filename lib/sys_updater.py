@@ -96,9 +96,12 @@ class FmSysUpdater:
             for oname, ourl in pkgwh.getPreEnableOverlays().items():
                 if not pkgwh.layman.isOverlayExist(oname):
                     self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % (oname))
+                    vcsType = "git"
                     if overlayDb.hasOverlay(oname):
                         vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
-                    argstr = "add-trusted-overlay %s %s \'%s\'" % (oname, "git", ourl)
+                    if ourl is None:
+                        raise Exception("no URL for overlay %s" % (oname))
+                    argstr = "add-trusted-overlay %s %s \'%s\'" % (oname, vcsType, ourl)
                     if buildServer is None:
                         FmUtil.shellExec(self.opSync + " " + argstr)
                     else:
@@ -115,9 +118,12 @@ class FmSysUpdater:
                 ourl = data[0]
                 if not pkgwh.layman.isOverlayExist(oname):
                     self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % (oname))
+                    vcsType = "git"
                     if overlayDb.hasOverlay(oname):
                         vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
-                    argstr = "add-transient-overlay %s %s \'%s\'" % (oname, "git", ourl)
+                    if ourl is None:
+                        raise Exception("no URL for overlay %s" % (oname))
+                    argstr = "add-transient-overlay %s %s \'%s\'" % (oname, vcsType, ourl)
                     if buildServer is None:
                         FmUtil.shellExec(self.opSync + " " + argstr)
                     else:

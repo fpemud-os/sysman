@@ -32,7 +32,7 @@ class PkgWarehouse:
                 cfg = configparser.ConfigParser()
                 cfg.read(fullfn)
                 name = cfg.get("main", "name")
-                url = cfg.get("main", "url")
+                url = cfg.get("main", "url", fallback=None)
                 ret[name] = url
         return ret
 
@@ -46,10 +46,10 @@ class PkgWarehouse:
                 cfg = configparser.ConfigParser()
                 cfg.read(fullfn)
                 name = cfg.get("main", "name")
-                url = cfg.get("main", "url")
+                url = cfg.get("main", "url", fallback=None)
                 package = cfg.get("main", "package")
                 if name in ret:
-                    assert url == ret[name][0]
+                    assert url is None or url == ret[name][0]
                     ret[name][1].append(package)
                 else:
                     ret[name] = (url, [package])
