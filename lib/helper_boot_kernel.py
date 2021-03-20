@@ -664,7 +664,7 @@ class FkmKCache:
         origFile = None
         while True:
             try:
-                resp = urllib.request.urlopen(url, timeout=FmUtil.urlopenTimeout(), cafile=certifi.where())
+                resp = urllib.request.urlopen(url, timeout=FmUtil.urlopenTimeout())
                 root = lxml.html.parse(resp)
                 for link in root.xpath(".//a"):
                     if link.get("href").endswith("_amd64.run"):
@@ -842,7 +842,7 @@ class FkmKCache:
 
     def _findKernelVersion(self, typename):
         try:
-            resp = urllib.request.urlopen(self.kernelUrl, timeout=FmUtil.urlopenTimeout(), cafile=certifi.where())
+            resp = urllib.request.urlopen(self.kernelUrl, timeout=FmUtil.urlopenTimeout())
             if resp.info().get('Content-Encoding') is None:
                 fakef = resp
             elif resp.info().get('Content-Encoding') == 'gzip':
@@ -863,7 +863,7 @@ class FkmKCache:
 
     def _findFirmwareVersion(self):
         try:
-            resp = urllib.request.urlopen(self.firmwareUrl, timeout=FmUtil.urlopenTimeout(), cafile=certifi.where())
+            resp = urllib.request.urlopen(self.firmwareUrl, timeout=FmUtil.urlopenTimeout())
             root = lxml.html.parse(resp)
             ret = None
             for atag in root.xpath(".//a"):
@@ -880,7 +880,7 @@ class FkmKCache:
     def _findWirelessRegDbVersion(self):
         try:
             ver = None
-            resp = urllib.request.urlopen(self.wirelessRegDbDirUrl, timeout=FmUtil.urlopenTimeout(), cafile=certifi.where())
+            resp = urllib.request.urlopen(self.wirelessRegDbDirUrl, timeout=FmUtil.urlopenTimeout())
             out = resp.read().decode("iso8859-1")
             for m in re.finditer("wireless-regdb-([0-9]+\\.[0-9]+\\.[0-9]+)\\.tar\\.xz", out, re.M):
                 if ver is None or m.group(1) > ver:
