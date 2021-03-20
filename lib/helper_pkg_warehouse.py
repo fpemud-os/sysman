@@ -1103,13 +1103,16 @@ class CloudOverlayDb:
         for itemName, val in self.itemDict.items():
             dispName, url = val
             fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)
+            tm = None
             while True:
-                tm = self._downloadDbFile(url, fullfn)
-                if tm is not None:
+                try:
+                    tm = FmUtil.downloadIfNewer(url, fullfn)
                     break
-                time.sleep(1.0)
-            print("%s: %s" % (dispName, tm.strftime("%Y%m%d%H%M%S")))
+                except Exception as e:
+                    print("Failed to acces %s, %s" % (url, e))
+                    time.sleep(1.0)
             self.parseDict[itemName] = None
+            print("%s: %s" % (dispName, tm.strftime("%Y%m%d%H%M%S")))
 
     def hasOverlay(self, overlayName):
         return self._getOverlayVcsTypeAndUrl(overlayName) is not None
@@ -1118,22 +1121,6 @@ class CloudOverlayDb:
         ret = self._getOverlayVcsTypeAndUrl(overlayName)
         assert ret is not None
         return ret
-
-    def _downloadDbFile(self, url, fullfn):
-        try:
-            if os.path.exists(fullfn):
-                resp = urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=FmUtil.urlopenTimeout())
-                remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
-                localTm = datetime.utcfromtimestamp(os.path.getmtime(fullfn))
-                if remoteTm <= localTm:
-                    return localTm
-            dummy, resp = urllib.request.urlretrieve(url, fullfn)
-            remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
-            os.utime(fullfn, (remoteTm.timestamp(), remoteTm.timestamp()))
-            return remoteTm
-        except Exception as e:
-            print("Failed to acces %s, %s" % (url, e))
-            return None
 
     def _getOverlayVcsTypeAndUrl(self, overlayName):
         for itemName in self.itemDict.keys():

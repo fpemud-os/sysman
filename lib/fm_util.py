@@ -40,6 +40,7 @@ import urllib.request
 import urllib.error
 import lxml.html
 import passlib.hosts
+from datetime import datetime
 from OpenSSL import crypto
 from gi.repository import Gio
 from gi.repository import GLib
@@ -1886,6 +1887,19 @@ class FmUtil:
     @staticmethod
     def wgetCommonDownloadParam():
         return "-q --show-progress -t 0 -w 60 --random-wait -T 60 --passive-ftp"
+
+    @staticmethod
+    def downloadIfNewer(url, fullfn):
+        if os.path.exists(fullfn):
+            resp = urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=FmUtil.urlopenTimeout())
+            remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
+            localTm = datetime.utcfromtimestamp(os.path.getmtime(fullfn))
+            if remoteTm <= localTm:
+                return localTm
+        dummy, resp = urllib.request.urlretrieve(url, fullfn)
+        remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
+        os.utime(fullfn, (remoteTm.timestamp(), remoteTm.timestamp()))
+        return remoteTm
 
     @staticmethod
     def urlopenTimeout():
