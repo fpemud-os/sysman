@@ -8,7 +8,6 @@ import gzip
 import time
 import glob
 import shutil
-import certifi
 import lxml.html
 import urllib.request
 import urllib.error
