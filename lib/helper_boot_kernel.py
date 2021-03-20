@@ -523,145 +523,6 @@ class FkmKernelBuilder:
 class FkmKCache:
 
     def __init__(self):
-        self.ksyncFile = os.path.join(FmConst.kcacheDir, "ksync.txt")
-
-    def getLatestKernelVersion(self):
-        kernelVer = self._readDataFromKsyncFile("kernel")
-        kernelVer = self._versionMaskCheck("kernel", kernelVer)
-        return kernelVer
-
-    def getKernelFileByVersion(self, version):
-        """returns absolute file path"""
-
-        fn = "linux-" + version + ".tar.xz"
-        fn = os.path.join(FmConst.kcacheDir, fn)
-        return fn
-
-    def getKernelUseFlags(self):
-        """returns list of USE flags"""
-
-        ret = set()
-        for fn in os.listdir(FmConst.kernelUseDir):
-            for line in FmUtil.readListFile(os.path.join(FmConst.kernelUseDir, fn)):
-                line = line.replace("\t", " ")
-                line2 = ""
-                while line2 != line:
-                    line2 = line
-                    line = line.replace("  ", " ")
-                for item in line.split(" "):
-                    if item.startswith("-"):
-                        item = item[1:]
-                        ret.remove(item)
-                    else:
-                        ret.add(item)
-        return sorted(list(ret))
-
-    def getTbsDriverSourceSignature(self):
-        tbsLinuxMediaDir = os.path.join(FmConst.kcacheDir, "linux_media")
-        if not os.path.exists(tbsLinuxMediaDir):
-            return None
-        return FmUtil.hashDir(tbsLinuxMediaDir)
-
-    def getVboxDriverSourceSignature(self):
-        srcDir = os.path.join(FmConst.kcacheDir, "vbox_drivers")
-        if not os.path.exists(srcDir):
-            return None
-        return FmUtil.hashDir(srcDir)
-
-    def getVhbaModuleSourceSignature(self):
-        srcDir = os.path.join(FmConst.kcacheDir, "vhba_module", "vhba-module")
-        if not os.path.exists(srcDir):
-            return None
-        return FmUtil.hashDir(srcDir)
-
-    def getLatestFirmwareVersion(self):
-        # firmware version is the date when it is generated
-        # example: 2019.06.03
-
-        ret = self._readDataFromKsyncFile("firmware")
-        ret = self._versionMaskCheck("firmware", ret)
-        return ret
-
-    def getFirmwareFileByVersion(self, version):
-        """returns absolute file path"""
-
-        fn = "linux-firmware-" + version + ".tar.xz"
-        fn = os.path.join(FmConst.kcacheDir, fn)
-        return fn
-
-    def getExtraFirmwareDirList(self):
-        return glob.glob(os.path.join(FmConst.kcacheDir, "firmware-repo-*"))
-
-    def getLatestWirelessRegDbVersion(self):
-        # wireless regulatory database version is the date when it is generated
-        # example: 2019.06.03
-
-        ret = self._readDataFromKsyncFile("wireless-regdb")
-        ret = self._versionMaskCheck("wireless-regdb", ret)
-        return ret
-
-    def getWirelessRegDbFileByVersion(self, version):
-        """returns absolute file path"""
-
-        fn = "wireless-regdb-" + version + ".tar.xz"
-        fn = os.path.join(FmConst.kcacheDir, fn)
-        return fn
-
-    def getOldKernelFileList(self, cbe):
-        kernelFileList = []
-        for f in os.listdir(FmConst.kcacheDir):
-            if f.startswith("linux-") and f.endswith(".tar.xz") and not f.startswith("linux-firmware-"):
-                if FmUtil.compareVersion(f.replace("linux-", "").replace(".tar.xz", ""), cbe.buildTarget.verstr) < 0:
-                    kernelFileList.append(f)    # remove lower version
-            elif f.startswith("linux-") and f.endswith(".tar.sign") and not f.startswith("linux-firmware-"):
-                if FmUtil.compareVersion(f.replace("linux-", "").replace(".tar.sign", ""), cbe.buildTarget.verstr) < 0:
-                    kernelFileList.append(f)    # remove lower version
-        return sorted(kernelFileList)
-
-    def getOldFirmwareFileList(self):
-        fileList = []
-        for f in os.listdir(FmConst.kcacheDir):
-            if f.startswith("linux-firmware-") and f.endswith(".tar.xz"):
-                fileList.append(f)
-                fileList.append(f.replace(".xz", ".sign"))
-        fileList = sorted(fileList)
-        if len(fileList) > 0:
-            fileList = fileList[:-2]
-        return fileList
-
-    def getOldWirelessRegDbFileList(self):
-        fileList = []
-        for f in os.listdir(FmConst.kcacheDir):
-            if f.startswith("wireless-regdb-") and f.endswith(".tar.xz"):
-                fileList.append(f)
-        fileList = sorted(fileList)
-        if len(fileList) > 0:
-            fileList = fileList[:-1]
-        return fileList
-
-    def _readDataFromKsyncFile(self, prefix):
-        indexDict = {
-            "kernel": 0,
-            "firmware": 1,
-            "wireless-regdb": 2,
-        }
-        with open(self.ksyncFile, "r") as f:
-            return f.read().split("\n")[indexDict[prefix]]
-
-    def _versionMaskCheck(self, prefix, version):
-        for fn in os.listdir(FmConst.kernelMaskDir):
-            with open(os.path.join(FmConst.kernelMaskDir, fn), "r") as f:
-                buf = f.read()
-                m = re.search("^%s-(.*)$" % (prefix), buf, re.M)
-                if m is not None:
-                    if version > m.group(1):
-                        version = m.group(1)
-        return version
-
-
-class FkmKCacheUpdater:
-
-    def __init__(self):
         self.kernelUrl = "https://www.kernel.org"
         self.firmwareUrl = "https://www.kernel.org/pub/linux/kernel/firmware"
         self.extraFirmwareRepoUrl = {
@@ -670,10 +531,9 @@ class FkmKCacheUpdater:
         }
         self.wirelessRegDbDirUrl = "https://www.kernel.org/pub/software/network/wireless-regdb"
 
-        self.kcache = FkmKCache()
         self.ksyncFile = os.path.join(FmConst.kcacheDir, "ksync.txt")
 
-    def checkCache(self):
+    def check(self):
         if not os.path.exists(FmConst.kcacheDir):
             raise Exception("\"%s\" is not a directory" % (FmConst.kcacheDir))
 
@@ -686,7 +546,7 @@ class FkmKCacheUpdater:
                     self._writeKsyncFile("kernel", ver)
                     break
                 time.sleep(1.0)
-            print("Linux kernel: %s" % (self.kcache.getLatestKernelVersion()))
+            print("Linux kernel: %s" % (self.getLatestKernelVersion()))
 
         # get firmware version version from internet
         if True:
@@ -696,7 +556,7 @@ class FkmKCacheUpdater:
                     self._writeKsyncFile("firmware", ver)
                     break
                 time.sleep(1.0)
-            print("Firmware: %s" % (self.kcache.getLatestFirmwareVersion()))
+            print("Firmware: %s" % (self.getLatestFirmwareVersion()))
 
         # get wireless-regulatory-database version from internet
         if True:
@@ -706,7 +566,7 @@ class FkmKCacheUpdater:
                     self._writeKsyncFile("wireless-regdb", ver)
                     break
                 time.sleep(1.0)
-            print("Wireless Regulatory Database: %s" % (self.kcache.getLatestWirelessRegDbVersion()))
+            print("Wireless Regulatory Database: %s" % (self.getLatestWirelessRegDbVersion()))
 
     def updateKernelCache(self, kernelVersion):
         kernelFile = "linux-%s.tar.xz" % (kernelVersion)
@@ -851,6 +711,139 @@ class FkmKCacheUpdater:
     def updateVhbaModuleCache(self):
         tdir = os.path.join(FmConst.kcacheDir, "vhba_module")
         FmUtil.gitPullOrClone(tdir, "https://github.com/cdemu/cdemu")
+
+    def getLatestKernelVersion(self):
+        kernelVer = self._readDataFromKsyncFile("kernel")
+        kernelVer = self._versionMaskCheck("kernel", kernelVer)
+        return kernelVer
+
+    def getKernelFileByVersion(self, version):
+        """returns absolute file path"""
+
+        fn = "linux-" + version + ".tar.xz"
+        fn = os.path.join(FmConst.kcacheDir, fn)
+        return fn
+
+    def getKernelUseFlags(self):
+        """returns list of USE flags"""
+
+        ret = set()
+        for fn in os.listdir(FmConst.kernelUseDir):
+            for line in FmUtil.readListFile(os.path.join(FmConst.kernelUseDir, fn)):
+                line = line.replace("\t", " ")
+                line2 = ""
+                while line2 != line:
+                    line2 = line
+                    line = line.replace("  ", " ")
+                for item in line.split(" "):
+                    if item.startswith("-"):
+                        item = item[1:]
+                        ret.remove(item)
+                    else:
+                        ret.add(item)
+        return sorted(list(ret))
+
+    def getTbsDriverSourceSignature(self):
+        tbsLinuxMediaDir = os.path.join(FmConst.kcacheDir, "linux_media")
+        if not os.path.exists(tbsLinuxMediaDir):
+            return None
+        return FmUtil.hashDir(tbsLinuxMediaDir)
+
+    def getVboxDriverSourceSignature(self):
+        srcDir = os.path.join(FmConst.kcacheDir, "vbox_drivers")
+        if not os.path.exists(srcDir):
+            return None
+        return FmUtil.hashDir(srcDir)
+
+    def getVhbaModuleSourceSignature(self):
+        srcDir = os.path.join(FmConst.kcacheDir, "vhba_module", "vhba-module")
+        if not os.path.exists(srcDir):
+            return None
+        return FmUtil.hashDir(srcDir)
+
+    def getLatestFirmwareVersion(self):
+        # firmware version is the date when it is generated
+        # example: 2019.06.03
+
+        ret = self._readDataFromKsyncFile("firmware")
+        ret = self._versionMaskCheck("firmware", ret)
+        return ret
+
+    def getFirmwareFileByVersion(self, version):
+        """returns absolute file path"""
+
+        fn = "linux-firmware-" + version + ".tar.xz"
+        fn = os.path.join(FmConst.kcacheDir, fn)
+        return fn
+
+    def getExtraFirmwareDirList(self):
+        return glob.glob(os.path.join(FmConst.kcacheDir, "firmware-repo-*"))
+
+    def getLatestWirelessRegDbVersion(self):
+        # wireless regulatory database version is the date when it is generated
+        # example: 2019.06.03
+
+        ret = self._readDataFromKsyncFile("wireless-regdb")
+        ret = self._versionMaskCheck("wireless-regdb", ret)
+        return ret
+
+    def getWirelessRegDbFileByVersion(self, version):
+        """returns absolute file path"""
+
+        fn = "wireless-regdb-" + version + ".tar.xz"
+        fn = os.path.join(FmConst.kcacheDir, fn)
+        return fn
+
+    def getOldKernelFileList(self, cbe):
+        kernelFileList = []
+        for f in os.listdir(FmConst.kcacheDir):
+            if f.startswith("linux-") and f.endswith(".tar.xz") and not f.startswith("linux-firmware-"):
+                if FmUtil.compareVersion(f.replace("linux-", "").replace(".tar.xz", ""), cbe.buildTarget.verstr) < 0:
+                    kernelFileList.append(f)    # remove lower version
+            elif f.startswith("linux-") and f.endswith(".tar.sign") and not f.startswith("linux-firmware-"):
+                if FmUtil.compareVersion(f.replace("linux-", "").replace(".tar.sign", ""), cbe.buildTarget.verstr) < 0:
+                    kernelFileList.append(f)    # remove lower version
+        return sorted(kernelFileList)
+
+    def getOldFirmwareFileList(self):
+        fileList = []
+        for f in os.listdir(FmConst.kcacheDir):
+            if f.startswith("linux-firmware-") and f.endswith(".tar.xz"):
+                fileList.append(f)
+                fileList.append(f.replace(".xz", ".sign"))
+        fileList = sorted(fileList)
+        if len(fileList) > 0:
+            fileList = fileList[:-2]
+        return fileList
+
+    def getOldWirelessRegDbFileList(self):
+        fileList = []
+        for f in os.listdir(FmConst.kcacheDir):
+            if f.startswith("wireless-regdb-") and f.endswith(".tar.xz"):
+                fileList.append(f)
+        fileList = sorted(fileList)
+        if len(fileList) > 0:
+            fileList = fileList[:-1]
+        return fileList
+
+    def _readDataFromKsyncFile(self, prefix):
+        indexDict = {
+            "kernel": 0,
+            "firmware": 1,
+            "wireless-regdb": 2,
+        }
+        with open(self.ksyncFile, "r") as f:
+            return f.read().split("\n")[indexDict[prefix]]
+
+    def _versionMaskCheck(self, prefix, version):
+        for fn in os.listdir(FmConst.kernelMaskDir):
+            with open(os.path.join(FmConst.kernelMaskDir, fn), "r") as f:
+                buf = f.read()
+                m = re.search("^%s-(.*)$" % (prefix), buf, re.M)
+                if m is not None:
+                    if version > m.group(1):
+                        version = m.group(1)
+        return version
 
     def _findKernelVersion(self, typename):
         try:

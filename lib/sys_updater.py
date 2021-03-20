@@ -13,7 +13,6 @@ from helper_boot import FkmMountBootDirRw
 from helper_boot_kernel import FkmBootEntry
 from helper_boot_kernel import FkmBuildTarget
 from helper_boot_kernel import FkmKCache
-from helper_boot_kernel import FkmKCacheUpdater
 from helper_boot_initramfs import FkmInitramfsBuilder
 from helper_build_server import BuildServerSelector
 from helper_pkg_warehouse import PkgWarehouse
@@ -73,9 +72,8 @@ class FmSysUpdater:
         if bSync:
             # update cache
             self.infoPrinter.printInfo(">> Retrieving general information...")
-            kcacheUpdater = FkmKCacheUpdater()
-            kcacheUpdater.checkCache()
-            kcacheUpdater.syncCache()
+            kcache.check()
+            kcache.syncCache()
             overlayDb.updateCache()
             print("")
 
