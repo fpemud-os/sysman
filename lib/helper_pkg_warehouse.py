@@ -1094,7 +1094,7 @@ class CloudOverlayDb:
 
     def __init__(self):
         self.itemDict = {
-            "gentoo-official-overlays": ("Gentoo Offcial Overlay Database", "https://api.gentoo.org/overlays/repositories.xml"),
+            "gentoo-overlays": ("Gentoo Overlay Database", "https://api.gentoo.org/overlays/repositories.xml"),
         }
         self.parseDict = {k: None for k in self.itemDict}
 
