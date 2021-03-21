@@ -3,48 +3,48 @@
 
 import sys
 sys.path.append('/usr/lib64/fpemud-os-sysman')
-from helper_boot_kernel import FkmKCacheUpdater
+from helper_boot_kernel import FkmKCache
 
 
 item = sys.argv[1]
 
 if item == "kernel":
     postfix = sys.argv[2]
-    kcacheUpdater = FkmKCacheUpdater()
-    kcacheUpdater.updateKernelCache(postfix)
+    kcache = FkmKCache()
+    kcache.updateKernelCache(postfix)
     sys.exit(0)
 
 if item == "firmware":
     version = sys.argv[2]
-    kcacheUpdater = FkmKCacheUpdater()
-    kcacheUpdater.updateFirmwareCache(version)
+    kcache = FkmKCache()
+    kcache.updateFirmwareCache(version)
     sys.exit(0)
 
 if item == "extra-firmware":
     name = sys.argv[2]
-    kcacheUpdater = FkmKCacheUpdater()
-    kcacheUpdater.updateExtraFirmwareCache(name)
+    kcache = FkmKCache()
+    kcache.updateExtraFirmwareCache(name)
     sys.exit(0)
 
 if item == "wireless-regdb":
     ver = sys.argv[2]
-    kcacheUpdater = FkmKCacheUpdater()
-    kcacheUpdater.updateWirelessRegDbCache(ver)
+    kcache = FkmKCache()
+    kcache.updateWirelessRegDbCache(ver)
     sys.exit(0)
 
 if item == "tbs-driver":
-    kcacheUpdater = FkmKCacheUpdater()
-    kcacheUpdater.updateTbsDriverCache()
+    kcache = FkmKCache()
+    kcache.updateTbsDriverCache()
     sys.exit(0)
 
 if item == "vbox-driver":
-    kcacheUpdater = FkmKCacheUpdater()
-    kcacheUpdater.updateVboxDriverCache()
+    kcache = FkmKCache()
+    kcache.updateVboxDriverCache()
     sys.exit(0)
 
 if item == "vhba-module":
-    kcacheUpdater = FkmKCacheUpdater()
-    kcacheUpdater.updateVhbaModuleCache()
+    kcache = FkmKCache()
+    kcache.updateVhbaModuleCache()
     sys.exit(0)
 
 assert False

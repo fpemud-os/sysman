@@ -7,10 +7,10 @@ sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import FmUtil
 from fm_param import FmConst
 from helper_boot import FkmBootEntry
-from helper_boot_kernel import FkmKCacheUpdater
+from helper_boot_kernel import FkmKCache
 
 
-kcacheUpdater = FkmKCacheUpdater()
+kcache = FkmKCache()
 
 print("        - Analyzing...")
 
@@ -18,7 +18,7 @@ print("        - Analyzing...")
 kernelFileList = []
 ret = FkmBootEntry.findCurrent()
 if ret is not None:
-    kernelFileList = kcacheUpdater.getOldKernelFileList(ret)
+    kernelFileList = kcache.getOldKernelFileList(ret)
 
 # show information
 print("            Kernel files to be removed in \"%s\":" % (FmConst.kcacheDir))
@@ -29,7 +29,7 @@ else:
         print("              %s" % (f))
 
 # get kernel firmware file list to be removed in cache directory
-firmwareFileList = kcacheUpdater.getOldFirmwareFileList()
+firmwareFileList = kcache.getOldFirmwareFileList()
 
 # show information
 print("            Firmware files to be removed in \"%s\":" % (FmConst.kcacheDir))
@@ -40,7 +40,7 @@ else:
         print("              %s" % (f))
 
 # get wireless-reg-db file list to be removed in cache directory
-wirelessRegDbFileList = kcacheUpdater.getOldWirelessRegDbFileList()
+wirelessRegDbFileList = kcache.getOldWirelessRegDbFileList()
 
 # show information
 print("            Wireless regulatory database files to be removed in \"%s\":" % (FmConst.kcacheDir))

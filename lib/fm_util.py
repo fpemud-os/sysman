@@ -35,7 +35,6 @@ import parted
 import zipfile
 import portage
 import uuid
-import certifi
 import urllib.request
 import urllib.error
 import lxml.html
@@ -3170,7 +3169,7 @@ class ArchLinuxBasedOsBuilder:
             signFile = None
             if True:
                 url = "%s/iso/latest" % (mr)
-                resp = urllib.request.urlopen(url, timeout=FmUtil.urlopenTimeout(), cafile=certifi.where())
+                resp = urllib.request.urlopen(url, timeout=FmUtil.urlopenTimeout())
                 root = lxml.html.parse(resp)
                 for link in root.xpath(".//a"):
                     fn = os.path.basename(link.get("href"))

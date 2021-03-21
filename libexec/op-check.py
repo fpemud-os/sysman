@@ -3,8 +3,6 @@
 
 import sys
 sys.path.append('/usr/lib64/fpemud-os-sysman')
-from helper_boot_kernel import FkmKCacheUpdater
-from helper_pkg_merger import PkgMerger
 
 
 item = sys.argv[1]
