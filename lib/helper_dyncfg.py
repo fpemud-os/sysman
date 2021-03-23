@@ -123,8 +123,8 @@ class DynCfgModifier:
             FmUtil.forceDelete(FmConst.portageMirrorsFile)
 
     def updateDownloadCommand(self):
-        fetchCmd = "/usr/bin/wget " + FmUtil.wgetCommonDownloadParam() + " -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""
-        resumeCmd = "/usr/bin/wget -c " + FmUtil.wgetCommonDownloadParam() + " -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""
+        fetchCmd = "/usr/bin/wget -q --show-progress " + " ".join(robust_layer.wget.additional_param()) + " -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""
+        resumeCmd = "/usr/bin/wget -q --show-progress -c " + " ".join(robust_layer.wget.additional_param()) + " -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""
         FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "FETCHCOMMAND", fetchCmd)
         FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "RESUMECOMMAND", resumeCmd)
 

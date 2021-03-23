@@ -39,6 +39,7 @@ import urllib.request
 import urllib.error
 import lxml.html
 import passlib.hosts
+import robust_layer.wget
 from datetime import datetime
 from OpenSSL import crypto
 from gi.repository import Gio
@@ -1877,15 +1878,10 @@ class FmUtil:
 
     @staticmethod
     def wgetDownload(url, localFile=None):
-        param = FmUtil.wgetCommonDownloadParam().split()
         if localFile is None:
-            FmUtil.cmdExec("/usr/bin/wget", *param, url)
+            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", robust_layer.wget.additional_param(), url)
         else:
-            FmUtil.cmdExec("/usr/bin/wget", *param, "-O", localFile, url)
-
-    @staticmethod
-    def wgetCommonDownloadParam():
-        return "-q --show-progress -t 0 -w 60 --random-wait -T 60 --passive-ftp"
+            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", robust_layer.wget.additional_param(), "-O", localFile, url)
 
     @staticmethod
     def downloadIfNewer(url, fullfn):
