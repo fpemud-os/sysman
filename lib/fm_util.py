@@ -1879,9 +1879,9 @@ class FmUtil:
     @staticmethod
     def wgetDownload(url, localFile=None):
         if localFile is None:
-            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", robust_layer.wget.additional_param(), url)
+            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), url)
         else:
-            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", robust_layer.wget.additional_param(), "-O", localFile, url)
+            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), "-O", localFile, url)
 
     @staticmethod
     def downloadIfNewer(url, fullfn):
