@@ -452,40 +452,6 @@ class EbuildRepositories:
         self._repoGentooSync(repoDir)
 
     def _repoGentooSync(self, repoDir):
-        # lastDate = None
-        # try:
-        #     with open(recordFile, "r") as f:
-        #         buf = f.read().rstrip("\n")
-        #         lastDate = datetime.strptime(buf, "%Y-%m-%d").date()
-        # except:
-        #     pass
-
-        # # should we do web download
-        # remoteFile = None
-        # if lastDate is not None:
-        #     while curDate > lastDate:
-        #         remoteFile = os.path.join("snapshots", "portage-%s.tar.xz" % (curDate.strftime("%Y%m%d")))
-        #         mr = FmUtil.portageGetGentooHttpMirror(FmConst.portageCfgMakeConf, FmConst.defaultGentooMirror, [remoteFile])
-        #         remoteFile = os.path.join(mr, remoteFile)
-        #         if FmUtil.wgetSpider(remoteFile):
-        #             break
-        #         curDate -= timedelta(days=1)
-        #         remoteFile = None
-        # else:
-        #     remoteFile = os.path.join("snapshots", "portage-latest.tar.xz")
-        #     mr = FmUtil.portageGetGentooHttpMirror(FmConst.portageCfgMakeConf, FmConst.defaultGentooMirror, [remoteFile])
-        #     remoteFile = os.path.join(mr, remoteFile)
-
-        # # download and replace all files if neccessary
-        # if remoteFile is not None:
-        #     localFile = os.path.join(FmConst.distDir, "portage-latest.tar.xz")
-        #     FmUtil.wgetDownload(remoteFile, localFile)
-        #     FmUtil.cmdCall("/bin/tar", "-xJf", localFile, "-C", os.path.dirname(repoDir))
-        #     FmUtil.forceDelete(repoDir)
-        #     os.rename(os.path.join(os.path.dirname(repoDir), "portage"), repoDir)
-        #     os.unlink(localFile)
-
-        # rsync to bleeding edge
         mr = FmUtil.portageGetGentooPortageRsyncMirror(FmConst.portageCfgMakeConf, FmConst.defaultRsyncMirror)
         FmUtil.rsyncPull("-rlptD -z -hhh --no-motd --delete --info=progress2", mr, repoDir)                         # we use "-rlptD" insead of "-a" so that the remote user/group is ignored
 
