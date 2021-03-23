@@ -2489,19 +2489,6 @@ class FmUtil:
         return FmUtil.shellCall(cmdStr)
 
     @staticmethod
-    def rsyncPull(args, src, dst):
-        assert src.startswith("rsync://")
-
-        while True:
-            try:
-                FmUtil.shellExec("/usr/bin/rsync --timeout=60 %s \"%s\" \"%s\"" % (args, src, dst))
-                break
-            except subprocess.CalledProcessError as e:
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
     def svnIsDirty(dirName):
         return False
 
@@ -2513,67 +2500,6 @@ class FmUtil:
     @staticmethod
     def svnHasUntrackedFiles(dirName):
         return False
-
-    @staticmethod
-    def svnGetUrl(dirName):
-        ret = FmUtil.cmdCall("/usr/bin/svn", "info", dirName)
-        m = re.search("^URL: (.*)$", ret, re.M)
-        return m.group(1)
-
-    @staticmethod
-    def svnCheckout(url, destDir):
-        while True:
-            try:
-                FmUtil.mkDirAndClear(destDir)
-                FmUtil.cmdExec("/usr/bin/svn", "checkout", url, destDir)
-                break
-            except subprocess.CalledProcessError as e:
-                shutil.rmtree(destDir)
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
-    def svnUpdate(dirName):
-        while True:
-            try:
-                FmUtil.cmdExec("/usr/bin/svn", "update", dirName)
-                break
-            except subprocess.CalledProcessError as e:
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
-    def svnUpdateOrCheckout(dirName, url):
-        if os.path.exists(dirName) and FmUtil.svnIsRepo(dirName) and FmUtil.svnGetUrl(dirName) == url:
-            mode = "update"
-        else:
-            mode = "checkout"
-
-        while True:
-            if mode == "update":
-                try:
-                    FmUtil.cmdExec("/usr/bin/svn", "update", dirName)
-                    break
-                except subprocess.CalledProcessError as e:
-                    if e.returncode > 128:
-                        raise                    # terminated by signal, no retry needed
-                    time.sleep(1.0)
-                    if "fatal:" in str(e.stderr):
-                        mode = "checkout"        # fatal: ???
-            elif mode == "checkout":
-                try:
-                    FmUtil.mkDirAndClear(dirName)
-                    FmUtil.cmdExec("/usr/bin/svn", "checkout", url, dirName)
-                    break
-                except subprocess.CalledProcessError as e:
-                    shutil.rmtree(dirName)
-                    if e.returncode > 128:
-                        raise                    # terminated by signal, no retry needed
-                    time.sleep(1.0)
-            else:
-                assert False
 
     @staticmethod
     def getMachineInfo(filename):

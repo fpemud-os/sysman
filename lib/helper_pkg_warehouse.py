@@ -12,6 +12,8 @@ import configparser
 import lxml.etree
 import urllib.parse
 import robust_layer.simple_git
+import robust_layer.simple_subversion
+import robust_layer.rsync
 from datetime import datetime
 from fm_util import FmUtil
 from fm_param import FmConst
@@ -454,7 +456,7 @@ class EbuildRepositories:
 
     def _repoGentooSync(self, repoDir):
         mr = FmUtil.portageGetGentooPortageRsyncMirror(FmConst.portageCfgMakeConf, FmConst.defaultRsyncMirror)
-        FmUtil.rsyncPull("-rlptD -z -hhh --no-motd --delete --info=progress2", mr, repoDir)                         # we use "-rlptD" insead of "-a" so that the remote user/group is ignored
+        robust_layer.rsync.exec("-rlptD", "-z", "-hhh", "--no-motd", "--delete", "--info=progress2", mr, repoDir)   # we use "-rlptD" insead of "-a" so that the remote user/group is ignored
 
     def __generateReposConfContent(self, repoName):
         repoDir = self.getRepoDir(repoName)
@@ -835,7 +837,8 @@ class EbuildOverlays:
             # overlayFilesDir may already exist
             robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
         elif vcsType == "svn":
-            FmUtil.svnUpdateOrCheckout(overlayFilesDir, url)
+            # overlayFilesDir may already exist
+            robust_layer.simple_subversion.update(overlayFilesDir, recheckout_on_failure=True, url=url)
         elif vcsType == "mercurial":
             # FIXME
             assert False
@@ -857,7 +860,7 @@ class EbuildOverlays:
         if vcsType == "git":
             robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
         elif vcsType == "svn":
-            FmUtil.svnUpdateOrCheckout(overlayFilesDir, url)
+            robust_layer.simple_subversion.update(overlayFilesDir, recheckout_on_failure=True, url=url)
         else:
             assert False
 
