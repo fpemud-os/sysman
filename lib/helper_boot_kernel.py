@@ -620,20 +620,6 @@ class FkmKCache:
     def updateExtraFirmwareCache(self, extraFirmwareName):
         repoDir = os.path.join(FmConst.kcacheDir, "firmware-repo-%s" % (extraFirmwareName))
         repoUrl = self.extraFirmwareRepoUrl[extraFirmwareName]
-        while os.path.exists(repoDir):
-            if not FmUtil.gitIsRepo(repoDir):
-                FmUtil.forceDelete(repoDir)
-                break
-            if FmUtil.gitHasUntrackedFiles(repoDir):
-                FmUtil.forceDelete(repoDir)
-                break
-            if FmUtil.gitIsDirty(repoDir):
-                FmUtil.forceDelete(repoDir)
-                break
-            if FmUtil.gitGetUrl(repoDir) != repoUrl:
-                FmUtil.forceDelete(repoDir)
-                break
-            break
         robust_layer.simple_git.pull(repoDir, reclone_on_failure=True, url=repoUrl)
 
     def updateWirelessRegDbCache(self, wirelessRegDbVersion):

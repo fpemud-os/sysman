@@ -2463,14 +2463,6 @@ class FmUtil:
         return ret
 
     @staticmethod
-    def gitIsRepo(dirName):
-        return os.path.isdir(os.path.join(dirName, ".git"))
-
-    @staticmethod
-    def gitIsShallow(dirName):
-        return os.path.exists(os.path.join(dirName, ".git", "shallow"))
-
-    @staticmethod
     def gitIsDirty(dirName):
         ret = FmUtil._gitCall(dirName, "status")
         if re.search("^You have unmerged paths.$", ret, re.M) is not None:
@@ -2491,74 +2483,10 @@ class FmUtil:
         return False
 
     @staticmethod
-    def gitGetUrl(dirName):
-        return FmUtil._gitCall(dirName, "config --get remote.origin.url")
-
-    @staticmethod
-    def gitClean(dirName):
-        FmUtil.cmdCall("/usr/bin/git", "-C", dirName, "reset", "--hard")  # revert any modifications
-        FmUtil.cmdCall("/usr/bin/git", "-C", dirName, "clean", "-xfd")    # delete untracked files
-
-    @staticmethod
-    def gitPullOrClone(dirName, url, shallow=False, quiet=False):
-        """pull is the default action
-           clone if not exists
-           clone if url differs
-           clone if pull fails"""
-
-        if shallow:
-            depth = "--depth 1"
-        else:
-            depth = ""
-
-        if quiet:
-            quiet = "-q"
-        else:
-            quiet = ""
-
-        if os.path.exists(dirName) and FmUtil.gitIsRepo(dirName) and url == FmUtil.gitGetUrl(dirName):
-            mode = "pull"
-        else:
-            mode = "clone"
-
-        while True:
-            if mode == "pull":
-                FmUtil.gitClean(dirName)
-                try:
-                    cmd = "%s /usr/bin/git -C \"%s\" pull --rebase --no-stat %s %s" % (FmUtil._getGitSpeedEnv(), dirName, depth, quiet)
-                    FmUtil.shellExecWithStuckCheck(cmd, quiet=quiet)
-                    break
-                except FmUtil.ProcessStuckError:
-                    time.sleep(1.0)
-                except subprocess.CalledProcessError as e:
-                    if e.returncode > 128:
-                        raise                    # terminated by signal, no retry needed
-                    if "fatal: refusing to merge unrelated histories" in str(e.stderr):
-                        mode = "clone"
-                    else:
-                        time.sleep(1.0)
-            elif mode == "clone":
-                FmUtil.forceDelete(dirName)
-                try:
-                    cmd = "%s /usr/bin/git clone %s %s \"%s\" \"%s\"" % (FmUtil._getGitSpeedEnv(), depth, quiet, url, dirName)
-                    FmUtil.shellExecWithStuckCheck(cmd, quiet=quiet)
-                    break
-                except subprocess.CalledProcessError as e:
-                    if e.returncode > 128:
-                        raise                    # terminated by signal, no retry needed
-                    time.sleep(1.0)
-            else:
-                assert False
-
-    @staticmethod
     def _gitCall(dirName, command):
         gitDir = os.path.join(dirName, ".git")
         cmdStr = "/usr/bin/git --git-dir=\"%s\" --work-tree=\"%s\" %s" % (gitDir, dirName, command)
         return FmUtil.shellCall(cmdStr)
-
-    @staticmethod
-    def _getGitSpeedEnv():
-        return "GIT_HTTP_LOW_SPEED_LIMIT=1024 GIT_HTTP_LOW_SPEED_TIME=60"
 
     @staticmethod
     def rsyncPull(args, src, dst):
