@@ -2489,19 +2489,6 @@ class FmUtil:
         return FmUtil.shellCall(cmdStr)
 
     @staticmethod
-    def svnIsDirty(dirName):
-        return False
-
-    @staticmethod
-    def svnIsRepo(dirName):
-        rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/svn", "info", dirName)
-        return rc == 0
-
-    @staticmethod
-    def svnHasUntrackedFiles(dirName):
-        return False
-
-    @staticmethod
     def getMachineInfo(filename):
         ret = dict()
         with open(filename, "r") as f:

@@ -4,6 +4,7 @@
 import os
 import re
 import sys
+import pathlib
 from gentoolkit.dependencies import Dependencies
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import FmUtil
@@ -64,7 +65,7 @@ while True:
     print("        - Cycle %d: removing unused USE flags..." % (i))
     if not bPretend:
         fn = os.path.join(FmConst.portageCfgUseDir, "99-autouse")
-        buf = FmUtil.readFile(fn)
+        buf = pathlib.Path(fn).read_text()
 
         useMap = dict()
         for pkgAtom, useList in FmUtil.portageParseCfgUseFile(buf):
