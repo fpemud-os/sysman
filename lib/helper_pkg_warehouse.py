@@ -11,6 +11,7 @@ import fileinput
 import configparser
 import lxml.etree
 import urllib.parse
+import robust_layer.simple_git
 from datetime import datetime
 from fm_util import FmUtil
 from fm_param import FmConst
@@ -413,7 +414,7 @@ class EbuildRepositories:
             self._repoGentooCreate(self.getRepoDir("gentoo"))
         else:
             if repoName in self._repoGitUrlDict:
-                FmUtil.gitPullOrClone(self.getRepoDir(repoName), self._repoGitUrlDict[repoName])
+                robust_layer.simple_git.pull(self.getRepoDir(repoName), reclone_on_failure=True, url=self._repoGitUrlDict[repoName])
             else:
                 assert False
 
@@ -435,7 +436,7 @@ class EbuildRepositories:
             self._repoGentooSync(self.getRepoDir("gentoo"))
         else:
             if repoName in self._repoGitUrlDict:
-                FmUtil.gitPullOrClone(self.getRepoDir(repoName), self._repoGitUrlDict[repoName])
+                robust_layer.simple_git.pull(self.getRepoDir(repoName), reclone_on_failure=True, url=self._repoGitUrlDict[repoName])
             else:
                 assert False
 
@@ -831,7 +832,8 @@ class EbuildOverlays:
 
     def _createOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
-            FmUtil.gitPullOrClone(overlayFilesDir, url)
+            # overlayFilesDir may already exist
+            robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
         elif vcsType == "svn":
             FmUtil.svnUpdateOrCheckout(overlayFilesDir, url)
         elif vcsType == "mercurial":
@@ -853,7 +855,7 @@ class EbuildOverlays:
 
     def _syncOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
-            FmUtil.gitPullOrClone(overlayFilesDir, url)
+            robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
         elif vcsType == "svn":
             FmUtil.svnUpdateOrCheckout(overlayFilesDir, url)
         else:

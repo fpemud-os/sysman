@@ -11,6 +11,7 @@ import shutil
 import lxml.html
 import urllib.request
 import urllib.error
+import robust_layer.simple_git
 from fm_util import FmUtil
 from fm_util import TempChdir
 from fm_param import FmConst
@@ -633,7 +634,7 @@ class FkmKCache:
                 FmUtil.forceDelete(repoDir)
                 break
             break
-        FmUtil.gitPullOrClone(repoDir, repoUrl)
+        robust_layer.simple_git.pull(repoDir, reclone_on_failure=True, url=repoUrl)
 
     def updateWirelessRegDbCache(self, wirelessRegDbVersion):
         filename = "wireless-regdb-%s.tar.xz" % (wirelessRegDbVersion)
@@ -649,10 +650,10 @@ class FkmKCache:
 
     def updateTbsDriverCache(self):
         tdir = os.path.join(FmConst.kcacheDir, "media_build")
-        FmUtil.gitPullOrClone(tdir, "https://github.com/tbsdtv/media_build")
+        robust_layer.simple_git.pull(tdir, reclone_on_failure=True, url="https://github.com/tbsdtv/media_build")
 
         tdir = os.path.join(FmConst.kcacheDir, "linux_media")
-        FmUtil.gitPullOrClone(tdir, "https://github.com/tbsdtv/linux_media")
+        robust_layer.simple_git.pull(tdir, reclone_on_failure=True, url="https://github.com/tbsdtv/linux_media")
 
     def updateVboxDriverCache(self):
         url = "https://www.virtualbox.org/wiki/Linux_Downloads"
@@ -705,7 +706,7 @@ class FkmKCache:
 
     def updateVhbaModuleCache(self):
         tdir = os.path.join(FmConst.kcacheDir, "vhba_module")
-        FmUtil.gitPullOrClone(tdir, "https://github.com/cdemu/cdemu")
+        robust_layer.simple_git.pull(tdir, reclone_on_failure=True, url="https://github.com/cdemu/cdemu")
 
     def getLatestKernelVersion(self):
         kernelVer = self._readDataFromKsyncFile("kernel")

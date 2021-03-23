@@ -2500,54 +2500,6 @@ class FmUtil:
         FmUtil.cmdCall("/usr/bin/git", "-C", dirName, "clean", "-xfd")    # delete untracked files
 
     @staticmethod
-    def gitClone(url, destDir, shallow=False, quiet=False):
-        if shallow:
-            depth = "--depth 1"
-        else:
-            depth = ""
-
-        if quiet:
-            quiet = "-q"
-        else:
-            quiet = ""
-
-        while True:
-            try:
-                cmd = "%s /usr/bin/git clone %s %s \"%s\" \"%s\"" % (FmUtil._getGitSpeedEnv(), depth, quiet, url, destDir)
-                FmUtil.shellExecWithStuckCheck(cmd, quiet=quiet)
-                break
-            except FmUtil.ProcessStuckError:
-                time.sleep(1.0)
-            except subprocess.CalledProcessError as e:
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
-    def gitPull(dirName, shallow=False, quiet=False):
-        if shallow:
-            depth = "--depth 1"
-        else:
-            depth = ""
-
-        if quiet:
-            quiet = "-q"
-        else:
-            quiet = ""
-
-        while True:
-            try:
-                cmd = "%s /usr/bin/git -C \"%s\" pull --rebase --no-stat %s %s" % (FmUtil._getGitSpeedEnv(), dirName, depth, quiet)
-                FmUtil.shellExecWithStuckCheck(cmd, quiet=quiet)
-                break
-            except FmUtil.ProcessStuckError:
-                time.sleep(1.0)
-            except subprocess.CalledProcessError as e:
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
     def gitPullOrClone(dirName, url, shallow=False, quiet=False):
         """pull is the default action
            clone if not exists
