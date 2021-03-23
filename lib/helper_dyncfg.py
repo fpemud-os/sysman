@@ -3,6 +3,7 @@
 
 import re
 import requests
+import robust_layer.wget
 from fm_util import FmUtil
 from fm_util import AvahiServiceBrowser
 from fm_param import FmConst
