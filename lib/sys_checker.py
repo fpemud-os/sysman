@@ -11,6 +11,7 @@ import pathlib
 import filecmp
 import strict_pgs
 import strict_fsh
+import configparser
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_param import FmConst
@@ -83,7 +84,7 @@ class FmSysChecker:
                     self._checkServiceFiles()
                     # self._checkFirmware()
                     self._checkPortageCfg()
-                    # self._checkSystemServices()       # FIXME: seems not that simple
+                    self._checkSystemServices()
                 with self.infoPrinter.printInfoAndIndent("- Check package repositories & overlays..."):
                     self._checkRepositories()
                     self._checkOverlays()
@@ -1128,10 +1129,25 @@ class FmSysChecker:
             return
 
     def _checkSystemServices(self):
-        for s in FmUtil.systemdGetAllServicesEnabled():
-            print(s)
-            if not FmUtil.systemdIsUnitRunning(s):
-                self.infoPrinter.printError("Service \"%s\" is enabled but not running.")
+        # all enabled services should be runnning
+        # FIXME: not that simple
+        if False:
+            for s in FmUtil.systemdGetAllServicesEnabled():
+                print(s)
+                if not FmUtil.systemdIsUnitRunning(s):
+                    self.infoPrinter.printError("Service \"%s\" is enabled but not running.")
+
+        # default LimitNOFILE is 1024:524288 (for soft and hard limit)
+        # ideally it should be infinity:infinity
+        # we make it 524288:524288 currently
+        cfg = configparser.ConfigParser()
+        cfg.read("/etc/systemd/system.conf")
+        val = cfg.get("Manager", "DefaultLimitNOFILE")
+        if val != "524288":
+            self.infoPrinter.printError("DefaultLimitNOFILE in /etc/systemd/system.conf should be set to 524288.")
+
+        # check limit in-effect for all system services
+        pass
 
     def _checkSystemTime(self):
         # check timezone configuration
