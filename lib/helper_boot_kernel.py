@@ -8,10 +8,11 @@ import gzip
 import time
 import glob
 import shutil
+import robust_layer
+import robust_layer.simple_git
 import lxml.html
 import urllib.request
 import urllib.error
-import robust_layer.simple_git
 from fm_util import FmUtil
 from fm_util import TempChdir
 from fm_param import FmConst
@@ -651,7 +652,7 @@ class FkmKCache:
         origFile = None
         while True:
             try:
-                resp = urllib.request.urlopen(url, timeout=FmUtil.urlopenTimeout())
+                resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
                 root = lxml.html.parse(resp)
                 for link in root.xpath(".//a"):
                     if link.get("href").endswith("_amd64.run"):
@@ -829,7 +830,7 @@ class FkmKCache:
 
     def _findKernelVersion(self, typename):
         try:
-            resp = urllib.request.urlopen(self.kernelUrl, timeout=FmUtil.urlopenTimeout())
+            resp = urllib.request.urlopen(self.kernelUrl, timeout=robust_layer.TIMEOUT)
             if resp.info().get('Content-Encoding') is None:
                 fakef = resp
             elif resp.info().get('Content-Encoding') == 'gzip':
@@ -850,7 +851,7 @@ class FkmKCache:
 
     def _findFirmwareVersion(self):
         try:
-            resp = urllib.request.urlopen(self.firmwareUrl, timeout=FmUtil.urlopenTimeout())
+            resp = urllib.request.urlopen(self.firmwareUrl, timeout=robust_layer.TIMEOUT)
             root = lxml.html.parse(resp)
             ret = None
             for atag in root.xpath(".//a"):
@@ -867,7 +868,7 @@ class FkmKCache:
     def _findWirelessRegDbVersion(self):
         try:
             ver = None
-            resp = urllib.request.urlopen(self.wirelessRegDbDirUrl, timeout=FmUtil.urlopenTimeout())
+            resp = urllib.request.urlopen(self.wirelessRegDbDirUrl, timeout=robust_layer.TIMEOUT)
             out = resp.read().decode("iso8859-1")
             for m in re.finditer("wireless-regdb-([0-9]+\\.[0-9]+\\.[0-9]+)\\.tar\\.xz", out, re.M):
                 if ver is None or m.group(1) > ver:

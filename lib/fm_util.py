@@ -39,6 +39,7 @@ import urllib.request
 import urllib.error
 import lxml.html
 import passlib.hosts
+import robust_layer
 import robust_layer.wget
 from datetime import datetime
 from OpenSSL import crypto
@@ -1886,7 +1887,7 @@ class FmUtil:
     @staticmethod
     def downloadIfNewer(url, fullfn):
         if os.path.exists(fullfn):
-            resp = urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=FmUtil.urlopenTimeout())
+            resp = urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=robust_layer.TIMEOUT)
             remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
             localTm = datetime.utcfromtimestamp(os.path.getmtime(fullfn))
             if remoteTm <= localTm:
@@ -2958,7 +2959,7 @@ class ArchLinuxBasedOsBuilder:
             signFile = None
             if True:
                 url = "%s/iso/latest" % (mr)
-                resp = urllib.request.urlopen(url, timeout=FmUtil.urlopenTimeout())
+                resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
                 root = lxml.html.parse(resp)
                 for link in root.xpath(".//a"):
                     fn = os.path.basename(link.get("href"))
