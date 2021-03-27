@@ -7,9 +7,11 @@ import glob
 import time
 import ntplib
 import struct
+import pathlib
 import filecmp
 import strict_pgs
 import strict_fsh
+import configparser
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_param import FmConst
@@ -82,7 +84,7 @@ class FmSysChecker:
                     self._checkServiceFiles()
                     # self._checkFirmware()
                     self._checkPortageCfg()
-                    # self._checkSystemServices()       # FIXME: seems not that simple
+                    self._checkSystemServices()
                 with self.infoPrinter.printInfoAndIndent("- Check package repositories & overlays..."):
                     self._checkRepositories()
                     self._checkOverlays()
@@ -364,7 +366,7 @@ class FmSysChecker:
         content = ""
         content += "127.0.0.1 localhost\n"
         content += "::1 localhost\n"                    # selenium fails when "::1 localhost" exist in /etc/hosts ?
-        if FmUtil.readFile("/etc/hosts") != content:
+        if pathlib.Path("/etc/hosts").read_text() != content:
             if self.bAutoFix:
                 with open("/etc/hosts", "w") as f:
                     f.write(content)
@@ -436,7 +438,7 @@ class FmSysChecker:
                 if fn.startswith("."):
                     continue
                 elif fn.startswith("72-"):
-                    lineList = [x.strip() for x in FmUtil.readFile(fullfn).split("\n")]
+                    lineList = [x.strip() for x in pathlib.Path(fullfn).read_text().split("\n")]
 
                     # find and check first line
                     firstLineNo = -1
@@ -703,7 +705,7 @@ class FmSysChecker:
             # /etc/portage/package.use/99-autouse
             self.__checkAndFixEtcEmptyFile(FmConst.portageCfgUseDir, "99-autouse")
             fn = os.path.join(FmConst.portageCfgUseDir, "99-autouse")
-            for pkgAtom, useList in FmUtil.portageParseCfgUseFile(FmUtil.readFile(fn)):
+            for pkgAtom, useList in FmUtil.portageParseCfgUseFile(pathlib.Path(fn).read_text()):
                 pkgName = FmUtil.portageGetPkgNameFromPkgAtom(pkgAtom)
                 if pkgName != pkgAtom:
                     raise FmCheckException("invalid package name \"%s\" in %s" % (pkgAtom, fn))
@@ -1127,10 +1129,25 @@ class FmSysChecker:
             return
 
     def _checkSystemServices(self):
-        for s in FmUtil.systemdGetAllServicesEnabled():
-            print(s)
-            if not FmUtil.systemdIsUnitRunning(s):
-                self.infoPrinter.printError("Service \"%s\" is enabled but not running.")
+        # all enabled services should be runnning
+        # FIXME: not that simple
+        if False:
+            for s in FmUtil.systemdGetAllServicesEnabled():
+                print(s)
+                if not FmUtil.systemdIsUnitRunning(s):
+                    self.infoPrinter.printError("Service \"%s\" is enabled but not running.")
+
+        # default LimitNOFILE is 1024:524288 (for soft and hard limit)
+        # ideally it should be infinity:infinity
+        # we make it 524288:524288 currently
+        cfg = configparser.ConfigParser()
+        cfg.read("/etc/systemd/system.conf")
+        val = cfg.get("Manager", "DefaultLimitNOFILE")
+        if val != "524288":
+            self.infoPrinter.printError("DefaultLimitNOFILE in /etc/systemd/system.conf should be set to 524288.")
+
+        # check limit in-effect for all system services
+        pass
 
     def _checkSystemTime(self):
         # check timezone configuration

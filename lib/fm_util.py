@@ -39,6 +39,8 @@ import urllib.request
 import urllib.error
 import lxml.html
 import passlib.hosts
+import robust_layer
+import robust_layer.wget
 from datetime import datetime
 from OpenSSL import crypto
 from gi.repository import Gio
@@ -1877,20 +1879,15 @@ class FmUtil:
 
     @staticmethod
     def wgetDownload(url, localFile=None):
-        param = FmUtil.wgetCommonDownloadParam().split()
         if localFile is None:
-            FmUtil.cmdExec("/usr/bin/wget", *param, url)
+            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), url)
         else:
-            FmUtil.cmdExec("/usr/bin/wget", *param, "-O", localFile, url)
-
-    @staticmethod
-    def wgetCommonDownloadParam():
-        return "-q --show-progress -t 0 -w 60 --random-wait -T 60 --passive-ftp"
+            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), "-O", localFile, url)
 
     @staticmethod
     def downloadIfNewer(url, fullfn):
         if os.path.exists(fullfn):
-            resp = urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=FmUtil.urlopenTimeout())
+            resp = urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=robust_layer.TIMEOUT)
             remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
             localTm = datetime.utcfromtimestamp(os.path.getmtime(fullfn))
             if remoteTm <= localTm:
@@ -2463,14 +2460,6 @@ class FmUtil:
         return ret
 
     @staticmethod
-    def gitIsRepo(dirName):
-        return os.path.isdir(os.path.join(dirName, ".git"))
-
-    @staticmethod
-    def gitIsShallow(dirName):
-        return os.path.exists(os.path.join(dirName, ".git", "shallow"))
-
-    @staticmethod
     def gitIsDirty(dirName):
         ret = FmUtil._gitCall(dirName, "status")
         if re.search("^You have unmerged paths.$", ret, re.M) is not None:
@@ -2491,209 +2480,10 @@ class FmUtil:
         return False
 
     @staticmethod
-    def gitGetUrl(dirName):
-        return FmUtil._gitCall(dirName, "config --get remote.origin.url")
-
-    @staticmethod
-    def gitClean(dirName):
-        FmUtil.cmdCall("/usr/bin/git", "-C", dirName, "reset", "--hard")  # revert any modifications
-        FmUtil.cmdCall("/usr/bin/git", "-C", dirName, "clean", "-xfd")    # delete untracked files
-
-    @staticmethod
-    def gitClone(url, destDir, shallow=False, quiet=False):
-        if shallow:
-            depth = "--depth 1"
-        else:
-            depth = ""
-
-        if quiet:
-            quiet = "-q"
-        else:
-            quiet = ""
-
-        while True:
-            try:
-                cmd = "%s /usr/bin/git clone %s %s \"%s\" \"%s\"" % (FmUtil._getGitSpeedEnv(), depth, quiet, url, destDir)
-                FmUtil.shellExecWithStuckCheck(cmd, quiet=quiet)
-                break
-            except FmUtil.ProcessStuckError:
-                time.sleep(1.0)
-            except subprocess.CalledProcessError as e:
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
-    def gitPull(dirName, shallow=False, quiet=False):
-        if shallow:
-            depth = "--depth 1"
-        else:
-            depth = ""
-
-        if quiet:
-            quiet = "-q"
-        else:
-            quiet = ""
-
-        while True:
-            try:
-                cmd = "%s /usr/bin/git -C \"%s\" pull --rebase --no-stat %s %s" % (FmUtil._getGitSpeedEnv(), dirName, depth, quiet)
-                FmUtil.shellExecWithStuckCheck(cmd, quiet=quiet)
-                break
-            except FmUtil.ProcessStuckError:
-                time.sleep(1.0)
-            except subprocess.CalledProcessError as e:
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
-    def gitPullOrClone(dirName, url, shallow=False, quiet=False):
-        """pull is the default action
-           clone if not exists
-           clone if url differs
-           clone if pull fails"""
-
-        if shallow:
-            depth = "--depth 1"
-        else:
-            depth = ""
-
-        if quiet:
-            quiet = "-q"
-        else:
-            quiet = ""
-
-        if os.path.exists(dirName) and FmUtil.gitIsRepo(dirName) and url == FmUtil.gitGetUrl(dirName):
-            mode = "pull"
-        else:
-            mode = "clone"
-
-        while True:
-            if mode == "pull":
-                FmUtil.gitClean(dirName)
-                try:
-                    cmd = "%s /usr/bin/git -C \"%s\" pull --rebase --no-stat %s %s" % (FmUtil._getGitSpeedEnv(), dirName, depth, quiet)
-                    FmUtil.shellExecWithStuckCheck(cmd, quiet=quiet)
-                    break
-                except FmUtil.ProcessStuckError:
-                    time.sleep(1.0)
-                except subprocess.CalledProcessError as e:
-                    if e.returncode > 128:
-                        raise                    # terminated by signal, no retry needed
-                    if "fatal: refusing to merge unrelated histories" in str(e.stderr):
-                        mode = "clone"
-                    else:
-                        time.sleep(1.0)
-            elif mode == "clone":
-                FmUtil.forceDelete(dirName)
-                try:
-                    cmd = "%s /usr/bin/git clone %s %s \"%s\" \"%s\"" % (FmUtil._getGitSpeedEnv(), depth, quiet, url, dirName)
-                    FmUtil.shellExecWithStuckCheck(cmd, quiet=quiet)
-                    break
-                except subprocess.CalledProcessError as e:
-                    if e.returncode > 128:
-                        raise                    # terminated by signal, no retry needed
-                    time.sleep(1.0)
-            else:
-                assert False
-
-    @staticmethod
     def _gitCall(dirName, command):
         gitDir = os.path.join(dirName, ".git")
         cmdStr = "/usr/bin/git --git-dir=\"%s\" --work-tree=\"%s\" %s" % (gitDir, dirName, command)
         return FmUtil.shellCall(cmdStr)
-
-    @staticmethod
-    def _getGitSpeedEnv():
-        return "GIT_HTTP_LOW_SPEED_LIMIT=1024 GIT_HTTP_LOW_SPEED_TIME=60"
-
-    @staticmethod
-    def rsyncPull(args, src, dst):
-        assert src.startswith("rsync://")
-
-        while True:
-            try:
-                FmUtil.shellExec("/usr/bin/rsync --timeout=60 %s \"%s\" \"%s\"" % (args, src, dst))
-                break
-            except subprocess.CalledProcessError as e:
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
-    def svnIsDirty(dirName):
-        return False
-
-    @staticmethod
-    def svnIsRepo(dirName):
-        rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/svn", "info", dirName)
-        return rc == 0
-
-    @staticmethod
-    def svnHasUntrackedFiles(dirName):
-        return False
-
-    @staticmethod
-    def svnGetUrl(dirName):
-        ret = FmUtil.cmdCall("/usr/bin/svn", "info", dirName)
-        m = re.search("^URL: (.*)$", ret, re.M)
-        return m.group(1)
-
-    @staticmethod
-    def svnCheckout(url, destDir):
-        while True:
-            try:
-                FmUtil.mkDirAndClear(destDir)
-                FmUtil.cmdExec("/usr/bin/svn", "checkout", url, destDir)
-                break
-            except subprocess.CalledProcessError as e:
-                shutil.rmtree(destDir)
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
-    def svnUpdate(dirName):
-        while True:
-            try:
-                FmUtil.cmdExec("/usr/bin/svn", "update", dirName)
-                break
-            except subprocess.CalledProcessError as e:
-                if e.returncode > 128:
-                    raise                    # terminated by signal, no retry needed
-                time.sleep(1.0)
-
-    @staticmethod
-    def svnUpdateOrCheckout(dirName, url):
-        if os.path.exists(dirName) and FmUtil.svnIsRepo(dirName) and FmUtil.svnGetUrl(dirName) == url:
-            mode = "update"
-        else:
-            mode = "checkout"
-
-        while True:
-            if mode == "update":
-                try:
-                    FmUtil.cmdExec("/usr/bin/svn", "update", dirName)
-                    break
-                except subprocess.CalledProcessError as e:
-                    if e.returncode > 128:
-                        raise                    # terminated by signal, no retry needed
-                    time.sleep(1.0)
-                    if "fatal:" in str(e.stderr):
-                        mode = "checkout"        # fatal: ???
-            elif mode == "checkout":
-                try:
-                    FmUtil.mkDirAndClear(dirName)
-                    FmUtil.cmdExec("/usr/bin/svn", "checkout", url, dirName)
-                    break
-                except subprocess.CalledProcessError as e:
-                    shutil.rmtree(dirName)
-                    if e.returncode > 128:
-                        raise                    # terminated by signal, no retry needed
-                    time.sleep(1.0)
-            else:
-                assert False
 
     @staticmethod
     def getMachineInfo(filename):
@@ -3169,7 +2959,7 @@ class ArchLinuxBasedOsBuilder:
             signFile = None
             if True:
                 url = "%s/iso/latest" % (mr)
-                resp = urllib.request.urlopen(url, timeout=FmUtil.urlopenTimeout())
+                resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
                 root = lxml.html.parse(resp)
                 for link in root.xpath(".//a"):
                     fn = os.path.basename(link.get("href"))

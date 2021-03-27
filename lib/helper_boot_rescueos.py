@@ -4,6 +4,7 @@
 import os
 import glob
 import shutil
+import pathlib
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_util import ArchLinuxBasedOsBuilder
@@ -142,7 +143,7 @@ class RescueDiskBuilder:
             FmUtil.cmdCall("/usr/sbin/grub-install", "--removable", "--target=x86_64-efi", "--boot-directory=%s" % (os.path.join(mp.mountpoint, "boot")), "--efi-directory=%s" % (mp.mountpoint), "--no-nvram")
             FmUtil.cmdCall("/usr/sbin/grub-install", "--removable", "--target=i386-pc", "--boot-directory=%s" % (os.path.join(mp.mountpoint, "boot")), devPath)
             with open(os.path.join(mp.mountpoint, "boot", "grub", "grub.cfg"), "w") as f:
-                buf = FmUtil.readFile(self.grubCfgSrcFile)
+                buf = pathlib.Path(self.grubCfgSrcFile).read_text()
                 buf = buf.replace("%UUID%", uuid)
                 buf = buf.replace("%BASEDIR%", "/rescuedisk")
                 buf = buf.replace("%PREFIX%", "/rescuedisk/x86_64")

@@ -11,6 +11,9 @@ import fileinput
 import configparser
 import lxml.etree
 import urllib.parse
+import robust_layer.simple_git
+import robust_layer.simple_subversion
+import robust_layer.rsync
 from datetime import datetime
 from fm_util import FmUtil
 from fm_param import FmConst
@@ -413,7 +416,7 @@ class EbuildRepositories:
             self._repoGentooCreate(self.getRepoDir("gentoo"))
         else:
             if repoName in self._repoGitUrlDict:
-                FmUtil.gitPullOrClone(self.getRepoDir(repoName), self._repoGitUrlDict[repoName])
+                robust_layer.simple_git.pull(self.getRepoDir(repoName), reclone_on_failure=True, url=self._repoGitUrlDict[repoName])
             else:
                 assert False
 
@@ -435,7 +438,7 @@ class EbuildRepositories:
             self._repoGentooSync(self.getRepoDir("gentoo"))
         else:
             if repoName in self._repoGitUrlDict:
-                FmUtil.gitPullOrClone(self.getRepoDir(repoName), self._repoGitUrlDict[repoName])
+                robust_layer.simple_git.pull(self.getRepoDir(repoName), reclone_on_failure=True, url=self._repoGitUrlDict[repoName])
             else:
                 assert False
 
@@ -452,42 +455,8 @@ class EbuildRepositories:
         self._repoGentooSync(repoDir)
 
     def _repoGentooSync(self, repoDir):
-        # lastDate = None
-        # try:
-        #     with open(recordFile, "r") as f:
-        #         buf = f.read().rstrip("\n")
-        #         lastDate = datetime.strptime(buf, "%Y-%m-%d").date()
-        # except:
-        #     pass
-
-        # # should we do web download
-        # remoteFile = None
-        # if lastDate is not None:
-        #     while curDate > lastDate:
-        #         remoteFile = os.path.join("snapshots", "portage-%s.tar.xz" % (curDate.strftime("%Y%m%d")))
-        #         mr = FmUtil.portageGetGentooHttpMirror(FmConst.portageCfgMakeConf, FmConst.defaultGentooMirror, [remoteFile])
-        #         remoteFile = os.path.join(mr, remoteFile)
-        #         if FmUtil.wgetSpider(remoteFile):
-        #             break
-        #         curDate -= timedelta(days=1)
-        #         remoteFile = None
-        # else:
-        #     remoteFile = os.path.join("snapshots", "portage-latest.tar.xz")
-        #     mr = FmUtil.portageGetGentooHttpMirror(FmConst.portageCfgMakeConf, FmConst.defaultGentooMirror, [remoteFile])
-        #     remoteFile = os.path.join(mr, remoteFile)
-
-        # # download and replace all files if neccessary
-        # if remoteFile is not None:
-        #     localFile = os.path.join(FmConst.distDir, "portage-latest.tar.xz")
-        #     FmUtil.wgetDownload(remoteFile, localFile)
-        #     FmUtil.cmdCall("/bin/tar", "-xJf", localFile, "-C", os.path.dirname(repoDir))
-        #     FmUtil.forceDelete(repoDir)
-        #     os.rename(os.path.join(os.path.dirname(repoDir), "portage"), repoDir)
-        #     os.unlink(localFile)
-
-        # rsync to bleeding edge
         mr = FmUtil.portageGetGentooPortageRsyncMirror(FmConst.portageCfgMakeConf, FmConst.defaultRsyncMirror)
-        FmUtil.rsyncPull("-rlptD -z -hhh --no-motd --delete --info=progress2", mr, repoDir)                         # we use "-rlptD" insead of "-a" so that the remote user/group is ignored
+        robust_layer.rsync.exec("-rlptD", "-z", "-hhh", "--no-motd", "--delete", "--info=progress2", mr, repoDir)   # we use "-rlptD" insead of "-a" so that the remote user/group is ignored
 
     def __generateReposConfContent(self, repoName):
         repoDir = self.getRepoDir(repoName)
@@ -865,9 +834,11 @@ class EbuildOverlays:
 
     def _createOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
-            FmUtil.gitPullOrClone(overlayFilesDir, url)
+            # overlayFilesDir may already exist
+            robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
         elif vcsType == "svn":
-            FmUtil.svnUpdateOrCheckout(overlayFilesDir, url)
+            # overlayFilesDir may already exist
+            robust_layer.simple_subversion.update(overlayFilesDir, recheckout_on_failure=True, url=url)
         elif vcsType == "mercurial":
             # FIXME
             assert False
@@ -887,9 +858,9 @@ class EbuildOverlays:
 
     def _syncOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
-            FmUtil.gitPullOrClone(overlayFilesDir, url)
+            robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
         elif vcsType == "svn":
-            FmUtil.svnUpdateOrCheckout(overlayFilesDir, url)
+            robust_layer.simple_subversion.update(overlayFilesDir, recheckout_on_failure=True, url=url)
         else:
             assert False
 

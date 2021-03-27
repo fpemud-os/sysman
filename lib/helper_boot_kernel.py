@@ -8,6 +8,8 @@ import gzip
 import time
 import glob
 import shutil
+import robust_layer
+import robust_layer.simple_git
 import lxml.html
 import urllib.request
 import urllib.error
@@ -619,21 +621,7 @@ class FkmKCache:
     def updateExtraFirmwareCache(self, extraFirmwareName):
         repoDir = os.path.join(FmConst.kcacheDir, "firmware-repo-%s" % (extraFirmwareName))
         repoUrl = self.extraFirmwareRepoUrl[extraFirmwareName]
-        while os.path.exists(repoDir):
-            if not FmUtil.gitIsRepo(repoDir):
-                FmUtil.forceDelete(repoDir)
-                break
-            if FmUtil.gitHasUntrackedFiles(repoDir):
-                FmUtil.forceDelete(repoDir)
-                break
-            if FmUtil.gitIsDirty(repoDir):
-                FmUtil.forceDelete(repoDir)
-                break
-            if FmUtil.gitGetUrl(repoDir) != repoUrl:
-                FmUtil.forceDelete(repoDir)
-                break
-            break
-        FmUtil.gitPullOrClone(repoDir, repoUrl)
+        robust_layer.simple_git.pull(repoDir, reclone_on_failure=True, url=repoUrl)
 
     def updateWirelessRegDbCache(self, wirelessRegDbVersion):
         filename = "wireless-regdb-%s.tar.xz" % (wirelessRegDbVersion)
@@ -649,10 +637,10 @@ class FkmKCache:
 
     def updateTbsDriverCache(self):
         tdir = os.path.join(FmConst.kcacheDir, "media_build")
-        FmUtil.gitPullOrClone(tdir, "https://github.com/tbsdtv/media_build")
+        robust_layer.simple_git.pull(tdir, reclone_on_failure=True, url="https://github.com/tbsdtv/media_build")
 
         tdir = os.path.join(FmConst.kcacheDir, "linux_media")
-        FmUtil.gitPullOrClone(tdir, "https://github.com/tbsdtv/linux_media")
+        robust_layer.simple_git.pull(tdir, reclone_on_failure=True, url="https://github.com/tbsdtv/linux_media")
 
     def updateVboxDriverCache(self):
         url = "https://www.virtualbox.org/wiki/Linux_Downloads"
@@ -664,7 +652,7 @@ class FkmKCache:
         origFile = None
         while True:
             try:
-                resp = urllib.request.urlopen(url, timeout=FmUtil.urlopenTimeout())
+                resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
                 root = lxml.html.parse(resp)
                 for link in root.xpath(".//a"):
                     if link.get("href").endswith("_amd64.run"):
@@ -705,7 +693,7 @@ class FkmKCache:
 
     def updateVhbaModuleCache(self):
         tdir = os.path.join(FmConst.kcacheDir, "vhba_module")
-        FmUtil.gitPullOrClone(tdir, "https://github.com/cdemu/cdemu")
+        robust_layer.simple_git.pull(tdir, reclone_on_failure=True, url="https://github.com/cdemu/cdemu")
 
     def getLatestKernelVersion(self):
         kernelVer = self._readDataFromKsyncFile("kernel")
@@ -842,7 +830,7 @@ class FkmKCache:
 
     def _findKernelVersion(self, typename):
         try:
-            resp = urllib.request.urlopen(self.kernelUrl, timeout=FmUtil.urlopenTimeout())
+            resp = urllib.request.urlopen(self.kernelUrl, timeout=robust_layer.TIMEOUT)
             if resp.info().get('Content-Encoding') is None:
                 fakef = resp
             elif resp.info().get('Content-Encoding') == 'gzip':
@@ -863,7 +851,7 @@ class FkmKCache:
 
     def _findFirmwareVersion(self):
         try:
-            resp = urllib.request.urlopen(self.firmwareUrl, timeout=FmUtil.urlopenTimeout())
+            resp = urllib.request.urlopen(self.firmwareUrl, timeout=robust_layer.TIMEOUT)
             root = lxml.html.parse(resp)
             ret = None
             for atag in root.xpath(".//a"):
@@ -880,7 +868,7 @@ class FkmKCache:
     def _findWirelessRegDbVersion(self):
         try:
             ver = None
-            resp = urllib.request.urlopen(self.wirelessRegDbDirUrl, timeout=FmUtil.urlopenTimeout())
+            resp = urllib.request.urlopen(self.wirelessRegDbDirUrl, timeout=robust_layer.TIMEOUT)
             out = resp.read().decode("iso8859-1")
             for m in re.finditer("wireless-regdb-([0-9]+\\.[0-9]+\\.[0-9]+)\\.tar\\.xz", out, re.M):
                 if ver is None or m.group(1) > ver:

@@ -6,6 +6,7 @@ import re
 import glob
 import gzip
 import shutil
+import pathlib
 import subprocess
 from fm_util import FmUtil
 from fm_param import FmConst
@@ -184,7 +185,7 @@ class PkgMerger:
         if useLine == []:
             return False
 
-        for pkgAtom, useList in FmUtil.portageParseCfgUseFile(FmUtil.readFile(fn)):
+        for pkgAtom, useList in FmUtil.portageParseCfgUseFile(pathlib.Path(fn).read_text()):
             pkgName = FmUtil.portageGetPkgNameFromPkgAtom(pkgAtom)
             if pkgName in useMap:
                 useMap[pkgName] |= set(useList)
