@@ -1104,14 +1104,6 @@ class FmUtil:
             pass                        # path not exists, do nothing
 
     @staticmethod
-    def ensureDir(dirname):
-        if os.path.exists(dirname):
-            if not os.path.isdir(dirname):
-                raise Exception("\"%s\" is not a directory" % (dirname))
-        else:
-            os.makedirs(dirname)
-
-    @staticmethod
     def removeEmptyDir(dirname):
         if len(os.listdir(dirname)) == 0:
             os.rmdir(dirname)
@@ -2445,11 +2437,6 @@ class FmUtil:
         return h.hexdigest()
 
     @staticmethod
-    def readFile(filename):
-        with open(filename) as f:
-            return f.read()
-
-    @staticmethod
     def readListFile(filename):
         ret = []
         with open(filename, "r") as f:
@@ -2976,20 +2963,20 @@ class ArchLinuxBasedOsBuilder:
             self.rootfsDir = os.path.join(self.tmpDir, "airootfs")
 
     def bootstrapDownload(self):
-        FmUtil.ensureDir(self.cacheDir)
+        os.makedirs(self.cacheDir, exists=True)
         mr = self.mirrorList[0]
         FmUtil.wgetDownload("%s/iso/latest/%s" % (mr, self.dataFile), os.path.join(self.cacheDir, self.dataFile))
         FmUtil.wgetDownload("%s/iso/latest/%s" % (mr, self.signFile), os.path.join(self.cacheDir, self.signFile))
 
     def bootstrapExtract(self):
-        FmUtil.ensureDir(self.tmpDir)
+        os.makedirs(self.tmpDir, exists=True)
         FmUtil.cmdCall("/bin/tar", "-xzf", os.path.join(self.cacheDir, self.dataFile), "-C", self.tmpDir)
         FmUtil.forceDelete(self.bootstrapDir)
         os.rename(os.path.join(self.tmpDir, "root.x86_64"), self.bootstrapDir)
 
     def createRootfs(self, initcpioHooksDir=None, pkgList=[], localPkgFileList=[], fileList=[], cmdList=[]):
         FmUtil.mkDirAndClear(self.rootfsDir)
-        FmUtil.ensureDir(self.pkgCacheDir)
+        os.makedirs(self.pkgCacheDir, exists=True)
 
         # copy resolv.conf
         FmUtil.cmdCall("/bin/cp", "-L", "/etc/resolv.conf", os.path.join(self.bootstrapDir, "etc"))
@@ -3067,7 +3054,7 @@ class ArchLinuxBasedOsBuilder:
             assert dstDir.startswith("/")
             dstDir = self.rootfsDir + dstDir
             dstFn = os.path.join(dstDir, os.path.basename(fullfn))
-            FmUtil.ensureDir(dstDir)
+            os.makedirs(dstDir, exists=True)
             shutil.copy(fullfn, dstFn)
             os.chmod(dstFn, mode)
 

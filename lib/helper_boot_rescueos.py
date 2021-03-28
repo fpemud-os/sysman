@@ -28,7 +28,7 @@ class RescueOs:
         return os.path.exists(self.sysRescCdDir)
 
     def installOrUpdate(self, tmpDir):
-        FmUtil.ensureDir(os.path.join(self.sysRescCdDir, "x86_64"))
+        os.makedirs(os.path.join(self.sysRescCdDir, "x86_64"), exists=True)
         builder = ArchLinuxBasedOsBuilder(self.mirrorList, FmConst.archLinuxCacheDir, tmpDir)
         try:
             if builder.bootstrapPrepare():
