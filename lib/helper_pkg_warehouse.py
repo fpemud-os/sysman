@@ -7,6 +7,7 @@ import glob
 import time
 import shutil
 import portage
+import pathlib
 import fileinput
 import configparser
 import lxml.etree
@@ -402,7 +403,7 @@ class EbuildRepositories:
         # check cfgFile content
         if True:
             standardContent = self.__generateReposConfContent(repoName)
-            if FmUtil.readFile(cfgFile) != standardContent:
+            if pathlib.Path(cfgFile).read_text() != standardContent:
                 if bAutoFix:
                     with open(cfgFile, "w") as f:
                         f.write(standardContent)
@@ -451,7 +452,7 @@ class EbuildRepositories:
         self.__recordUpdateTime(repoName)
 
     def _repoGentooCreate(self, repoDir):
-        FmUtil.ensureDir(repoDir)
+        os.makedirs(repoDir, exists=True)
         self._repoGentooSync(repoDir)
 
     def _repoGentooSync(self, repoDir):
@@ -537,14 +538,14 @@ class EbuildOverlays:
 
     def getOverlayType(self, overlayName):
         assert self.isOverlayExist(overlayName)
-        buf = FmUtil.readFile(self.getOverlayCfgReposFile(overlayName))
+        buf = pathlib.Path(self.getOverlayCfgReposFile(overlayName)).read_text()
         priority, location, overlayType, vcsType, url, repoName = self._parseCfgReposFile(buf)
         assert overlayType in ["static", "trusted", "transient"]
         return overlayType
 
     def getOverlayVcsTypeAndUrl(self, overlayName):
         assert self.isOverlayExist(overlayName)
-        buf = FmUtil.readFile(self.getOverlayCfgReposFile(overlayName))
+        buf = pathlib.Path(self.getOverlayCfgReposFile(overlayName)).read_text()
         priority, location, overlayType, vcsType, url, repoName = self._parseCfgReposFile(buf)
         assert overlayType in ["trusted", "transient"]
         assert vcsType is not None
@@ -557,7 +558,7 @@ class EbuildOverlays:
         assert self.isOverlayExist(overlayName)
 
         if key == "repo-name":
-            buf = FmUtil.readFile(self.getOverlayCfgReposFile(overlayName))
+            buf = pathlib.Path(self.getOverlayCfgReposFile(overlayName)).read_text()
             priority, location, overlayType, vcsType, url, repoName = self._parseCfgReposFile(buf)
             assert repoName is not None
             return repoName
@@ -617,7 +618,7 @@ class EbuildOverlays:
         cfgFile = self.getOverlayCfgReposFile(overlayName)
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
-        buf = FmUtil.readFile(cfgFile)
+        buf = pathlib.Path(cfgFile).read_text()
         priority, location, overlayType, vcsType, overlayUrl, repoName = self._parseCfgReposFile(buf)
 
         # check cfgFile
@@ -766,7 +767,7 @@ class EbuildOverlays:
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
         overlayType = self.getOverlayType(overlayName)
-        buf = FmUtil.readFile(cfgFile)
+        buf = pathlib.Path(cfgFile).read_text()
         priority, location, overlayType, vcsType, overlayUrl, repoName = self._parseCfgReposFile(buf)
 
         if overlayType == "static":
@@ -806,7 +807,7 @@ class EbuildOverlays:
 
         srcEbuildDir = os.path.join(overlayFilesDir, pkgName)
         dstCategoryDir = os.path.join(overlayDir, pkgName.split("/")[0])
-        FmUtil.ensureDir(dstCategoryDir)
+        os.makedirs(dstCategoryDir, exists=True)
         FmUtil.cmdCall("/bin/ln", "-sf", srcEbuildDir, dstCategoryDir)
 
         if not quiet:
@@ -915,7 +916,7 @@ class EbuildOverlays:
             os.mkdir(profileDir)
             layoutFn = os.path.join(overlayFilesDir, "metadata", "layout.conf")
             if os.path.exists(layoutFn):
-                repoName = re.search("repo-name = (\\S+)", FmUtil.readFile(layoutFn), re.M).group(1)
+                repoName = re.search("repo-name = (\\S+)", pathlib.Path(layoutFn).read_text(), re.M).group(1)
             else:
                 repoName = overlayName
             with open(os.path.join(profileDir, "repo_name"), "w") as f:
@@ -952,7 +953,7 @@ class EbuildOverlays:
             os.mkdir(profileDir)
             layoutFn = os.path.join(overlayFilesDir, "metadata", "layout.conf")
             if os.path.exists(layoutFn):
-                repoName = re.search("repo-name = (\\S+)", FmUtil.readFile(layoutFn), re.M).group(1)
+                repoName = re.search("repo-name = (\\S+)", pathlib.Path(layoutFn).read_text(), re.M).group(1)
             else:
                 repoName = overlayName
             with open(os.path.join(profileDir, "repo_name"), "w") as f:
@@ -1070,7 +1071,7 @@ class CloudOverlayDb:
         self.parseDict = {k: None for k in self.itemDict}
 
     def updateCache(self):
-        FmUtil.ensureDir(FmConst.cloudOverlayDbDir)
+        os.makedirs(FmConst.cloudOverlayDbDir, exists=True)
         for itemName, val in self.itemDict.items():
             dispName, url = val
             fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)

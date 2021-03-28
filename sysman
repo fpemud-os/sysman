@@ -191,7 +191,7 @@ else:
 try:
     with SingletonProcess(param.singletonFile):
         FmUtil.mkDirAndClear(param.tmpDir)
-        FmUtil.ensureDir(param.tmpDirOnHdd)
+        os.makedirs(param.tmpDirOnHdd, exists=True)
 
         param.infoPrinter = InfoPrinter()
         param.hwInfoGetter = FmHwInfoGetter()

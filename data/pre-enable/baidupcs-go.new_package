@@ -1,0 +1,3 @@
+[main]
+name = gentoo-zh
+package = net-misc/baidupcs-go
