@@ -108,6 +108,6 @@ else:
     ret = 0
 
 # write result file
-os.makedirs(os.path.dirname(resultFile), exists=True)
+os.makedirs(os.path.dirname(resultFile), exist_ok=True)
 with open(resultFile, "w", encoding="iso8859-1") as f:
     f.write("%d\n" % (ret))

@@ -403,13 +403,13 @@ class FkmKernelBuilder:
                 m = re.fullmatch("firmware: +(\\S.*)", line)
                 if m is not None:
                     firmwareList.append((m.group(1), fullfn.replace("/lib/modules/%s/" % (self.dstTarget.verstr), "")))
-        os.makedirs("/lib/firmware", exists=True)
+        os.makedirs("/lib/firmware", exist_ok=True)
         for fn, kn in firmwareList:
             srcFn = os.path.join(self.firmwareTmpDir, fn)
             if not os.path.exists(srcFn):
                 continue
             dstFn = os.path.join("/lib/firmware", fn)
-            os.makedirs(os.path.dirname(dstFn), exists=True)
+            os.makedirs(os.path.dirname(dstFn), exist_ok=True)
             shutil.copy(srcFn, dstFn)
 
         # copy wireless-regdb

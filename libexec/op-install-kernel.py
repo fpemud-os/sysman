@@ -95,7 +95,7 @@ if kernelBuildNeeded:
 else:
     print("No operation needed.")
 
-os.makedirs(os.path.dirname(resultFile), exists=True)
+os.makedirs(os.path.dirname(resultFile), exist_ok=True)
 with open(resultFile, "w", encoding="iso8859-1") as f:
     f.write("%d\n" % (kernelBuildNeeded))
     f.write("%s\n" % (kernelBuilder.dstTarget.postfix))

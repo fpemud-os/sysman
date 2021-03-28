@@ -452,7 +452,7 @@ class EbuildRepositories:
         self.__recordUpdateTime(repoName)
 
     def _repoGentooCreate(self, repoDir):
-        os.makedirs(repoDir, exists=True)
+        os.makedirs(repoDir, exist_ok=True)
         self._repoGentooSync(repoDir)
 
     def _repoGentooSync(self, repoDir):
@@ -807,7 +807,7 @@ class EbuildOverlays:
 
         srcEbuildDir = os.path.join(overlayFilesDir, pkgName)
         dstCategoryDir = os.path.join(overlayDir, pkgName.split("/")[0])
-        os.makedirs(dstCategoryDir, exists=True)
+        os.makedirs(dstCategoryDir, exist_ok=True)
         FmUtil.cmdCall("/bin/ln", "-sf", srcEbuildDir, dstCategoryDir)
 
         if not quiet:
@@ -1071,7 +1071,7 @@ class CloudOverlayDb:
         self.parseDict = {k: None for k in self.itemDict}
 
     def updateCache(self):
-        os.makedirs(FmConst.cloudOverlayDbDir, exists=True)
+        os.makedirs(FmConst.cloudOverlayDbDir, exist_ok=True)
         for itemName, val in self.itemDict.items():
             dispName, url = val
             fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)

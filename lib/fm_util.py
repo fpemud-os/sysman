@@ -2963,20 +2963,20 @@ class ArchLinuxBasedOsBuilder:
             self.rootfsDir = os.path.join(self.tmpDir, "airootfs")
 
     def bootstrapDownload(self):
-        os.makedirs(self.cacheDir, exists=True)
+        os.makedirs(self.cacheDir, exist_ok=True)
         mr = self.mirrorList[0]
         FmUtil.wgetDownload("%s/iso/latest/%s" % (mr, self.dataFile), os.path.join(self.cacheDir, self.dataFile))
         FmUtil.wgetDownload("%s/iso/latest/%s" % (mr, self.signFile), os.path.join(self.cacheDir, self.signFile))
 
     def bootstrapExtract(self):
-        os.makedirs(self.tmpDir, exists=True)
+        os.makedirs(self.tmpDir, exist_ok=True)
         FmUtil.cmdCall("/bin/tar", "-xzf", os.path.join(self.cacheDir, self.dataFile), "-C", self.tmpDir)
         FmUtil.forceDelete(self.bootstrapDir)
         os.rename(os.path.join(self.tmpDir, "root.x86_64"), self.bootstrapDir)
 
     def createRootfs(self, initcpioHooksDir=None, pkgList=[], localPkgFileList=[], fileList=[], cmdList=[]):
         FmUtil.mkDirAndClear(self.rootfsDir)
-        os.makedirs(self.pkgCacheDir, exists=True)
+        os.makedirs(self.pkgCacheDir, exist_ok=True)
 
         # copy resolv.conf
         FmUtil.cmdCall("/bin/cp", "-L", "/etc/resolv.conf", os.path.join(self.bootstrapDir, "etc"))
@@ -3054,7 +3054,7 @@ class ArchLinuxBasedOsBuilder:
             assert dstDir.startswith("/")
             dstDir = self.rootfsDir + dstDir
             dstFn = os.path.join(dstDir, os.path.basename(fullfn))
-            os.makedirs(dstDir, exists=True)
+            os.makedirs(dstDir, exist_ok=True)
             shutil.copy(fullfn, dstFn)
             os.chmod(dstFn, mode)
 

@@ -525,28 +525,28 @@ class FmSysChecker:
         # check /var/cache/portage
         if not os.path.isdir(FmConst.portageCacheDir):
             if self.bAutoFix:
-                os.makedirs(FmConst.portageCacheDir, exists=True)
+                os.makedirs(FmConst.portageCacheDir, exist_ok=True)
             else:
                 raise FmCheckException("\"%s\" is not a directory" % (FmConst.portageCacheDir))
 
         # check /var/cache/portage/laymanfiles
         if not os.path.isdir(FmConst.laymanfilesDir):
             if self.bAutoFix:
-                os.makedirs(FmConst.laymanfilesDir, exists=True)
+                os.makedirs(FmConst.laymanfilesDir, exist_ok=True)
             else:
                 raise FmCheckException("\"%s\" is not a directory" % (FmConst.laymanfilesDir))
 
         # check /var/cache/portage/kcache
         if not os.path.isdir(FmConst.kcacheDir):
             if self.bAutoFix:
-                os.makedirs(FmConst.kcacheDir, exists=True)
+                os.makedirs(FmConst.kcacheDir, exist_ok=True)
             else:
                 raise FmCheckException("\"%s\" is not a directory" % (FmConst.kcacheDir))
 
         # check /var/cache/portage/distfiles
         if not os.path.isdir(FmConst.distDir):
             if self.bAutoFix:
-                os.makedirs(FmConst.distDir, exists=True)
+                os.makedirs(FmConst.distDir, exist_ok=True)
             else:
                 raise FmCheckException("\"%s\" is not a directory" % (FmConst.distDir))
 
