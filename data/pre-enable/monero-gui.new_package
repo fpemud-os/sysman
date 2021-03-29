@@ -1,0 +1,4 @@
+[main]
+name = moodytux
+url = https://github.com/moodytux/portage-overlay
+package = net-p2p/monero-gui
