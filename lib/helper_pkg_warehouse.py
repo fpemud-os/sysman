@@ -1077,6 +1077,8 @@ class OverlayCheckError(Exception):
 
 class CloudOverlayDb:
 
+    """We expand overlay name "bgo" to ["bgo", "bgo-overlay", "bgo_overlay"]"""
+
     def __init__(self):
         self.itemDict = {
             "gentoo-overlays": ("Gentoo Overlay Database", "https://api.gentoo.org/overlays/repositories.xml"),
@@ -1108,6 +1110,13 @@ class CloudOverlayDb:
         return ret
 
     def _getOverlayVcsTypeAndUrl(self, overlayName):
+        # expand overlay name
+        if overlayName.endswith("-overlay") or overlayName.endswith("_overlay"):
+            overlayNameList = [overlayName]
+        else:
+            overlayNameList = [overlayName, overlayName + "-overlay", overlayName + "_overlay"]
+
+        # pre-parse overlay database
         for itemName in self.itemDict.keys():
             if self.parseDict[itemName] is None:
                 fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)
@@ -1115,8 +1124,12 @@ class CloudOverlayDb:
                     self.parseDict[itemName] = self.__parse(fullfn)
                 else:
                     self.parseDict[itemName] = dict()
-            if overlayName in self.parseDict[itemName]:
-                return self.parseDict[itemName][overlayName]
+
+        # find overlay
+        for overlayName in overlayNameList:
+            for itemName in self.itemDict.keys():
+                if overlayName in self.parseDict[itemName]:
+                    return self.parseDict[itemName][overlayName]
         return None
 
     def __parse(self, fullfn):
