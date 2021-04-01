@@ -35,7 +35,7 @@ class PkgWarehouse:
             for fullfn in fullfnList:
                 cfg = configparser.ConfigParser()
                 cfg.read(fullfn)
-                name = cfg.get("main", "name")
+                name = cfg.get("main", "name", fallback=os.path.basename(fullfn).replace(".new_overlay", ""))
                 url = cfg.get("main", "url", fallback=None)
                 ret[name] = url
         return ret
