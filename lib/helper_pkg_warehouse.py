@@ -878,12 +878,23 @@ class EbuildOverlays:
             repoDir = self.repoman.getRepoDir(repoName)
             infoDict[repoName] = set(FmUtil.repoGetEbuildDirList(repoDir))
 
-        # remove packages that duplicates with repository from overlay
+        # get to-be-removed packages that duplicates with repository from overlay
+        pkgRemoved = []
         oDirInfo = set(FmUtil.repoGetEbuildDirList(overlayFilesDir))
         for k, v in infoDict.items():
             for item in list(v & oDirInfo):
-                FmUtil.repoRemovePackageAndCategory(overlayFilesDir, item)
-                print("Duplicate package \"%s\" is automatically removed." % (item))
+                pkgRemoved.append(item)
+
+        # record to-be-removed packages
+        if len(pkgRemoved) > 0:
+            with open(os.path.join(overlayFilesDir, "packages.removed"), "w") as f:
+                for item in pkgRemoved:
+                    f.write(item + "\n")
+
+        # do remove
+        for item in pkgRemoved:
+            FmUtil.repoRemovePackageAndCategory(overlayFilesDir, item)
+            print("Duplicate package \"%s\" is automatically removed." % (item))
 
     def _createStaticOverlayDir(self, overlayName, overlayDir):
         FmUtil.forceDelete(overlayDir)
