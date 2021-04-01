@@ -348,9 +348,11 @@ class EbuildRepositories:
         self._repoInfoDict = {
             "gentoo": 5000,
             "guru": 4900,
+            "fpemud-os": 4800,
         }
         self._repoGitUrlDict = {
             "guru": "https://github.com/gentoo/guru",
+            "fpemud-os": "https://github.com/fpemud-os/gentoo-overlay",
         }
 
     def getRepositoryList(self):
@@ -509,7 +511,7 @@ class EbuildOverlays:
     """
 
     def __init__(self):
-        self.repoman = EbuildRepositories()
+        self._repoman = EbuildRepositories()
         self._priority = "7000"
 
     def getOverlayList(self):
@@ -874,8 +876,8 @@ class EbuildOverlays:
     def _removeOverlayFilesDirDuplicatePackage(self, overlayFilesDir):
         # get all packages in all repositories
         infoDict = dict()
-        for repoName in self.repoman.getRepositoryList():
-            repoDir = self.repoman.getRepoDir(repoName)
+        for repoName in self._repoman.getRepositoryList():
+            repoDir = self._repoman.getRepoDir(repoName)
             infoDict[repoName] = set(FmUtil.repoGetEbuildDirList(repoDir))
 
         # get to-be-removed packages that duplicates with repository from overlay
