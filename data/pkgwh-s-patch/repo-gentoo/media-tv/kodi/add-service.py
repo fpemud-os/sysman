@@ -5,7 +5,6 @@ import os
 import glob
 import shutil
 import pathlib
-import subprocess
 
 try:
     selfDir = os.path.dirname(os.path.realpath(__file__))
@@ -41,6 +40,5 @@ systemd_dounit "${FILESDIR}"/kodi.service
         buf = buf[:pos] + buf2 + buf[pos:]
         with open(fn, "w") as f:
             f.write(buf)
-        subprocess.run(["ebuild", fn, "manifest"], stdout=subprocess.DEVNULL)
 except ValueError:
     print("outdated")

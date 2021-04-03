@@ -5,7 +5,6 @@ import os
 import re
 import glob
 import pathlib
-import subprocess
 
 
 def compareVersion(verstr1, verstr2):
@@ -89,7 +88,6 @@ echo "no-auto-default=*" >> "${ED}"/etc/NetworkManager/NetworkManager.conf
         buf = buf[:pos] + buf2 + buf[pos:]
         with open(fn, "w") as f:
             f.write(buf)
-        subprocess.run(["ebuild", fn, "manifest"], stdout=subprocess.DEVNULL)
     if not bFound:
         raise ValueError()
 except ValueError:
