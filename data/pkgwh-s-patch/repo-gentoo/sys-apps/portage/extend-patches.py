@@ -4,7 +4,6 @@
 import os
 import glob
 import shutil
-import pathlib
 
 if not os.path.exists("files"):
     os.mkdir("files")

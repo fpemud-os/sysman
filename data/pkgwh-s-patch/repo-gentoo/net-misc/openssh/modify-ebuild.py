@@ -5,7 +5,6 @@ import os
 import glob
 import shutil
 import pathlib
-import subprocess
 
 selfDir = os.path.dirname(os.path.realpath(__file__))
 shutil.copyfile(os.path.join(selfDir, "files", "ssh_config"), os.path.join("files", "ssh_config"))
