@@ -56,6 +56,7 @@ sys-fs/fuse-exfat
 sys-fs/fuse-zip
 sys-fs/ntfs3g
 sys-fs/xfsprogs
+sys-fs/vdfuse
 
 ## utility: small tools ############################################
 app-arch/rar

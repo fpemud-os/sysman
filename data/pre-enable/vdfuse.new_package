@@ -1,4 +1,0 @@
-[main]
-name = rogento
-url = https://github.com/StefanCristian/Rogento
-package = sys-fs/vdfuse
