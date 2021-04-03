@@ -10,7 +10,13 @@ if not os.path.exists("files"):
     os.mkdir("files")
 
 selfDir = os.path.dirname(os.path.realpath(__file__))
+
 shutil.copyfile(os.path.join(selfDir, "files", "extend-content.patch"), os.path.join("files", "extend-content.patch"))
 for fn in glob.glob("*.ebuild"):
     with open(fn, "a") as f:
         f.write('\nPATCHES=( ${PATCHES[@]} "${FILESDIR}"/extend-content.patch )\n')
+
+shutil.copyfile(os.path.join(selfDir, "files", "fetch-command.patch"), os.path.join("files", "fetch-command.patch"))
+for fn in glob.glob("*.ebuild"):
+    with open(fn, "a") as f:
+        f.write('\nPATCHES=( ${PATCHES[@]} "${FILESDIR}"/fetch-command.patch )\n')
