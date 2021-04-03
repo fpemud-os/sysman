@@ -3,7 +3,6 @@
 
 import re
 import requests
-import robust_layer.wget
 from fm_util import FmUtil
 from fm_util import AvahiServiceBrowser
 from fm_param import FmConst
@@ -122,12 +121,6 @@ class DynCfgModifier:
                     f.write(name + "\t" + " ".join(mlist) + "\n")
         else:
             FmUtil.forceDelete(FmConst.portageMirrorsFile)
-
-    def updateDownloadCommand(self):
-        fetchCmd = "/usr/bin/wget -q --show-progress " + " ".join(robust_layer.wget.additional_param()) + " -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""
-        resumeCmd = "/usr/bin/wget -q --show-progress -c " + " ".join(robust_layer.wget.additional_param()) + " -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""
-        FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "FETCHCOMMAND", fetchCmd)
-        FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "RESUMECOMMAND", resumeCmd)
 
     def updateParallelism(self, hwInfo):
         # gather system information

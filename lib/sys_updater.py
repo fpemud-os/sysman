@@ -49,7 +49,6 @@ class FmSysUpdater:
         if True:
             dcm = DynCfgModifier()
             dcm.updateMirrors()
-            dcm.updateDownloadCommand()
             dcm.updateParallelism(self.param.hwInfoGetter.current())
         print("")
 
