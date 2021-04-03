@@ -91,47 +91,6 @@ class FmUtil:
             return pathlib.Path(tmpFile).read_text()
 
     @staticmethod
-    def isDomainNamePrivate(domainName):
-        tldList = [".intranet", ".internal", ".private", ".corp", ".home", ".lan"]    # from RFC6762
-        tldList.append(".local")
-        return any(domainName.endswith(x) for x in tldList)
-
-    @staticmethod
-    def tryPrivateDomainName(domainName):
-        # return True: the private domain name is accessabile
-        # return False: the private domain name is not accessabile after some test
-
-        assert FmUtil.isDomainNamePrivate(domainName)
-
-        while True:
-            try:
-                socket.gethostbyname(domainName)
-                return True
-            except socket.gaierror as e:
-                if e.errno == -2:           # Name or service not known
-                    return False
-                elif e.errno == -3:         # Temporary failure in name resolution
-                    pass
-                elif e.errno == -5:         # No address associated with hostname
-                    return False
-                else:
-                    raise
-                sys.stderr.write(e.strerror)
-                time.sleep(1.0)
-
-    @staticmethod
-    def isUrlPrivate(url):
-        domainName = urllib.parse.urlparse(url).hostname
-        return FmUtil.isDomainNamePrivate(domainName)
-
-    @staticmethod
-    def tryPrivateUrl(url):
-        # return True: the private URL is accessabile
-        # return False: the private URL is not accessabile after some test
-        domainName = urllib.parse.urlparse(url).hostname
-        return FmUtil.tryPrivateDomainName(domainName)
-
-    @staticmethod
     def pamParseCfgFile(filename):
         # PAM configuration file consists of directives having the following syntax:
         #   module_interface     control_flag     module_name module_arguments

@@ -11,7 +11,6 @@ import pathlib
 import fileinput
 import configparser
 import lxml.etree
-import urllib.parse
 import robust_layer.simple_git
 import robust_layer.simple_subversion
 import robust_layer.rsync
@@ -776,16 +775,16 @@ class EbuildOverlays:
             # static overlay is mantained by other means
             pass
         elif overlayType == "trusted":
-            if not FmUtil.isUrlPrivate(overlayUrl) or FmUtil.tryPrivateUrl(overlayUrl):
+            try:
                 self._syncOverlayFilesDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                 self._removeOverlayFilesDirDuplicatePackage(overlayFilesDir)
-            else:
+            except PrivateOverlayNotAccessiableError:
                 print("Overlay not accessible, ignored.")
         elif overlayType == "transient":
-            if not FmUtil.isUrlPrivate(overlayUrl) or FmUtil.tryPrivateUrl(overlayUrl):
+            try:
                 self._syncOverlayFilesDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                 self._refreshTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
-            else:
+            except PrivateOverlayNotAccessiableError:
                 print("Overlay not accessible, ignored.")
         else:
             assert False
@@ -856,12 +855,15 @@ class EbuildOverlays:
         return vcsType
 
     def _syncOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
-        if vcsType == "git":
-            robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
-        elif vcsType == "svn":
-            robust_layer.simple_subversion.update(overlayFilesDir, recheckout_on_failure=True, url=url)
-        else:
-            assert False
+        try:
+            if vcsType == "git":
+                robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
+            elif vcsType == "svn":
+                robust_layer.simple_subversion.update(overlayFilesDir, recheckout_on_failure=True, url=url)
+            else:
+                assert False
+        except robust_layer.PrivateUrlNotAccessiableError:
+            raise PrivateOverlayNotAccessiableError()
 
         if self.__overlayHasPatch(overlayName, ["pkgwh-n-patch", "pkgwh-s-patch"]):
             print("Patching...")
@@ -1069,6 +1071,10 @@ class OverlayCheckError(Exception):
 
     def __init__(self, message):
         self.message = message
+
+
+class PrivateOverlayNotAccessiableError(Exception):
+    pass
 
 
 class CloudOverlayDb:
