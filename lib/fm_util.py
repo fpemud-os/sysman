@@ -2189,20 +2189,16 @@ class FmUtil:
         return ret
 
     @staticmethod
-    def portagePatchRepository(repoName, repoDir, patchTypeName, patchDir, bCanPatchSysFiles, jobNumber=None):
+    def portagePatchRepository(repoName, repoDir, patchTypeName, patchDir, jobNumber=None):
         # patch eclass files
         eclassDir = os.path.join(patchDir, "eclass")
         if os.path.exists(eclassDir):
-            if not bCanPatchSysFiles:
-                assert False
             dstDir = os.path.join(repoDir, "eclass")
             FmUtil._portagePatchRepositoryExecScript(repoName, patchTypeName, patchDir, eclassDir, dstDir)
 
         # patch profile files
         profilesDir = os.path.join(patchDir, "profiles")
         if os.path.exists(profilesDir):
-            if not bCanPatchSysFiles:
-                assert False
             for profileDir in FmUtil.listLeafDirs(profilesDir):
                 srcDir = os.path.join(patchDir, "profiles", profileDir)
                 dstDir = os.path.join(repoDir, "profiles", profileDir)

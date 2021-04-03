@@ -482,13 +482,13 @@ class EbuildRepositories:
         repoName2 = "repo-%s" % (repoName)
         modDir = os.path.join(FmConst.dataDir, "pkgwh-n-patch", repoName2)
         if os.path.exists(modDir):
-            FmUtil.portagePatchRepository(repoName2, self.getRepoDir(repoName), "N-patch", modDir, True)
+            FmUtil.portagePatchRepository(repoName2, self.getRepoDir(repoName), "N-patch", modDir)
 
     def __patchRepoS(self, repoName):
         repoName2 = "repo-%s" % (repoName)
         modDir = os.path.join(FmConst.dataDir, "pkgwh-s-patch", repoName2)
         if os.path.exists(modDir):
-            FmUtil.portagePatchRepository(repoName2, self.getRepoDir(repoName), "S-patch", modDir, False)
+            FmUtil.portagePatchRepository(repoName2, self.getRepoDir(repoName), "S-patch", modDir)
 
     def __recordUpdateTime(self, repoName):
         with open(os.path.join(self.getRepoDir(repoName), "update-time.txt"), "w") as f:
@@ -853,8 +853,8 @@ class EbuildOverlays:
 
         if self.__overlayHasPatch(overlayName, ["pkgwh-n-patch", "pkgwh-s-patch"]):
             print("Patching...")
-            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "N-patch", "pkgwh-n-patch", True)
-            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch", False)
+            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "N-patch", "pkgwh-n-patch")
+            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch")
             print("Done.")
 
         return vcsType
@@ -869,8 +869,8 @@ class EbuildOverlays:
 
         if self.__overlayHasPatch(overlayName, ["pkgwh-n-patch", "pkgwh-s-patch"]):
             print("Patching...")
-            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "N-patch", "pkgwh-n-patch", True)
-            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch", False)
+            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "N-patch", "pkgwh-n-patch")
+            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch")
             print("Done.")
 
     def _removeOverlayFilesDirDuplicatePackage(self, overlayFilesDir):
@@ -1043,11 +1043,11 @@ class EbuildOverlays:
                 return True
         return False
 
-    def __overlayFilesDirPatch(self, overlayName, overlayFilesDir, typeName, dirName, bCanPatchSysFiles):
+    def __overlayFilesDirPatch(self, overlayName, overlayFilesDir, typeName, dirName):
         overlayName2 = "overlay-%s" % (overlayName)
         modDir = os.path.join(FmConst.dataDir, dirName, overlayName2)
         if os.path.exists(modDir):
-            FmUtil.portagePatchRepository(overlayName2, overlayFilesDir, typeName, modDir, bCanPatchSysFiles)
+            FmUtil.portagePatchRepository(overlayName2, overlayFilesDir, typeName, modDir)
 
     def __overlayDirUglyTrick(self, overlayName, overlayDir, overlayFilesDir):
         # common trick
