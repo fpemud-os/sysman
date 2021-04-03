@@ -831,10 +831,6 @@ class EbuildOverlays:
         FmUtil.forceDelete(os.path.join(overlayDir, pkgName))
         FmUtil.removeEmptyDir(os.path.join(overlayDir, pkgName.split("/")[0]))
 
-    def _getOverlayUrlPublicOrPrivate(self, overlayUrl):
-        domainName = urllib.parse.urlparse(overlayUrl).hostname
-        return not FmUtil.isDomainNamePrivate(domainName)
-
     def _createOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
             # overlayFilesDir may already exist
