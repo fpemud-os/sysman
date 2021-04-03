@@ -11,7 +11,9 @@ import pathlib
 import fileinput
 import configparser
 import lxml.etree
+import robust_layer.git
 import robust_layer.simple_git
+import robust_layer.subversion
 import robust_layer.simple_subversion
 import robust_layer.rsync
 from datetime import datetime
@@ -855,15 +857,18 @@ class EbuildOverlays:
         return vcsType
 
     def _syncOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
-        try:
-            if vcsType == "git":
+        if vcsType == "git":
+            try:
                 robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
-            elif vcsType == "svn":
+            except robust_layer.git.PrivateUrlNotExistError:
+                raise PrivateOverlayNotAccessiableError()
+        elif vcsType == "svn":
+            try:
                 robust_layer.simple_subversion.update(overlayFilesDir, recheckout_on_failure=True, url=url)
-            else:
-                assert False
-        except robust_layer.PrivateUrlNotAccessiableError:
-            raise PrivateOverlayNotAccessiableError()
+            except robust_layer.subversion.PrivateUrlNotExistError:
+                raise PrivateOverlayNotAccessiableError()
+        else:
+            assert False
 
         if self.__overlayHasPatch(overlayName, ["pkgwh-n-patch", "pkgwh-s-patch"]):
             print("Patching...")
