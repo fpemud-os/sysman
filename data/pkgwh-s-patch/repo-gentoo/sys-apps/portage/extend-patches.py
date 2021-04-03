@@ -14,8 +14,3 @@ shutil.copyfile(os.path.join(selfDir, "files", "extend-content.patch"), os.path.
 for fn in glob.glob("*.ebuild"):
     with open(fn, "a") as f:
         f.write('\nPATCHES=( ${PATCHES[@]} "${FILESDIR}"/extend-content.patch )\n')
-
-shutil.copyfile(os.path.join(selfDir, "files", "fetch-command.patch"), os.path.join("files", "fetch-command.patch"))
-for fn in glob.glob("*.ebuild"):
-    with open(fn, "a") as f:
-        f.write('\nPATCHES=( ${PATCHES[@]} "${FILESDIR}"/fetch-command.patch )\n')
