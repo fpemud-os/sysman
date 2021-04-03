@@ -1,16 +1,16 @@
-diff -ru portage-3.0.18/lib/portage/dbapi/vartree.py portage-3.0.18-new/lib/portage/dbapi/vartree.py
+diff -ru portage-3.0.18/lib/portage/dbapi/vartree.py portage-3.0.18-extend-content/lib/portage/dbapi/vartree.py
 --- portage-3.0.18/lib/portage/dbapi/vartree.py	2021-03-28 10:23:28.067698000 +0800
-+++ portage-3.0.18-new/lib/portage/dbapi/vartree.py	2021-04-03 16:47:31.892262922 +0800
++++ portage-3.0.18-extend-content/lib/portage/dbapi/vartree.py	2021-04-03 19:05:13.267212603 +0800
 @@ -4778,6 +4778,13 @@
  			mode='w', encoding=_encodings['repo.content'],
  			errors='backslashreplace')
  
-+ 		# add a CONTENTS_2 file to store addtional information
-+ 		outfile2 = atomic_ofstream(_unicode_encode(
-+ 			os.path.join(self.dbtmpdir, 'CONTENTS_2'),
-+ 			encoding=_encodings['fs'], errors='strict'),
-+ 			mode='w', encoding=_encodings['repo.content'],
-+ 			errors='backslashreplace')
++		# add a CONTENTS_2 file to store addtional information
++		outfile2 = atomic_ofstream(_unicode_encode(
++			os.path.join(self.dbtmpdir, 'CONTENTS_2'),
++			encoding=_encodings['fs'], errors='strict'),
++			mode='w', encoding=_encodings['repo.content'],
++			errors='backslashreplace')
 +
  		# Don't bump mtimes on merge since some application require
  		# preservation of timestamps.  This means that the unmerge phase must
@@ -20,7 +20,7 @@ diff -ru portage-3.0.18/lib/portage/dbapi/vartree.py portage-3.0.18-new/lib/port
  		# we do a first merge; this will recurse through all files in our srcroot but also build up a
  		# "second hand" of symlinks to merge later
 -		if self.mergeme(srcroot, destroot, outfile, secondhand,
-+ 		if self.mergeme(srcroot, destroot, outfile, outfile2, secondhand,
++		if self.mergeme(srcroot, destroot, outfile, outfile2, secondhand,
  			self.settings["EPREFIX"].lstrip(os.sep), cfgfiledict, mymtime):
  			return 1
  
@@ -29,29 +29,30 @@ diff -ru portage-3.0.18/lib/portage/dbapi/vartree.py portage-3.0.18-new/lib/port
  
  			thirdhand = []
 -			if self.mergeme(srcroot, destroot, outfile, thirdhand,
-+ 			if self.mergeme(srcroot, destroot, outfile, outfile2, thirdhand,
++			if self.mergeme(srcroot, destroot, outfile, outfile2, thirdhand,
  				secondhand, cfgfiledict, mymtime):
  				return 1
  
-@@ -4816,13 +4823,17 @@
+@@ -4816,7 +4823,7 @@
  
  		if len(secondhand):
  			# force merge of remaining symlinks (broken or circular; oh well)
 -			if self.mergeme(srcroot, destroot, outfile, None,
-+ 			if self.mergeme(srcroot, destroot, outfile, outfile2, None,
++			if self.mergeme(srcroot, destroot, outfile, outfile2, None,
  				secondhand, cfgfiledict, mymtime):
  				return 1
  
- 		#restore umask
+@@ -4824,6 +4831,10 @@
  		os.umask(prevmask)
  
-+ 		#if we opened it, close it
-+ 		outfile2.flush()
-+ 		outfile2.close()
-+
  		#if we opened it, close it
++		outfile2.flush()
++		outfile2.close()
++
++		#if we opened it, close it
  		outfile.flush()
  		outfile.close()
+ 
 @@ -4838,7 +4849,7 @@
  
  		return os.EX_OK
