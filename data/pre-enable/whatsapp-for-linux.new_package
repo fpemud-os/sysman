@@ -1,4 +1,3 @@
 [main]
 name = jorgicio
-url = https://github.com/jorgicio/jorgicio-gentoo-overlay
 package = net-im/whatsapp-for-linux
