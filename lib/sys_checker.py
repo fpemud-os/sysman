@@ -1142,8 +1142,7 @@ class FmSysChecker:
         # we make it 524288:524288 currently
         cfg = configparser.ConfigParser()
         cfg.read("/etc/systemd/system.conf")
-        val = cfg.get("Manager", "DefaultLimitNOFILE")
-        if val != "524288":
+        if not cfg.has_option("Manager", "DefaultLimitNOFILE") or cfg.get("Manager", "DefaultLimitNOFILE") != "524288":
             self.infoPrinter.printError("DefaultLimitNOFILE in /etc/systemd/system.conf should be set to 524288.")
 
         # check limit in-effect for all system services

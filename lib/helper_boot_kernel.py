@@ -529,6 +529,7 @@ class FkmKCache:
         self.extraFirmwareRepoUrl = {
             "ath6k": "https://github.com/TerryLv/ath6kl_firmware",
             "ath10k": "https://github.com/kvalo/ath10k-firmware",
+            "rtl8761b": "https://github.com/fpemud-os/rtl8761b-firmware",
         }
         self.wirelessRegDbDirUrl = "https://www.kernel.org/pub/software/network/wireless-regdb"
 
