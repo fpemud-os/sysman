@@ -285,7 +285,19 @@ class FkmKernelBuilder:
         self.dstTarget = FkmBuildTarget.newFromKernelDir(FmUtil.getHostArch(), self.realSrcDir)
 
     def buildStepPatch(self):
-        pass
+        patchDir = os.path.join(self.dataDir, "kernel-n-patch", "source")
+        for patchFn in os.listdir(patchDir):
+            fullfn = os.path.join(patchDir, patchFn)
+            out = None
+            with TempChdir(self.realSrcDir):
+                assert fullfn.endswith(".py")
+                out = FmUtil.cmdCall("python3", fullfn)     # FIXME, should respect shebang
+            if out == "outdated":
+                print("Kernel patch script \"%s\" is outdated." % (patchFn))
+            elif out == "":
+                pass
+            else:
+                raise Exception("Kernel patch script \"%s\" exits with error \"%s\"." % (patchFn, out))
 
     def buildStepGenerateDotCfg(self):
         # head rules
