@@ -10,7 +10,6 @@ class FmConst:
     libInitrdDir = os.path.join(libDir, "initramfs")
     libexecDir = "/usr/libexec/fpemud-os-sysman"
     dataDir = "/usr/share/fpemud-os-sysman"
-    dataKernelCfgRulesDir = os.path.join(dataDir, "kconfig-rules")
 
     defaultGentooMirror = "http://distfiles.gentoo.org"
     defaultRsyncMirror = "rsync://rsync.gentoo.org/gentoo-portage"

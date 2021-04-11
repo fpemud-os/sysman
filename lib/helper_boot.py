@@ -44,6 +44,9 @@ class FkmBootDir:
             os.path.join(_bootDir, buildTarget.initrdFile),
             os.path.join(_bootDir, buildTarget.initrdTarFile),
         ]
+        signatureFileList = [
+            os.path.join(_bootDir, buildTarget.signatureFile),
+        ]
 
         for fn in glob.glob(os.path.join(_bootDir, "kernel-*")):
             if fn not in kernelFileList:
@@ -56,6 +59,9 @@ class FkmBootDir:
                 os.rename(fn, os.path.join(self.historyDir, os.path.basename(fn)))
         for fn in glob.glob(os.path.join(_bootDir, "initramfs-*")):
             if fn not in initrdFileList:
+                os.rename(fn, os.path.join(self.historyDir, os.path.basename(fn)))
+        for fn in glob.glob(os.path.join(_bootDir, "signature-*")):
+            if fn not in signatureFileList:
                 os.rename(fn, os.path.join(self.historyDir, os.path.basename(fn)))
 
     def getHistoryKernelVersionList(self):

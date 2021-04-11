@@ -8,6 +8,7 @@ import gzip
 import time
 import glob
 import shutil
+import configparser
 import robust_layer
 import robust_layer.simple_git
 import lxml.html
@@ -18,535 +19,40 @@ from fm_util import TempChdir
 from fm_param import FmConst
 
 
-class FkmBuildTarget:
-
-    def __init__(self):
-        self._arch = None
-        self._verstr = None
-
-    @property
-    def name(self):
-        # string, eg: "linux-x86_64-3.9.11-gentoo-r1"
-        return "linux-" + self._arch + "-" + self._verstr
-
-    @property
-    def postfix(self):
-        # string, eg: "x86_64-3.9.11-gentoo-r1"
-        return self._arch + "-" + self._verstr
-
-    @property
-    def arch(self):
-        # string, eg: "x86_64".
-        return self._arch
-
-    @property
-    def srcArch(self):
-        if self._arch == "i386" or self._arch == "x86_64":
-            return "x86"
-        elif self._arch == "sparc32" or self._arch == "sparc64":
-            return "sparc"
-        elif self._arch == "sh":
-            return "sh64"
-        else:
-            return self._arch
-
-    @property
-    def verstr(self):
-        # string, eg: "3.9.11-gentoo-r1"
-        return self._verstr
-
-    @property
-    def ver(self):
-        # string, eg: "3.9.11"
-        try:
-            return self._verstr[:self._verstr.index("-")]
-        except ValueError:
-            return self._verstr
-
-    @property
-    def kernelFile(self):
-        return "kernel-" + self.postfix
-
-    @property
-    def kernelCfgFile(self):
-        return "config-" + self.postfix
-
-    @property
-    def kernelCfgRuleFile(self):
-        return "config-" + self.postfix + ".rules"
-
-    @property
-    def kernelMapFile(self):
-        return "System.map-" + self.postfix
-
-    @property
-    def initrdFile(self):
-        return "initramfs-" + self.postfix
-
-    @property
-    def initrdTarFile(self):
-        return "initramfs-files-" + self.postfix + ".tar.bz2"
-
-    @staticmethod
-    def newFromPostfix(postfix):
-        partList = postfix.split("-")
-        if len(partList) < 2:
-            raise Exception("illegal postfix")
-
-        bTarget = FkmBuildTarget()
-        bTarget._arch = partList[0]
-        bTarget._verstr = "-".join(partList[1:])
-        return bTarget
-
-    @staticmethod
-    def newFromKernelFilename(kernelFilename):
-        """kernelFilename format: kernel-x86_64-3.9.11-gentoo-r1"""
-
-        assert os.path.basename(kernelFilename) == kernelFilename
-
-        partList = kernelFilename.split("-")
-        if len(partList) < 3:
-            raise Exception("illegal kernel file")
-        if not FmUtil.isValidKernelArch(partList[1]):
-            raise Exception("illegal kernel file")
-        if not FmUtil.isValidKernelVer(partList[2]):
-            raise Exception("illegal kernel file")
-
-        bTarget = FkmBuildTarget()
-        bTarget._arch = partList[1]
-        bTarget._verstr = "-".join(partList[2:])
-        return bTarget
-
-    @staticmethod
-    def newFromKernelDir(hostArch, kernelDir):
-        assert os.path.isabs(kernelDir)
-
-        version = None
-        patchlevel = None
-        sublevel = None
-        extraversion = None
-        with open(os.path.join(kernelDir, "Makefile")) as f:
-            buf = f.read()
-
-            m = re.search("VERSION = ([0-9]+)", buf, re.M)
-            if m is None:
-                raise Exception("illegal kernel source directory")
-            version = int(m.group(1))
-
-            m = re.search("PATCHLEVEL = ([0-9]+)", buf, re.M)
-            if m is None:
-                raise Exception("illegal kernel source directory")
-            patchlevel = int(m.group(1))
-
-            m = re.search("SUBLEVEL = ([0-9]+)", buf, re.M)
-            if m is None:
-                raise Exception("illegal kernel source directory")
-            sublevel = int(m.group(1))
-
-            m = re.search("EXTRAVERSION = (\\S+)", buf, re.M)
-            if m is not None:
-                extraversion = m.group(1)
-
-        bTarget = FkmBuildTarget()
-        bTarget._arch = hostArch
-        if extraversion is not None:
-            bTarget._verstr = "%d.%d.%d%s" % (version, patchlevel, sublevel, extraversion)
-        else:
-            bTarget._verstr = "%d.%d.%d" % (version, patchlevel, sublevel)
-        return bTarget
-
-
-class FkmBootEntry:
-
-    def __init__(self, buildTarget):
-        self.buildTarget = buildTarget
-
-    @property
-    def kernelFile(self):
-        return os.path.join(_bootDir, self.buildTarget.kernelFile)
-
-    @property
-    def kernelCfgFile(self):
-        return os.path.join(_bootDir, self.buildTarget.kernelCfgFile)
-
-    @property
-    def kernelCfgRuleFile(self):
-        return os.path.join(_bootDir, self.buildTarget.kernelCfgRuleFile)
-
-    @property
-    def kernelMapFile(self):
-        return os.path.join(_bootDir, self.buildTarget.kernelMapFile)
-
-    @property
-    def initrdFile(self):
-        return os.path.join(_bootDir, self.buildTarget.initrdFile)
-
-    @property
-    def initrdTarFile(self):
-        return os.path.join(_bootDir, self.buildTarget.initrdTarFile)
-
-    def kernelFilesExists(self):
-        if not os.path.exists(self.kernelFile):
-            return False
-        if not os.path.exists(self.kernelCfgFile):
-            return False
-        if not os.path.exists(self.kernelCfgRuleFile):
-            return False
-        if not os.path.exists(self.kernelMapFile):
-            return False
-        return True
-
-    def initrdFileExists(self):
-        if not os.path.exists(self.initrdFile):
-            return False
-        if not os.path.exists(self.initrdTarFile):
-            return False
-        return True
-
-    @staticmethod
-    def findCurrent(strict=True):
-        ret = [x for x in sorted(os.listdir(_bootDir)) if x.startswith("kernel-")]
-        if ret == []:
-            return None
-
-        buildTarget = FkmBuildTarget.newFromKernelFilename(ret[-1])
-        cbe = FkmBootEntry(buildTarget)
-        if strict:
-            if not cbe.kernelFilesExists():
-                return None
-            if not cbe.initrdFileExists():
-                return None
-        return cbe
-
-
-class FkmKernelBuilder:
-
-    def __init__(self, kcacheObj, kernelCfgRules):
-        self.kcache = kcacheObj
-        self.kernelCfgRules = kernelCfgRules
-
-        self.tmpDir = None
-        if True:
-            tDir = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "PORTAGE_TMPDIR")
-            if tDir == "":
-                tDir = "/var/tmp"
-            self.tmpDir = os.path.join(tDir, "kernel")
-
-        self.ksrcTmpDir = os.path.join(self.tmpDir, "ksrc")
-        self.firmwareTmpDir = os.path.join(self.tmpDir, "firmware")
-        self.wirelessRegDbTmpDir = os.path.join(self.tmpDir, "wireless-regdb")
-        self.tbsDrvTmpDir = os.path.join(self.tmpDir, "tbsdrv")
-        self.vboxDrvTmpDir = os.path.join(self.tmpDir, "vboxdrv")
-        self.vhbaTmpDir = os.path.join(self.tmpDir, "vhba")
-        self.kcfgRulesTmpFile = os.path.join(self.tmpDir, "kconfig.rules")
-
-        fn = self.kcache.getKernelFileByVersion(self.kcache.getLatestKernelVersion())
-        if not os.path.exists(fn):
-            raise Exception("\"%s\" does not exist" % (fn))
-
-        fn = self.kcache.getFirmwareFileByVersion(self.kcache.getLatestFirmwareVersion())
-        if not os.path.exists(fn):
-            raise Exception("\"%s\" does not exist" % (fn))
-
-        self.kernelVer = self.kcache.getLatestKernelVersion()
-        self.firmwareVer = self.kcache.getLatestFirmwareVersion()
-        self.wirelessRegDbVer = self.kcache.getLatestWirelessRegDbVersion()
-
-        self.realSrcDir = None
-        self.dotCfgFile = None
-        self.dstTarget = None
-
-        # trick: kernel debug is seldomly needed
-        self.trickDebug = False
-
-    def buildStepExtract(self):
-        FmUtil.forceDelete(self.tmpDir)         # FIXME
-
-        # extract kernel source
-        os.makedirs(self.ksrcTmpDir)
-        fn = self.kcache.getKernelFileByVersion(self.kernelVer)
-        FmUtil.cmdCall("/bin/tar", "-xJf", fn, "-C", self.ksrcTmpDir)
-
-        # extract kernel firmware
-        os.makedirs(self.firmwareTmpDir)
-        fn = self.kcache.getFirmwareFileByVersion(self.firmwareVer)
-        FmUtil.cmdCall("/bin/tar", "-xJf", fn, "-C", self.firmwareTmpDir)
-        for dn in self.kcache.getExtraFirmwareDirList():
-            FmUtil.shellCall("/bin/cp -rf \"%s\"/* \"%s\"" % (dn, self.firmwareTmpDir))
-
-        # extract wireless regulatory database
-        os.makedirs(self.wirelessRegDbTmpDir)
-        fn = self.kcache.getWirelessRegDbFileByVersion(self.wirelessRegDbVer)
-        FmUtil.cmdCall("/bin/tar", "-xJf", fn, "-C", self.wirelessRegDbTmpDir)
-
-        # get real source directory
-        self.realSrcDir = os.path.join(self.ksrcTmpDir, os.listdir(self.ksrcTmpDir)[0])
-        self.dotCfgFile = os.path.join(self.realSrcDir, ".config")
-        self.dstTarget = FkmBuildTarget.newFromKernelDir(FmUtil.getHostArch(), self.realSrcDir)
-
-    def buildStepPatch(self):
-        patchDir = os.path.join(self.dataDir, "kernel-n-patch", "source")
-        for patchFn in os.listdir(patchDir):
-            fullfn = os.path.join(patchDir, patchFn)
-            out = None
-            with TempChdir(self.realSrcDir):
-                assert fullfn.endswith(".py")
-                out = FmUtil.cmdCall("python3", fullfn)     # FIXME, should respect shebang
-            if out == "outdated":
-                print("Kernel patch script \"%s\" is outdated." % (patchFn))
-            elif out == "":
-                pass
-            else:
-                raise Exception("Kernel patch script \"%s\" exits with error \"%s\"." % (patchFn, out))
-
-    def buildStepGenerateDotCfg(self):
-        # head rules
-        buf = ""
-        if True:
-            # default hostname
-            buf += "DEFAULT_HOSTNAME=\"(none)\"\n"
-            buf += "\n"
-
-            # deprecated symbol, but many drivers still need it
-            buf += "FW_LOADER=y\n"
-            buf += "\n"
-
-            # atk9k depends on it
-            buf += "DEBUG_FS=y\n"
-            buf += "\n"
-
-            # H3C CAS 2.0 still use legacy virtio device, so it is needed
-            buf += "VIRTIO_PCI_LEGACY=y\n"
-            buf += "\n"
-
-            # we still need iptables
-            buf += "NETFILTER_XTABLES=y\n"
-            buf += "IP_NF_IPTABLES=y\n"
-            buf += "IP_NF_ARPTABLES=y\n"
-            buf += "\n"
-
-            # it seems we still need this, why?
-            buf += "FB=y\n"
-            buf += "DRM_FBDEV_EMULATION=y\n"
-            buf += "\n"
-
-            # net-wireless/iwd needs them, FIXME
-            buf += "PKCS8_PRIVATE_KEY_PARSER=y\n"
-            buf += "KEY_DH_OPERATIONS=y\n"
-            buf += "\n"
-
-            # android features need by anbox program
-            if "anbox" in self.kcache.getKernelUseFlags():
-                buf += "[symbols:/Device drivers/Android]=y\n"
-                buf += "STAGING=y\n"
-                buf += "ASHMEM=y\n"
-                buf += "\n"
-
-            # debug feature
-            if True:
-                # killing CONFIG_VT is failed for now
-                buf += "TTY=y\n"
-                buf += "[symbols:VT]=y\n"
-                buf += "[symbols:/Device Drivers/Graphics support/Console display driver support]=y\n"
-                buf += "\n"
-            if self.trickDebug:
-                pass
-
-            # symbols we dislike
-            buf += "[debugging-symbols:/]=n\n"
-            buf += "[deprecated-symbols:/]=n\n"
-            buf += "[workaround-symbols:/]=n\n"
-            buf += "[experimental-symbols:/]=n\n"
-            buf += "[dangerous-symbols:/]=n\n"
-            buf += "\n"
-
-        # generate rules file
-        self._generateKernelCfgRulesFile(self.kcfgRulesTmpFile,
-                                         {"head": buf},
-                                         self.kernelCfgRules)
-
-        # debug feature
-        if True:
-            # killing CONFIG_VT is failed for now
-            FmUtil.shellCall("/bin/sed -i '/VT=n/d' %s" % (self.kcfgRulesTmpFile))
-        if self.trickDebug:
-            FmUtil.shellCall("/bin/sed -i 's/=m,y/=y/g' %s" % (self.kcfgRulesTmpFile))
-            FmUtil.shellCall("/bin/sed -i 's/=m/=y/g' %s" % (self.kcfgRulesTmpFile))
-
-        # generate the real ".config"
-        FmUtil.cmdCall("/usr/libexec/fpemud-os-sysman/bugfix-generate-dotcfgfile.py",
-                       self.realSrcDir, self.kcfgRulesTmpFile, self.dotCfgFile)
-
-        # "make olddefconfig" may change the .config file further
-        self._makeAuxillary(self.realSrcDir, "olddefconfig")
-
-    def buildStepMakeInstall(self):
-        self._makeMain(self.realSrcDir)
-
-        FmUtil.cmdCall("/bin/cp", "-f",
-                       "%s/arch/%s/boot/bzImage" % (self.realSrcDir, self.dstTarget.arch),
-                       os.path.join(_bootDir, self.dstTarget.kernelFile))
-        FmUtil.cmdCall("/bin/cp", "-f",
-                       "%s/System.map" % (self.realSrcDir),
-                       os.path.join(_bootDir, self.dstTarget.kernelMapFile))
-        FmUtil.cmdCall("/bin/cp", "-f",
-                       "%s/.config" % (self.realSrcDir),
-                       os.path.join(_bootDir, self.dstTarget.kernelCfgFile))
-        FmUtil.cmdCall("/bin/cp", "-f",
-                       self.kcfgRulesTmpFile,
-                       os.path.join(_bootDir, self.dstTarget.kernelCfgRuleFile))
-
-        for fn in glob.glob("%s/signature.*-%s" % (_bootDir, self.dstTarget.postfix)):
-            os.unlink(fn)
-
-    def buildStepMakeModulesInstall(self):
-        self._makeAuxillary(self.realSrcDir, "modules_install")
-
-    def buildStepInstallFirmware(self):
-        # get and add all used firmware file
-        # FIXME:
-        # 1. should consider built-in modules by parsing /lib/modules/X.Y.Z/modules.builtin.modinfo
-        # 2. currently it seems built-in modules don't need firmware
-        firmwareList = []
-        for fullfn in glob.glob(os.path.join("/lib/modules", self.dstTarget.verstr, "**", "*.ko"), recursive=True):
-            # python-kmod bug: can only recognize the last firmware in modinfo
-            # so use the command output of modinfo directly
-            for line in FmUtil.cmdCall("/bin/modinfo", fullfn).split("\n"):
-                m = re.fullmatch("firmware: +(\\S.*)", line)
-                if m is not None:
-                    firmwareList.append((m.group(1), fullfn.replace("/lib/modules/%s/" % (self.dstTarget.verstr), "")))
-        os.makedirs("/lib/firmware", exist_ok=True)
-        for fn, kn in firmwareList:
-            srcFn = os.path.join(self.firmwareTmpDir, fn)
-            if not os.path.exists(srcFn):
-                continue
-            dstFn = os.path.join("/lib/firmware", fn)
-            os.makedirs(os.path.dirname(dstFn), exist_ok=True)
-            shutil.copy(srcFn, dstFn)
-
-        # copy wireless-regdb
-        if True:
-            ret = glob.glob(os.path.join(self.wirelessRegDbTmpDir, "**", "regulatory.db"), recursive=True)
-            assert len(ret) == 1
-            shutil.copy(ret[0], "/lib/firmware")
-        if True:
-            ret = glob.glob(os.path.join(self.wirelessRegDbTmpDir, "**", "regulatory.db.p7s"), recursive=True)
-            assert len(ret) == 1
-            shutil.copy(ret[0], "/lib/firmware")
-
-        # record
-        with open("/lib/firmware/.ctime", "w") as f:
-            f.write(self.firmwareVer + "\n")
-            f.write(self.wirelessRegDbVer + "\n")
-
-    def buildStepBuildAndInstallTbsDriver(self):
-        # extract tbs driver
-        tbsLinuxMediaDir = os.path.join(FmConst.kcacheDir, "linux_media")
-        tbsMediaBuildDir = os.path.join(self.tbsDrvTmpDir, "media_build")
-        if True:
-            srcdir = os.path.join(FmConst.kcacheDir, "media_build")
-            os.makedirs(tbsMediaBuildDir)
-            FmUtil.shellCall("/bin/cp -r %s/* %s" % (srcdir, tbsMediaBuildDir))
-
-        # prepare kernel source directory
-        self._makeAuxillary(self.realSrcDir, "prepare")
-
-        # do make operation
-        t = []
-        for i in range(0, tbsMediaBuildDir.count("/")):
-            t.append("..")
-        t = "/".join(t)
-        self._makeAuxillary(tbsMediaBuildDir, "dir", ["DIR=\"%s%s\"" % (t, tbsLinuxMediaDir)])     # DIR must be a path relative to tbsMediaBuildDir
-
-        self._makeAuxillary(tbsMediaBuildDir, "allmodconfig", ["KERNELRELEASE=%s" % (self.kernelVer)])
-
-        self._makeMain(tbsMediaBuildDir, ["KERNELRELEASE=%s" % (self.kernelVer)])
-
-        self._makeAuxillary(tbsMediaBuildDir, "install")
-
-        fn = "signature.tbs-%s" % (self.dstTarget.postfix)
-        with open(os.path.join(_bootDir, fn), "w") as f:
-            f.write(FmUtil.hashDir(tbsLinuxMediaDir))
-
-    def buildStepBuildAndInstallVboxDriver(self):
-        srcDir = os.path.join(FmConst.kcacheDir, "vbox_drivers")
-
-        FmUtil.shellCall("/bin/cp -r %s/* %s" % (srcDir, self.vboxDrvTmpDir))
-
-        self._makeMain(self.vboxDrvTmpDir, ["KERN_DIR=\"%s\"" % (os.path.join(self._getModulesDir(), "build"))])
-        self._makeAuxillary(self.vboxDrvTmpDir, "install")
-
-        fn = "signature.vbox-%s" % (self.dstTarget.postfix)
-        with open(os.path.join(_bootDir, fn), "w") as f:
-            f.write(FmUtil.hashDir(srcDir))
-
-    def buildStepBuildAndInstallVhbaModule(self):
-        srcDir = os.path.join(FmConst.kcacheDir, "vhba_module", "vhba-module")
-
-        os.makedirs(self.vhbaTmpDir)
-        FmUtil.shellCall("/bin/cp -r %s/* %s" % (srcDir, self.vhbaTmpDir))
-
-        self._makeMain(self.vhbaTmpDir, ["KERNELRELEASE=%s" % (self.kernelVer)])
-        self._makeAuxillary(self.vhbaTmpDir, "install", ["KERNELRELEASE=%s" % (self.kernelVer)])
-
-        fn = "signature.vhba-%s" % (self.dstTarget.postfix)
-        with open(os.path.join(_bootDir, fn), "w") as f:
-            f.write(FmUtil.hashDir(srcDir))
-
-    def buildStepClean(self):
-        dn = self._getModulesDir()
-        os.unlink(os.path.join(dn, "source"))
-        os.unlink(os.path.join(dn, "build"))
-
-    def _getModulesDir(self):
-        return "/lib/modules/%s" % (self.kernelVer)
-
-    def _makeMain(self, dirname, envVarList=[]):
-        optList = []
-
-        # CFLAGS
-        optList.append("CFLAGS=\"-Wno-error\"")
-
-        # from /etc/portage/make.conf
-        optList.append(FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "MAKEOPTS"))
-
-        # from envVarList
-        optList += envVarList
-
-        # execute command
-        with TempChdir(dirname):
-            FmUtil.shellCall("/usr/bin/make %s" % (" ".join(optList)))
-
-    def _makeAuxillary(self, dirname, target, envVarList=[]):
-        with TempChdir(dirname):
-            FmUtil.shellCall("/usr/bin/make %s %s" % (" ".join(envVarList), target))
-
-    def _generateKernelCfgRulesFile(self, filename, *kargs):
-        with open(filename, "w") as f:
-            for kcfgRulesMap in kargs:
-                for name, buf in kcfgRulesMap.items():
-                    f.write("## %s ######################\n" % (name))
-                    f.write("\n")
-                    f.write(buf)
-                    f.write("\n")
-                    f.write("\n")
-                    f.write("\n")
-
-
 class FkmKCache:
 
     def __init__(self):
-        self.kernelUrl = "https://www.kernel.org"
-        self.firmwareUrl = "https://www.kernel.org/pub/linux/kernel/firmware"
-        self.extraFirmwareRepoUrl = {
-            "ath6k": "https://github.com/TerryLv/ath6kl_firmware",
-            "ath10k": "https://github.com/kvalo/ath10k-firmware",
-        }
-        self.wirelessRegDbDirUrl = "https://www.kernel.org/pub/software/network/wireless-regdb"
-
         self.ksyncFile = os.path.join(FmConst.kcacheDir, "ksync.txt")
 
-    def syncCache(self):
+        # kernel information
+        self.kernelUrl = "https://www.kernel.org"
+
+        # firmware information
+        self.firmwareUrl = "https://www.kernel.org/pub/linux/kernel/firmware"
+
+        # kernel patch information
+        self.patchDir = os.path.join(FmConst.dataDir, "kernel-n-patch", "patch")
+
+        # extra kernel drivers
+        # FIXME: check
+        self.extraDriverDir = os.path.join(FmConst.dataDir, "kernel-n-patch", "driver")
+        self.extraDriverDict = dict()
+        for fn in os.listdir(self.extraDriverDir):
+            self.extraDriverDict[fn] = self._parseExtraDriver(fn, os.path.join(self.extraDriverDir, fn))
+
+        # extra firmwares
+        # FIXME: check
+        self.extraFirmwareDir = os.path.join(FmConst.dataDir, "kernel-n-patch", "firmware")
+        self.extraFirmwareDict = dict()
+        for fn in os.listdir(self.extraFirmwareDir):
+            name = re.sub(r'\.ini$', "", fn)
+            assert name != fn
+            self.extraFirmwareDict[name] = self._parseExtraFirmware(name, os.path.join(self.extraFirmwareDir, fn))
+
+        # wireless-regdb
+        self.wirelessRegDbDirUrl = "https://www.kernel.org/pub/software/network/wireless-regdb"
+
+    def sync(self):
         # get kernel version from internet
         if True:
             while True:
@@ -576,6 +82,16 @@ class FkmKCache:
                     break
                 time.sleep(1.0)
             print("Wireless Regulatory Database: %s" % (self.getLatestWirelessRegDbVersion()))
+
+    def getPatchList(self):
+        # FIXME: other extension
+        return [re.sub(r'\.py$', "", x) for x in os.listdir(self.patchDir)]
+
+    def getExtraDriverList(self):
+        return list(self.extraDriverDict.keys())
+
+    def getExtraFirmwareList(self):
+        return list(self.extraFirmwareDict.keys())
 
     def updateKernelCache(self, kernelVersion):
         kernelFile = "linux-%s.tar.xz" % (kernelVersion)
@@ -630,10 +146,42 @@ class FkmKCache:
         FmUtil.wgetDownload("%s/%s" % (mr, firmwareFile), myFirmwareFile)
         FmUtil.wgetDownload("%s/%s" % (mr, signFile), mySignFile)
 
-    def updateExtraFirmwareCache(self, extraFirmwareName):
-        repoDir = os.path.join(FmConst.kcacheDir, "firmware-repo-%s" % (extraFirmwareName))
-        repoUrl = self.extraFirmwareRepoUrl[extraFirmwareName]
-        robust_layer.simple_git.pull(repoDir, reclone_on_failure=True, url=repoUrl)
+    def updateExtraDriverSourceCache(self, driverName, sourceName):
+        cacheDir = os.path.join(FmConst.kcacheDir, "edrv-src-%s" % (sourceName))
+
+        sourceInfo = self.extraDriverDict[driverName]["source"]
+        assert sourceInfo["name"] == sourceName
+
+        # source type "git"
+        if sourceInfo["type"] == "git":
+            robust_layer.simple_git.pull(cacheDir, reclone_on_failure=True, url=sourceInfo["url"])
+            return
+
+        # source type "exec"
+        if sourceInfo["type"] == "exec":
+            fullfn = os.path.join(sourceInfo["selfdir"], sourceInfo["executable"])
+            os.makedirs(cacheDir, exist_ok=True)
+            with TempChdir(cacheDir):
+                assert fullfn.endswith(".py")
+                FmUtil.cmdExec("python3", fullfn)     # FIXME, should respect shebang
+            return
+
+        # invalid source type
+        assert False
+
+    def updateExtraFirmwareSourceCache(self, firmwareName, sourceName):
+        cacheDir = os.path.join(FmConst.kcacheDir, "efw-src-%s" % (sourceName))
+
+        sourceInfo = self.extraFirmwareDict[firmwareName]["source"]
+        assert sourceInfo["name"] == sourceName
+
+        # source type "git"
+        if sourceInfo["type"] == "git":
+            robust_layer.simple_git.pull(cacheDir, reclone_on_failure=True, url=sourceInfo["url"])
+            return
+
+        # invalid source type
+        assert False
 
     def updateWirelessRegDbCache(self, wirelessRegDbVersion):
         filename = "wireless-regdb-%s.tar.xz" % (wirelessRegDbVersion)
@@ -646,66 +194,6 @@ class FkmKCache:
 
         # download the target file
         FmUtil.wgetDownload("%s/%s" % (self.wirelessRegDbDirUrl, filename), localFile)
-
-    def updateTbsDriverCache(self):
-        tdir = os.path.join(FmConst.kcacheDir, "media_build")
-        robust_layer.simple_git.pull(tdir, reclone_on_failure=True, url="https://github.com/tbsdtv/media_build")
-
-        tdir = os.path.join(FmConst.kcacheDir, "linux_media")
-        robust_layer.simple_git.pull(tdir, reclone_on_failure=True, url="https://github.com/tbsdtv/linux_media")
-
-    def updateVboxDriverCache(self):
-        url = "https://www.virtualbox.org/wiki/Linux_Downloads"
-        dstdir = os.path.join(FmConst.kcacheDir, "vbox_drivers")
-        origfile = os.path.join(dstdir, "original-file.txt")
-
-        # get download url
-        downloadUrl = None
-        origFile = None
-        while True:
-            try:
-                resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
-                root = lxml.html.parse(resp)
-                for link in root.xpath(".//a"):
-                    if link.get("href").endswith("_amd64.run"):
-                        downloadUrl = link.get("href")
-                        origFile = os.path.basename(downloadUrl)
-                        break
-                break
-            except Exception as e:
-                print("Failed to acces %s, %s" % (url, e))
-                time.sleep(1.0)
-        if downloadUrl is None:
-            raise Exception("failed to download VirtualBox driver")
-
-        # already downloaded?
-        if os.path.exists(origfile):
-            with open(origfile, "r") as f:
-                if f.read() == origFile:
-                    print("File already downloaded.")
-                    return
-
-        # download and extract files
-        FmUtil.mkDirAndClear(self.vboxDrvTmpDir)
-        try:
-            with TempChdir(self.vboxDrvTmpDir):
-                runFile = os.path.join(self.vboxDrvTmpDir, "vbox.run")
-                FmUtil.wgetDownload(downloadUrl, runFile)
-                FmUtil.cmdExec("/bin/sh", runFile, "--noexec", "--keep", "--nox11")
-                FmUtil.cmdCall("/bin/tar", "-xjf", os.path.join(self.vboxDrvTmpDir, "install", "VirtualBox.tar.bz2"))
-
-                FmUtil.mkDirAndClear(dstdir)
-                for fn in glob.glob(os.path.join(self.vboxDrvTmpDir, "src", "vboxhost", "*")):
-                    os.rename(fn, dstdir)
-
-                with open(origfile, "w") as f:
-                    f.write(origFile)
-        finally:
-            FmUtil.forceDelete(self.vboxDrvTmpDir)
-
-    def updateVhbaModuleCache(self):
-        tdir = os.path.join(FmConst.kcacheDir, "vhba_module")
-        robust_layer.simple_git.pull(tdir, reclone_on_failure=True, url="https://github.com/cdemu/cdemu")
 
     def getLatestKernelVersion(self):
         kernelVer = self._readDataFromKsyncFile("kernel")
@@ -738,24 +226,6 @@ class FkmKCache:
                         ret.add(item)
         return sorted(list(ret))
 
-    def getTbsDriverSourceSignature(self):
-        tbsLinuxMediaDir = os.path.join(FmConst.kcacheDir, "linux_media")
-        if not os.path.exists(tbsLinuxMediaDir):
-            return None
-        return FmUtil.hashDir(tbsLinuxMediaDir)
-
-    def getVboxDriverSourceSignature(self):
-        srcDir = os.path.join(FmConst.kcacheDir, "vbox_drivers")
-        if not os.path.exists(srcDir):
-            return None
-        return FmUtil.hashDir(srcDir)
-
-    def getVhbaModuleSourceSignature(self):
-        srcDir = os.path.join(FmConst.kcacheDir, "vhba_module", "vhba-module")
-        if not os.path.exists(srcDir):
-            return None
-        return FmUtil.hashDir(srcDir)
-
     def getLatestFirmwareVersion(self):
         # firmware version is the date when it is generated
         # example: 2019.06.03
@@ -771,8 +241,38 @@ class FkmKCache:
         fn = os.path.join(FmConst.kcacheDir, fn)
         return fn
 
-    def getExtraFirmwareDirList(self):
-        return glob.glob(os.path.join(FmConst.kcacheDir, "firmware-repo-*"))
+    def getPatchExecFile(self, patchName):
+        return os.path.join(FmConst.dataDir, "kernel-n-patch", "patch", patchName + ".ini")
+
+    def getExtraDriverSourceName(self, driverName):
+        return self.extraDriverDict[driverName]["source"]["name"]
+
+    def getExtraDriverSourceDir(self, driverName):
+        sourceName = self.getExtraDriverSourceName(driverName)
+        return os.path.join(FmConst.kcacheDir, "edrv-src-%s" % (sourceName))
+
+    def getExtraDriverExecFile(self, driverName):
+        return os.path.join(FmConst.dataDir, "kernel-n-patch", "driver", driverName, "build.py")
+
+    def getExtraFirmwareSourceName(self, firmwareName):
+        return self.extraFirmwareDict[firmwareName]["source"]["name"]
+
+    def getExtraFirmwareSourceDir(self, firmwareName):
+        sourceName = self.getExtraFirmwareSourceName(firmwareName)
+        return os.path.join(FmConst.kcacheDir, "efw-src-%s" % (sourceName))
+
+    def getExtraFirmwareFileMapping(self, firmwareName, filePath):
+        # return (realFullFilePath, bOverWrite)
+
+        obj = self.extraFirmwareDict[firmwareName]["file-mapping-overwrite"]
+        if filePath in obj:
+            return (os.path.join(self.getExtraDriverSourceDir(firmwareName), obj[filePath]), True)
+
+        obj = self.extraFirmwareDict[firmwareName]["file-mapping"]
+        if filePath in obj:
+            return (os.path.join(self.getExtraDriverSourceDir(firmwareName), obj[filePath]), False)
+
+        return (None, None)
 
     def getLatestWirelessRegDbVersion(self):
         # wireless regulatory database version is the date when it is generated
@@ -908,6 +408,541 @@ class FkmKCache:
         with open(self.ksyncFile, "w") as f:
             for v in vlist:
                 f.write(v + "\n")
+
+    def _parseExtraDriver(self, name, dir_path):
+        ret = {}
+
+        cfg = configparser.ConfigParser()
+        cfg.read(os.path.join(dir_path, "main.ini"))
+
+        sourceName = cfg.get("source", "name")
+        updateMethod = cfg.get("source", "update-method")
+        if updateMethod == "git":
+            ret["source"] = {
+                sourceName: {
+                    "update-method": "git",
+                    "url": cfg.get("main", "url"),
+                }
+            }
+        elif updateMethod == "exec":
+            ret["source"] = {
+                sourceName: {
+                    "update-method": "exec",
+                    "exectuable": cfg.get("main", "executable"),
+                    "selfdir": dir_path,
+                }
+            }
+        else:
+            raise Exception("invalid update-method \"%s\" in config file of extra kernel driver \"%s\"", (updateMethod, name))
+
+        return ret
+
+    def _parseExtraFirmware(self, name, file_path):
+        ret = {}
+
+        cfg = configparser.ConfigParser()
+        cfg.read(os.path.join(file_path))
+
+        sourceName = cfg.get("source", "name")
+        updateMethod = cfg.get("source", "update-method")
+        if updateMethod == "git":
+            ret["source"] = {
+                sourceName: {
+                    "update-method": "git",
+                    "url": cfg.get("main", "url"),
+                }
+            }
+        else:
+            raise Exception("invalid update-method \"%s\" in config file of extra firmware \"%s\"", (updateMethod, name))
+
+        # FIXME: file-mapping
+        ret["file-mapping"] = dict()
+
+        # FIXME: file-mapping-overwrite
+        ret["file-mapping-overwritez"] = dict()
+
+        return ret
+
+
+class FkmBuildTarget:
+
+    def __init__(self):
+        self._arch = None
+        self._verstr = None
+
+    @property
+    def name(self):
+        # string, eg: "linux-x86_64-3.9.11-gentoo-r1"
+        return "linux-" + self._arch + "-" + self._verstr
+
+    @property
+    def postfix(self):
+        # string, eg: "x86_64-3.9.11-gentoo-r1"
+        return self._arch + "-" + self._verstr
+
+    @property
+    def arch(self):
+        # string, eg: "x86_64".
+        return self._arch
+
+    @property
+    def srcArch(self):
+        if self._arch == "i386" or self._arch == "x86_64":
+            return "x86"
+        elif self._arch == "sparc32" or self._arch == "sparc64":
+            return "sparc"
+        elif self._arch == "sh":
+            return "sh64"
+        else:
+            return self._arch
+
+    @property
+    def verstr(self):
+        # string, eg: "3.9.11-gentoo-r1"
+        return self._verstr
+
+    @property
+    def ver(self):
+        # string, eg: "3.9.11"
+        try:
+            return self._verstr[:self._verstr.index("-")]
+        except ValueError:
+            return self._verstr
+
+    @property
+    def kernelFile(self):
+        return "kernel-" + self.postfix
+
+    @property
+    def kernelCfgFile(self):
+        return "config-" + self.postfix
+
+    @property
+    def kernelCfgRuleFile(self):
+        return "config-" + self.postfix + ".rules"
+
+    @property
+    def kernelMapFile(self):
+        return "System.map-" + self.postfix
+
+    @property
+    def initrdFile(self):
+        return "initramfs-" + self.postfix
+
+    @property
+    def initrdTarFile(self):
+        return "initramfs-files-" + self.postfix + ".tar.bz2"
+
+    @property
+    def signatureFile(self):
+        return "signature-" + self.postfix
+
+    @staticmethod
+    def newFromPostfix(postfix):
+        partList = postfix.split("-")
+        if len(partList) < 2:
+            raise Exception("illegal postfix")
+
+        bTarget = FkmBuildTarget()
+        bTarget._arch = partList[0]
+        bTarget._verstr = "-".join(partList[1:])
+        return bTarget
+
+    @staticmethod
+    def newFromKernelFilename(kernelFilename):
+        """kernelFilename format: kernel-x86_64-3.9.11-gentoo-r1"""
+
+        assert os.path.basename(kernelFilename) == kernelFilename
+
+        partList = kernelFilename.split("-")
+        if len(partList) < 3:
+            raise Exception("illegal kernel file")
+        if not FmUtil.isValidKernelArch(partList[1]):
+            raise Exception("illegal kernel file")
+        if not FmUtil.isValidKernelVer(partList[2]):
+            raise Exception("illegal kernel file")
+
+        bTarget = FkmBuildTarget()
+        bTarget._arch = partList[1]
+        bTarget._verstr = "-".join(partList[2:])
+        return bTarget
+
+    @staticmethod
+    def newFromKernelDir(hostArch, kernelDir):
+        assert os.path.isabs(kernelDir)
+
+        version = None
+        patchlevel = None
+        sublevel = None
+        extraversion = None
+        with open(os.path.join(kernelDir, "Makefile")) as f:
+            buf = f.read()
+
+            m = re.search("VERSION = ([0-9]+)", buf, re.M)
+            if m is None:
+                raise Exception("illegal kernel source directory")
+            version = int(m.group(1))
+
+            m = re.search("PATCHLEVEL = ([0-9]+)", buf, re.M)
+            if m is None:
+                raise Exception("illegal kernel source directory")
+            patchlevel = int(m.group(1))
+
+            m = re.search("SUBLEVEL = ([0-9]+)", buf, re.M)
+            if m is None:
+                raise Exception("illegal kernel source directory")
+            sublevel = int(m.group(1))
+
+            m = re.search("EXTRAVERSION = (\\S+)", buf, re.M)
+            if m is not None:
+                extraversion = m.group(1)
+
+        bTarget = FkmBuildTarget()
+        bTarget._arch = hostArch
+        if extraversion is not None:
+            bTarget._verstr = "%d.%d.%d%s" % (version, patchlevel, sublevel, extraversion)
+        else:
+            bTarget._verstr = "%d.%d.%d" % (version, patchlevel, sublevel)
+        return bTarget
+
+
+class FkmBootEntry:
+
+    def __init__(self, buildTarget):
+        self.buildTarget = buildTarget
+
+    @property
+    def kernelFile(self):
+        return os.path.join(_bootDir, self.buildTarget.kernelFile)
+
+    @property
+    def kernelCfgFile(self):
+        return os.path.join(_bootDir, self.buildTarget.kernelCfgFile)
+
+    @property
+    def kernelCfgRuleFile(self):
+        return os.path.join(_bootDir, self.buildTarget.kernelCfgRuleFile)
+
+    @property
+    def kernelMapFile(self):
+        return os.path.join(_bootDir, self.buildTarget.kernelMapFile)
+
+    @property
+    def initrdFile(self):
+        return os.path.join(_bootDir, self.buildTarget.initrdFile)
+
+    @property
+    def initrdTarFile(self):
+        return os.path.join(_bootDir, self.buildTarget.initrdTarFile)
+
+    @property
+    def signatureFile(self):
+        return os.path.join(_bootDir, self.buildTarget.signatureFile)
+
+    def kernelFilesExists(self):
+        if not os.path.exists(self.kernelFile):
+            return False
+        if not os.path.exists(self.kernelCfgFile):
+            return False
+        if not os.path.exists(self.kernelCfgRuleFile):
+            return False
+        if not os.path.exists(self.kernelMapFile):
+            return False
+        return True
+
+    def initrdFileExists(self):
+        if not os.path.exists(self.initrdFile):
+            return False
+        if not os.path.exists(self.initrdTarFile):
+            return False
+        return True
+
+    @staticmethod
+    def findCurrent(strict=True):
+        ret = [x for x in sorted(os.listdir(_bootDir)) if x.startswith("kernel-")]
+        if ret == []:
+            return None
+
+        buildTarget = FkmBuildTarget.newFromKernelFilename(ret[-1])
+        cbe = FkmBootEntry(buildTarget)
+        if strict:
+            if not cbe.kernelFilesExists():
+                return None
+            if not cbe.initrdFileExists():
+                return None
+        return cbe
+
+
+class FkmKernelBuilder:
+
+    def __init__(self, kcacheObj, kernelCfgRules):
+        self.kcache = kcacheObj
+        self.kernelCfgRules = kernelCfgRules
+
+        self.tmpDir = None
+        if True:
+            tDir = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "PORTAGE_TMPDIR")
+            if tDir == "":
+                tDir = "/var/tmp"
+            self.tmpDir = os.path.join(tDir, "kernel")
+
+        self.ksrcTmpDir = os.path.join(self.tmpDir, "ksrc")
+        self.firmwareTmpDir = os.path.join(self.tmpDir, "firmware")
+        self.wirelessRegDbTmpDir = os.path.join(self.tmpDir, "wireless-regdb")
+        self.kcfgRulesTmpFile = os.path.join(self.tmpDir, "kconfig.rules")
+
+        fn = self.kcache.getKernelFileByVersion(self.kcache.getLatestKernelVersion())
+        if not os.path.exists(fn):
+            raise Exception("\"%s\" does not exist" % (fn))
+
+        fn = self.kcache.getFirmwareFileByVersion(self.kcache.getLatestFirmwareVersion())
+        if not os.path.exists(fn):
+            raise Exception("\"%s\" does not exist" % (fn))
+
+        self.kernelVer = self.kcache.getLatestKernelVersion()
+        self.firmwareVer = self.kcache.getLatestFirmwareVersion()
+        self.wirelessRegDbVer = self.kcache.getLatestWirelessRegDbVersion()
+
+        self.realSrcDir = None
+        self.dotCfgFile = None
+        self.dstTarget = None
+        self.srcSignature = None
+
+        # trick: kernel debug is seldomly needed
+        self.trickDebug = False
+
+    def buildStepExtract(self):
+        FmUtil.forceDelete(self.tmpDir)         # FIXME
+
+        # extract kernel source
+        os.makedirs(self.ksrcTmpDir)
+        fn = self.kcache.getKernelFileByVersion(self.kernelVer)
+        FmUtil.cmdCall("/bin/tar", "-xJf", fn, "-C", self.ksrcTmpDir)
+
+        # patch kernel source
+        for name in self.kcache.getPatchList():
+            fullfn = self.kcache.getPatchExecFile(name)
+            out = None
+            with TempChdir(self.realSrcDir):
+                assert fullfn.endswith(".py")
+                out = FmUtil.cmdCall("python3", fullfn)     # FIXME, should respect shebang
+            if out == "outdated":
+                print("Kernel patch \"%s\" is outdated." % (name))
+            elif out == "":
+                pass
+            else:
+                raise Exception("Kernel patch \"%s\" exits with error \"%s\"." % (name, out))
+
+        # extract kernel firmware
+        os.makedirs(self.firmwareTmpDir)
+        fn = self.kcache.getFirmwareFileByVersion(self.firmwareVer)
+        FmUtil.cmdCall("/bin/tar", "-xJf", fn, "-C", self.firmwareTmpDir)
+
+        # extract wireless regulatory database
+        os.makedirs(self.wirelessRegDbTmpDir)
+        fn = self.kcache.getWirelessRegDbFileByVersion(self.wirelessRegDbVer)
+        FmUtil.cmdCall("/bin/tar", "-xJf", fn, "-C", self.wirelessRegDbTmpDir)
+
+        # get real source directory
+        self.realSrcDir = os.path.join(self.ksrcTmpDir, os.listdir(self.ksrcTmpDir)[0])
+        self.dotCfgFile = os.path.join(self.realSrcDir, ".config")
+        self.dstTarget = FkmBuildTarget.newFromKernelDir(FmUtil.getHostArch(), self.realSrcDir)
+
+        # calculate source signature
+        self.srcSignature = "kernel: %s\n" % (FmUtil.hashDir(self.realSrcDir))
+        for name in self.kcache.getExtraDriverList():
+            sourceDir = self.kcache.getExtraDriverSourceDir(name)
+            self.srcSignature += "edrv-src-%s: %s\n" % (name, FmUtil.hashDir(sourceDir))
+
+    def buildStepGenerateDotCfg(self):
+        # head rules
+        buf = ""
+        if True:
+            # default hostname
+            buf += "DEFAULT_HOSTNAME=\"(none)\"\n"
+            buf += "\n"
+
+            # deprecated symbol, but many drivers still need it
+            buf += "FW_LOADER=y\n"
+            buf += "\n"
+
+            # atk9k depends on it
+            buf += "DEBUG_FS=y\n"
+            buf += "\n"
+
+            # H3C CAS 2.0 still use legacy virtio device, so it is needed
+            buf += "VIRTIO_PCI_LEGACY=y\n"
+            buf += "\n"
+
+            # we still need iptables
+            buf += "NETFILTER_XTABLES=y\n"
+            buf += "IP_NF_IPTABLES=y\n"
+            buf += "IP_NF_ARPTABLES=y\n"
+            buf += "\n"
+
+            # it seems we still need this, why?
+            buf += "FB=y\n"
+            buf += "DRM_FBDEV_EMULATION=y\n"
+            buf += "\n"
+
+            # net-wireless/iwd needs them, FIXME
+            buf += "PKCS8_PRIVATE_KEY_PARSER=y\n"
+            buf += "KEY_DH_OPERATIONS=y\n"
+            buf += "\n"
+
+            # android features need by anbox program
+            if "anbox" in self.kcache.getKernelUseFlags():
+                buf += "[symbols:/Device drivers/Android]=y\n"
+                buf += "STAGING=y\n"
+                buf += "ASHMEM=y\n"
+                buf += "\n"
+
+            # debug feature
+            if True:
+                # killing CONFIG_VT is failed for now
+                buf += "TTY=y\n"
+                buf += "[symbols:VT]=y\n"
+                buf += "[symbols:/Device Drivers/Graphics support/Console display driver support]=y\n"
+                buf += "\n"
+            if self.trickDebug:
+                pass
+
+            # symbols we dislike
+            buf += "[debugging-symbols:/]=n\n"
+            buf += "[deprecated-symbols:/]=n\n"
+            buf += "[workaround-symbols:/]=n\n"
+            buf += "[experimental-symbols:/]=n\n"
+            buf += "[dangerous-symbols:/]=n\n"
+            buf += "\n"
+
+        # generate rules file
+        self._generateKernelCfgRulesFile(self.kcfgRulesTmpFile,
+                                         {"head": buf},
+                                         self.kernelCfgRules)
+
+        # debug feature
+        if True:
+            # killing CONFIG_VT is failed for now
+            FmUtil.shellCall("/bin/sed -i '/VT=n/d' %s" % (self.kcfgRulesTmpFile))
+        if self.trickDebug:
+            FmUtil.shellCall("/bin/sed -i 's/=m,y/=y/g' %s" % (self.kcfgRulesTmpFile))
+            FmUtil.shellCall("/bin/sed -i 's/=m/=y/g' %s" % (self.kcfgRulesTmpFile))
+
+        # generate the real ".config"
+        FmUtil.cmdCall("/usr/libexec/fpemud-os-sysman/bugfix-generate-dotcfgfile.py",
+                       self.realSrcDir, self.kcfgRulesTmpFile, self.dotCfgFile)
+
+        # "make olddefconfig" may change the .config file further
+        self._makeAuxillary(self.realSrcDir, "olddefconfig")
+
+    def buildStepMakeInstall(self):
+        self._makeMain(self.realSrcDir)
+        FmUtil.cmdCall("/bin/cp", "-f",
+                       "%s/arch/%s/boot/bzImage" % (self.realSrcDir, self.dstTarget.arch),
+                       os.path.join(_bootDir, self.dstTarget.kernelFile))
+        FmUtil.cmdCall("/bin/cp", "-f",
+                       "%s/System.map" % (self.realSrcDir),
+                       os.path.join(_bootDir, self.dstTarget.kernelMapFile))
+        FmUtil.cmdCall("/bin/cp", "-f",
+                       "%s/.config" % (self.realSrcDir),
+                       os.path.join(_bootDir, self.dstTarget.kernelCfgFile))
+        FmUtil.cmdCall("/bin/cp", "-f",
+                       self.kcfgRulesTmpFile,
+                       os.path.join(_bootDir, self.dstTarget.kernelCfgRuleFile))
+
+        self._makeAuxillary(self.realSrcDir, "modules_install")
+
+    def buildStepInstallFirmware(self):
+        # get and add all used firmware file
+        # FIXME:
+        # 1. should consider built-in modules by parsing /lib/modules/X.Y.Z/modules.builtin.modinfo
+        # 2. currently it seems built-in modules don't need firmware
+        firmwareList = []
+        for fullfn in glob.glob(os.path.join("/lib/modules", self.dstTarget.verstr, "**", "*.ko"), recursive=True):
+            # python-kmod bug: can only recognize the last firmware in modinfo
+            # so use the command output of modinfo directly
+            for line in FmUtil.cmdCall("/bin/modinfo", fullfn).split("\n"):
+                m = re.fullmatch("firmware: +(\\S.*)", line)
+                if m is not None:
+                    firmwareList.append((m.group(1), fullfn.replace("/lib/modules/%s/" % (self.dstTarget.verstr), "")))
+        os.makedirs("/lib/firmware", exist_ok=True)
+        for fn, kn in firmwareList:
+            srcFn = os.path.join(self.firmwareTmpDir, fn)
+            dstFn = os.path.join("/lib/firmware", fn)
+            if os.path.exists(srcFn):
+                os.makedirs(os.path.dirname(dstFn), exist_ok=True)
+                shutil.copy(srcFn, dstFn)
+            for firmwareName in self.kcache.getExtraFirmwareList():
+                fullfn, bOverWrite = self.kcache.getExtraFirmwareFileMapping(firmwareName, dstFn)
+                if fullfn is None:
+                    continue
+                if os.path.exists(dstFn) and not bOverWrite:
+                    continue
+                os.makedirs(os.path.dirname(dstFn), exist_ok=True)
+                shutil.copy(fullfn, dstFn)
+
+        # copy wireless-regdb
+        if True:
+            ret = glob.glob(os.path.join(self.wirelessRegDbTmpDir, "**", "regulatory.db"), recursive=True)
+            assert len(ret) == 1
+            shutil.copy(ret[0], "/lib/firmware")
+        if True:
+            ret = glob.glob(os.path.join(self.wirelessRegDbTmpDir, "**", "regulatory.db.p7s"), recursive=True)
+            assert len(ret) == 1
+            shutil.copy(ret[0], "/lib/firmware")
+
+        # record
+        with open("/lib/firmware/.ctime", "w") as f:
+            f.write(self.firmwareVer + "\n")
+            f.write(self.wirelessRegDbVer + "\n")
+
+    def buildStepBuildAndInstallExtraDriver(self, driverName):
+        cacheDir = self.kcache.getExtraDriverSourceDir(driverName)
+        fullfn = self.kcache.getExtraDriverExecFile(driverName)
+        buildTmpDir = os.path.join(self.tmpDir, driverName)
+        with TempChdir(buildTmpDir):
+            assert fullfn.endswith(".py")
+            FmUtil.cmdExec("python3", fullfn, cacheDir, self.kernelVer)     # FIXME, should respect shebang
+
+    def buildStepClean(self):
+        with open(self.dstTarget.signatureFile, "w") as f:
+            f.write(self.srcSignature)
+        os.unlink(os.path.join(self._getModulesDir(), "source"))
+        os.unlink(os.path.join(self._getModulesDir(), "build"))
+
+    def _getModulesDir(self):
+        return "/lib/modules/%s" % (self.kernelVer)
+
+    def _makeMain(self, dirname, envVarList=[]):
+        optList = []
+
+        # CFLAGS
+        optList.append("CFLAGS=\"-Wno-error\"")
+
+        # from /etc/portage/make.conf
+        optList.append(FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "MAKEOPTS"))
+
+        # from envVarList
+        optList += envVarList
+
+        # execute command
+        with TempChdir(dirname):
+            FmUtil.shellCall("/usr/bin/make %s" % (" ".join(optList)))
+
+    def _makeAuxillary(self, dirname, target, envVarList=[]):
+        with TempChdir(dirname):
+            FmUtil.shellCall("/usr/bin/make %s %s" % (" ".join(envVarList), target))
+
+    def _generateKernelCfgRulesFile(self, filename, *kargs):
+        with open(filename, "w") as f:
+            for kcfgRulesMap in kargs:
+                for name, buf in kcfgRulesMap.items():
+                    f.write("## %s ######################\n" % (name))
+                    f.write("\n")
+                    f.write(buf)
+                    f.write("\n")
+                    f.write("\n")
+                    f.write("\n")
 
 
 _bootDir = "/boot"

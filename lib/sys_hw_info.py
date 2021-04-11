@@ -339,7 +339,7 @@ class _Util:
     @staticmethod
     def kernelCfgRules():
         ret = OrderedDict()
-        for fullfn in sorted(glob.glob(os.path.join(FmConst.dataKernelCfgRulesDir, "*.rules"))):
+        for fullfn in sorted(glob.glob(os.path.join(FmConst.dataDir, "kernel-config-rules", "*.rules"))):
             fn = os.path.basename(fullfn)
             rname = fn[:len(".rules") * -1]
             m = re.fullmatch("[0-9]+-(.*)", rname)

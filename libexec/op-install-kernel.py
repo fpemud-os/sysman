@@ -5,6 +5,7 @@ import os
 import sys
 import base64
 import pickle
+import pathlib
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import FmUtil
 from helper_boot_kernel import FkmBootEntry
@@ -22,9 +23,6 @@ kernelBuilder = FkmKernelBuilder(kcache, kernelCfgRules)
 
 print("        - Extracting...")
 kernelBuilder.buildStepExtract()
-
-print("        - Patching...")
-kernelBuilder.buildStepPatch()
 
 print("        - Generating .config file...")
 kernelBuilder.buildStepGenerateDotCfg()
@@ -44,51 +42,23 @@ if not kernelBuildNeeded:
     if bootEntry.buildTarget.ver != kernelBuilder.kernelVer:
         kernelBuildNeeded = True
 if not kernelBuildNeeded:
-    if "tbs" in kcache.getKernelUseFlags():
+    if kernelBuilder.srcSignature != pathlib.Path(bootEntry.signatureFile).read_text():
         kernelBuildNeeded = True
-        fn = "/boot/signature.tbs-%s" % (kernelBuilder.dstTarget.postfix)
-        if os.path.exists(fn):
-            with open(fn, "r") as f:
-                if f.read() == kcache.getTbsDriverSourceSignature():
-                    kernelBuildNeeded = False
-if not kernelBuildNeeded:
-    if "vbox" in kcache.getKernelUseFlags():
-        kernelBuildNeeded = True
-        fn = "/boot/signature.vbox-%s" % (kernelBuilder.dstTarget.postfix)
-        if os.path.exists(fn):
-            with open(fn, "r") as f:
-                if f.read() == kcache.getVboxDriverSourceSignature():
-                    kernelBuildNeeded = False
-if not kernelBuildNeeded:
-    kernelBuildNeeded = True
-    fn = "/boot/signature.vhba-%s" % (kernelBuilder.dstTarget.postfix)
-    if os.path.exists(fn):
-        with open(fn, "r") as f:
-            if f.read() == kcache.getVhbaModuleSourceSignature():
-                kernelBuildNeeded = False
 if not kernelBuildNeeded:
     if not FmUtil.dotCfgFileCompare(os.path.join("/boot", bootEntry.kernelCfgFile), kernelBuilder.dotCfgFile):
         kernelBuildNeeded = True
-    print("        - Building...")
+
+print("        - Building...")
 if kernelBuildNeeded:
     if True:
-        print("                - Installing kernel image...")
+        print("                - Installing kernel and modules...")
         kernelBuilder.buildStepMakeInstall()
     if True:
-        print("                - Installing modules...")
-        kernelBuilder.buildStepMakeModulesInstall()
-    if True:
-        print("                - Installing firmware...")
+        print("                - Installing firmware and wireless-regdb...")
         kernelBuilder.buildStepInstallFirmware()
-    if "tbs" in kcache.getKernelUseFlags():
-        print("                - Installing TBS driver...")
-        kernelBuilder.buildStepBuildAndInstallTbsDriver()
-    if "vbox" in kcache.getKernelUseFlags():
-        print("                - Installing VirtualBox driver...")
-        kernelBuilder.buildStepBuildAndInstallVboxDriver()
-    if True:
-        print("                - Installing VHBA module...")
-        kernelBuilder.buildStepBuildAndInstallVhbaModule()
+    for name in kcache.getExtraDriverList():
+        print("                - Installing kernel driver \"%s\"..." % (name))
+        kernelBuilder.buildStepBuildAndInstallExtraDriver(name)
     if True:
         print("                - Cleaning...")
         kernelBuilder.buildStepClean()

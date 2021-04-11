@@ -20,31 +20,24 @@ if item == "firmware":
     kcache.updateFirmwareCache(version)
     sys.exit(0)
 
-if item == "extra-firmware":
+if item == "extra-driver-source":
     name = sys.argv[2]
+    sourceName = sys.argv[3]
     kcache = FkmKCache()
-    kcache.updateExtraFirmwareCache(name)
+    kcache.updateExtraDriverSourceCache(name, sourceName)
+    sys.exit(0)
+
+if item == "extra-firmware-source":
+    name = sys.argv[2]
+    sourceName = sys.argv[3]
+    kcache = FkmKCache()
+    kcache.updateExtraFirmwareSourceCache(name, sourceName)
     sys.exit(0)
 
 if item == "wireless-regdb":
     ver = sys.argv[2]
     kcache = FkmKCache()
     kcache.updateWirelessRegDbCache(ver)
-    sys.exit(0)
-
-if item == "tbs-driver":
-    kcache = FkmKCache()
-    kcache.updateTbsDriverCache()
-    sys.exit(0)
-
-if item == "vbox-driver":
-    kcache = FkmKCache()
-    kcache.updateVboxDriverCache()
-    sys.exit(0)
-
-if item == "vhba-module":
-    kcache = FkmKCache()
-    kcache.updateVhbaModuleCache()
     sys.exit(0)
 
 assert False

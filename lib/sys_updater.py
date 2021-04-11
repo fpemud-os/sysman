@@ -72,7 +72,7 @@ class FmSysUpdater:
         if bSync:
             # update cache
             self.infoPrinter.printInfo(">> Retrieving general information...")
-            kcache.syncCache()
+            kcache.sync()
             overlayDb.updateCache()
             print("")
 
@@ -170,10 +170,25 @@ class FmSysUpdater:
                 self._execAndSyncDownQuietly(buildServer, self.opFetch, "firmware \'%s\'" % (v), FmConst.kcacheDir)
                 print("")
 
+            # update extra kernel driver in kcache
+            tset = set()
+            for name in kcache.getExtraDriverList():
+                sourceName = kcache.getExtraDriverSourceName(name)
+                if sourceName in tset:
+                    continue
+                self.infoPrinter.printInfo(">> Fetching kernel driver source \"%s\"..." % (sourceName))
+                self._execAndSyncDownQuietly(buildServer, self.opFetch, "extra-driver-source \'%s\' \'%s\'" % (name, sourceName), FmConst.kcacheDir)
+                tset.add(sourceName)
+                print("")
+
             # update extra firmware in kcache
-            for name in ["ath6k", "ath10k"]:
-                self.infoPrinter.printInfo(">> Fetching %s firmware..." % (name))
-                self._execAndSyncDownQuietly(buildServer, self.opFetch, "extra-firmware \'%s\'" % (name), FmConst.kcacheDir)
+            tset = set()
+            for name in kcache.getExtraFirmwareList():
+                sourceName = kcache.getExtraFirmwareSourceName(name)
+                if sourceName in tset:
+                    continue
+                self.infoPrinter.printInfo(">> Fetching firmware source \"%s\"..." % (sourceName))
+                self._execAndSyncDownQuietly(buildServer, self.opFetch, "extra-firmware-source \'%s\' \'%s\'" % (name, sourceName), FmConst.kcacheDir)
                 print("")
 
             # update wireless-regulatory-database in kcache
@@ -182,24 +197,6 @@ class FmSysUpdater:
                 fn = os.path.basename(kcache.getWirelessRegDbFileByVersion(v))
                 self.infoPrinter.printInfo(">> Fetching %s..." % (fn))
                 self._execAndSyncDownQuietly(buildServer, self.opFetch, "wireless-regdb \'%s\'" % (v), FmConst.kcacheDir)
-                print("")
-
-            # update tbs-driver in kcache
-            if "tbs" in kcache.getKernelUseFlags():
-                self.infoPrinter.printInfo(">> Fetching TBS driver...")
-                self._execAndSyncDownQuietly(buildServer, self.opFetch, "tbs-driver", FmConst.kcacheDir)
-                print("")
-
-            # update vbox-driver in kcache
-            if "vbox" in kcache.getKernelUseFlags():
-                self.infoPrinter.printInfo(">> Fetching VirtualBox driver...")
-                self._execAndSyncDownQuietly(buildServer, self.opFetch, "vbox-driver", FmConst.kcacheDir)
-                print("")
-
-            # update vhba-module in kcache
-            if True:
-                self.infoPrinter.printInfo(">> Fetching VHBA module...")
-                self._execAndSyncDownQuietly(buildServer, self.opFetch, "vhba-module", FmConst.kcacheDir)
                 print("")
 
             # install kernel, initramfs and bootloader
