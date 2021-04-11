@@ -421,14 +421,14 @@ class FkmKCache:
             ret["source"] = {
                 sourceName: {
                     "update-method": "git",
-                    "url": cfg.get("main", "url"),
+                    "url": cfg.get("source", "url"),
                 }
             }
         elif updateMethod == "exec":
             ret["source"] = {
                 sourceName: {
                     "update-method": "exec",
-                    "exectuable": cfg.get("main", "executable"),
+                    "exectuable": cfg.get("source", "executable"),
                     "selfdir": dir_path,
                 }
             }
@@ -449,7 +449,7 @@ class FkmKCache:
             ret["source"] = {
                 sourceName: {
                     "update-method": "git",
-                    "url": cfg.get("main", "url"),
+                    "url": cfg.get("source", "url"),
                 }
             }
         else:
