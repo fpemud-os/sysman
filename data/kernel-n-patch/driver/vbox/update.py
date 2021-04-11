@@ -40,22 +40,23 @@ if os.path.exists(origfile):
             sys.exit(0)
 
 # download and extract files
-subprocess.run("/bin/rm -rf ./*", shell=True)
+subprocess.run("/bin/rm -rf ./*", shell=True)       # FIXME: dangerous without sandboxing
 tmpdir = "./__temp__"
 os.mkdir(tmpdir)
+
+os.chdir(tmpdir)
 try:
-    os.chdir(tmpdir)
-    try:
-        subprocess.run(["/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), "-O", "vbox.run", downloadUrl])
-        subprocess.run(["/bin/sh", "vbox.run", "--noexec", "--keep", "--nox11"])        # FIXME: security vulnerbility
-        subprocess.run(["/bin/tar", "-xjf", os.path.join(tmpdir, "install", "VirtualBox.tar.bz2")])
-    finally:
-        os.chdir("..")
-
-    for fn in glob.glob(os.path.join(tmpdir, "src", "vboxhost", "*")):
-        os.rename(fn, ".")
-
-    with open(origfile, "w") as f:
-        f.write(origFile)
+    subprocess.run(["/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), "-O", "vbox.run", downloadUrl])
+    subprocess.run(["/bin/sh", "vbox.run", "--noexec", "--keep", "--nox11"])        # FIXME: security vulnerbility
+    subprocess.run(["/bin/tar", "-xjf", os.path.join(tmpdir, "install", "VirtualBox.tar.bz2")])
 finally:
-    shutil.rmtree(tmpdir)
+    os.chdir("..")
+
+for fn in glob.glob(os.path.join(tmpdir, "src", "vboxhost", "*")):
+    os.rename(fn, ".")
+
+with open(origfile, "w") as f:
+    f.write(origFile)
+
+# keep tmpdir when error occured
+shutil.rmtree(tmpdir)
