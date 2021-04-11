@@ -521,16 +521,16 @@ class FkmBuildTarget:
         return "System.map-" + self.postfix
 
     @property
+    def kernelSrcSignatureFile(self):
+        return "signature-" + self.postfix
+
+    @property
     def initrdFile(self):
         return "initramfs-" + self.postfix
 
     @property
     def initrdTarFile(self):
         return "initramfs-files-" + self.postfix + ".tar.bz2"
-
-    @property
-    def signatureFile(self):
-        return "signature-" + self.postfix
 
     @staticmethod
     def newFromPostfix(postfix):
@@ -619,6 +619,10 @@ class FkmBootEntry:
         return os.path.join(_bootDir, self.buildTarget.kernelCfgRuleFile)
 
     @property
+    def kernelSrcSignatureFile(self):
+        return os.path.join(_bootDir, self.buildTarget.kernelSrcSignatureFile)
+
+    @property
     def kernelMapFile(self):
         return os.path.join(_bootDir, self.buildTarget.kernelMapFile)
 
@@ -630,10 +634,6 @@ class FkmBootEntry:
     def initrdTarFile(self):
         return os.path.join(_bootDir, self.buildTarget.initrdTarFile)
 
-    @property
-    def signatureFile(self):
-        return os.path.join(_bootDir, self.buildTarget.signatureFile)
-
     def kernelFilesExists(self):
         if not os.path.exists(self.kernelFile):
             return False
@@ -642,6 +642,8 @@ class FkmBootEntry:
         if not os.path.exists(self.kernelCfgRuleFile):
             return False
         if not os.path.exists(self.kernelMapFile):
+            return False
+        if not os.path.exists(self.kernelSrcSignatureFile):
             return False
         return True
 
@@ -901,7 +903,7 @@ class FkmKernelBuilder:
             FmUtil.cmdExec("python3", fullfn, cacheDir, self.kernelVer)     # FIXME, should respect shebang
 
     def buildStepClean(self):
-        with open(self.dstTarget.signatureFile, "w") as f:
+        with open(self.dstTarget.kernelSrcSignatureFile, "w") as f:
             f.write(self.srcSignature)
         os.unlink(os.path.join(self._getModulesDir(), "source"))
         os.unlink(os.path.join(self._getModulesDir(), "build"))

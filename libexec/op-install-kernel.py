@@ -42,7 +42,7 @@ if not kernelBuildNeeded:
     if bootEntry.buildTarget.ver != kernelBuilder.kernelVer:
         kernelBuildNeeded = True
 if not kernelBuildNeeded:
-    if kernelBuilder.srcSignature != pathlib.Path(bootEntry.signatureFile).read_text():
+    if kernelBuilder.srcSignature != pathlib.Path(bootEntry.kernelSrcSignatureFile).read_text():
         kernelBuildNeeded = True
 if not kernelBuildNeeded:
     if not FmUtil.dotCfgFileCompare(os.path.join("/boot", bootEntry.kernelCfgFile), kernelBuilder.dotCfgFile):
