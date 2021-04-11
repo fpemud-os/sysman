@@ -47,7 +47,7 @@ olddir = os.getcwd()
 os.chdir(tmpdir)
 try:
     runFile = os.path.join(tmpdir, "vbox.run")
-    subprocess.run(["/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), "-O", runFile, downloadUrl])
+    subprocess.run(["/usr/bin/wget", "--show-progress", *robust_layer.wget.additional_param(), "-O", runFile, downloadUrl])
     subprocess.run(["/bin/sh", runFile, "--noexec", "--keep", "--nox11"])
     subprocess.run(["/bin/tar", "-xjf", os.path.join(tmpdir, "install", "VirtualBox.tar.bz2")])
 

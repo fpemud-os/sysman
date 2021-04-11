@@ -242,7 +242,7 @@ class FkmKCache:
         return fn
 
     def getPatchExecFile(self, patchName):
-        return os.path.join(FmConst.dataDir, "kernel-n-patch", "patch", patchName + ".ini")
+        return os.path.join(FmConst.dataDir, "kernel-n-patch", "patch", patchName + ".py")
 
     def getExtraDriverSourceName(self, driverName):
         return self.extraDriverDict[driverName]["source"]["name"]
