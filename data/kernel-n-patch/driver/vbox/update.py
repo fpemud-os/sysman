@@ -11,7 +11,6 @@ import urllib.request
 import robust_layer.wget
 
 url = "https://www.virtualbox.org/wiki/Linux_Downloads"
-tmpdir = "./__temp__"
 origfile = "./original-file.txt"
 
 # get download url
@@ -42,15 +41,16 @@ if os.path.exists(origfile):
 
 # download and extract files
 subprocess.run("/bin/rm -rf ./*", shell=True)
+tmpdir = "./__temp__"
 os.mkdir(tmpdir)
-olddir = os.getcwd()
-os.chdir(tmpdir)
 try:
-    runFile = os.path.join(tmpdir, "vbox.run")
-    print(" ".join(["/usr/bin/wget", "--show-progress", *robust_layer.wget.additional_param(), "-O", runFile, downloadUrl]))
-    subprocess.run(["/usr/bin/wget", "--show-progress", *robust_layer.wget.additional_param(), "-O", runFile, downloadUrl])
-    subprocess.run(["/bin/sh", runFile, "--noexec", "--keep", "--nox11"])
-    subprocess.run(["/bin/tar", "-xjf", os.path.join(tmpdir, "install", "VirtualBox.tar.bz2")])
+    os.chdir(tmpdir)
+    try:
+        subprocess.run(["/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), "-O", "vbox.run", downloadUrl])
+        subprocess.run(["/bin/sh", "vbox.run", "--noexec", "--keep", "--nox11"])        # FIXME: security vulnerbility
+        subprocess.run(["/bin/tar", "-xjf", os.path.join(tmpdir, "install", "VirtualBox.tar.bz2")])
+    finally:
+        os.chdir("..")
 
     for fn in glob.glob(os.path.join(tmpdir, "src", "vboxhost", "*")):
         os.rename(fn, ".")
@@ -58,5 +58,4 @@ try:
     with open(origfile, "w") as f:
         f.write(origFile)
 finally:
-    os.chdir(olddir)
     shutil.rmtree(tmpdir)
