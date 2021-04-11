@@ -415,22 +415,19 @@ class FkmKCache:
         cfg = configparser.ConfigParser()
         cfg.read(os.path.join(dir_path, "main.ini"))
 
-        sourceName = cfg.get("source", "name")
         updateMethod = cfg.get("source", "update-method")
         if updateMethod == "git":
             ret["source"] = {
-                sourceName: {
-                    "update-method": "git",
-                    "url": cfg.get("source", "url"),
-                }
+                "name": cfg.get("source", "name"),
+                "update-method": "git",
+                "url": cfg.get("source", "url"),
             }
         elif updateMethod == "exec":
             ret["source"] = {
-                sourceName: {
-                    "update-method": "exec",
-                    "exectuable": cfg.get("source", "executable"),
-                    "selfdir": dir_path,
-                }
+                "name": cfg.get("source", "name"),
+                "update-method": "exec",
+                "exectuable": cfg.get("source", "executable"),
+                "selfdir": dir_path,
             }
         else:
             raise Exception("invalid update-method \"%s\" in config file of extra kernel driver \"%s\"", (updateMethod, name))
@@ -443,14 +440,12 @@ class FkmKCache:
         cfg = configparser.ConfigParser()
         cfg.read(os.path.join(file_path))
 
-        sourceName = cfg.get("source", "name")
         updateMethod = cfg.get("source", "update-method")
         if updateMethod == "git":
             ret["source"] = {
-                sourceName: {
-                    "update-method": "git",
-                    "url": cfg.get("source", "url"),
-                }
+                "name": cfg.get("source", "name"),
+                "update-method": "git",
+                "url": cfg.get("source", "url"),
             }
         else:
             raise Exception("invalid update-method \"%s\" in config file of extra firmware \"%s\"", (updateMethod, name))
