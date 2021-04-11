@@ -454,7 +454,7 @@ class FkmKCache:
         ret["file-mapping"] = dict()
 
         # FIXME: file-mapping-overwrite
-        ret["file-mapping-overwritez"] = dict()
+        ret["file-mapping-overwrite"] = dict()
 
         return ret
 
