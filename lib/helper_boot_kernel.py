@@ -713,12 +713,13 @@ class FkmKernelBuilder:
         os.makedirs(self.ksrcTmpDir)
         fn = self.kcache.getKernelFileByVersion(self.kernelVer)
         FmUtil.cmdCall("/bin/tar", "-xJf", fn, "-C", self.ksrcTmpDir)
+        realSrcDir = os.path.join(self.ksrcTmpDir, os.listdir(self.ksrcTmpDir)[0])
 
         # patch kernel source
         for name in self.kcache.getPatchList():
             fullfn = self.kcache.getPatchExecFile(name)
             out = None
-            with TempChdir(self.realSrcDir):
+            with TempChdir(realSrcDir):
                 assert fullfn.endswith(".py")
                 out = FmUtil.cmdCall("python3", fullfn)     # FIXME, should respect shebang
             if out == "outdated":
@@ -739,7 +740,7 @@ class FkmKernelBuilder:
         FmUtil.cmdCall("/bin/tar", "-xJf", fn, "-C", self.wirelessRegDbTmpDir)
 
         # get real source directory
-        self.realSrcDir = os.path.join(self.ksrcTmpDir, os.listdir(self.ksrcTmpDir)[0])
+        self.realSrcDir = realSrcDir
         self.dotCfgFile = os.path.join(self.realSrcDir, ".config")
         self.dstTarget = FkmBuildTarget.newFromKernelDir(FmUtil.getHostArch(), self.realSrcDir)
 
