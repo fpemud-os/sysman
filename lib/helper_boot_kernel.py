@@ -426,7 +426,7 @@ class FkmKCache:
             ret["source"] = {
                 "name": cfg.get("source", "name"),
                 "update-method": "exec",
-                "exectuable": cfg.get("source", "executable"),
+                "executable": cfg.get("source", "executable"),
                 "selfdir": dir_path,
             }
         else:
