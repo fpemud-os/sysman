@@ -153,12 +153,12 @@ class FkmKCache:
         assert sourceInfo["name"] == sourceName
 
         # source type "git"
-        if sourceInfo["type"] == "git":
+        if sourceInfo["update-method"] == "git":
             robust_layer.simple_git.pull(cacheDir, reclone_on_failure=True, url=sourceInfo["url"])
             return
 
         # source type "exec"
-        if sourceInfo["type"] == "exec":
+        if sourceInfo["update-method"] == "exec":
             fullfn = os.path.join(sourceInfo["selfdir"], sourceInfo["executable"])
             os.makedirs(cacheDir, exist_ok=True)
             with TempChdir(cacheDir):
@@ -176,7 +176,7 @@ class FkmKCache:
         assert sourceInfo["name"] == sourceName
 
         # source type "git"
-        if sourceInfo["type"] == "git":
+        if sourceInfo["update-method"] == "git":
             robust_layer.simple_git.pull(cacheDir, reclone_on_failure=True, url=sourceInfo["url"])
             return
 
