@@ -24,14 +24,18 @@ if item == "extra-driver-source":
     name = sys.argv[2]
     sourceName = sys.argv[3]
     kcache = FkmKCache()
-    kcache.updateExtraDriverSourceCache(name, sourceName)
+    sourceInfo = kcache.getExtraDriverSourceInfo(name)
+    assert sourceName == sourceInfo["name"]
+    kcache.updateExtraSourceCache(sourceInfo)
     sys.exit(0)
 
 if item == "extra-firmware-source":
     name = sys.argv[2]
     sourceName = sys.argv[3]
     kcache = FkmKCache()
-    kcache.updateExtraFirmwareSourceCache(name, sourceName)
+    sourceInfo = kcache.getExtraFirmwareSourceInfo(name)
+    assert sourceName == sourceInfo["name"]
+    kcache.updateExtraSourceCache(sourceInfo)
     sys.exit(0)
 
 if item == "wireless-regdb":

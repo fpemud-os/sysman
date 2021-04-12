@@ -173,22 +173,20 @@ class FmSysUpdater:
             # update extra kernel driver in kcache
             tset = set()
             for name in kcache.getExtraDriverList():
-                sourceName = kcache.getExtraDriverSourceName(name)
+                sourceName = kcache.getExtraDriverSourceInfo(name)["name"]
                 if sourceName in tset:
                     continue
-                self.infoPrinter.printInfo(">> Fetching kernel driver source \"%s\"..." % (sourceName))
+                self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (sourceName))
                 self._execAndSyncDownQuietly(buildServer, self.opFetch, "extra-driver-source \'%s\' \'%s\'" % (name, sourceName), FmConst.kcacheDir)
                 tset.add(sourceName)
                 print("")
-
-            # update extra firmware in kcache
-            tset = set()
             for name in kcache.getExtraFirmwareList():
-                sourceName = kcache.getExtraFirmwareSourceName(name)
+                sourceName = kcache.getExtraFirmwareSourceInfo(name)["name"]
                 if sourceName in tset:
                     continue
-                self.infoPrinter.printInfo(">> Fetching firmware source \"%s\"..." % (sourceName))
+                self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (sourceName))
                 self._execAndSyncDownQuietly(buildServer, self.opFetch, "extra-firmware-source \'%s\' \'%s\'" % (name, sourceName), FmConst.kcacheDir)
+                tset.add(sourceName)
                 print("")
 
             # update wireless-regulatory-database in kcache

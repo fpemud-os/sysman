@@ -146,11 +146,8 @@ class FkmKCache:
         FmUtil.wgetDownload("%s/%s" % (mr, firmwareFile), myFirmwareFile)
         FmUtil.wgetDownload("%s/%s" % (mr, signFile), mySignFile)
 
-    def updateExtraDriverSourceCache(self, driverName, sourceName):
-        cacheDir = os.path.join(FmConst.kcacheDir, "edrv-src-%s" % (sourceName))
-
-        sourceInfo = self.extraDriverDict[driverName]["source"]
-        assert sourceInfo["name"] == sourceName
+    def updateExtraSourceCache(self, sourceInfo):
+        cacheDir = os.path.join(FmConst.kcacheDir, "source-%s" % (sourceInfo["name"]))
 
         # source type "git"
         if sourceInfo["update-method"] == "git":
@@ -164,20 +161,6 @@ class FkmKCache:
             with TempChdir(cacheDir):
                 assert fullfn.endswith(".py")
                 FmUtil.cmdExec("python3", fullfn)     # FIXME, should respect shebang
-            return
-
-        # invalid source type
-        assert False
-
-    def updateExtraFirmwareSourceCache(self, firmwareName, sourceName):
-        cacheDir = os.path.join(FmConst.kcacheDir, "efw-src-%s" % (sourceName))
-
-        sourceInfo = self.extraFirmwareDict[firmwareName]["source"]
-        assert sourceInfo["name"] == sourceName
-
-        # source type "git"
-        if sourceInfo["update-method"] == "git":
-            robust_layer.simple_git.pull(cacheDir, reclone_on_failure=True, url=sourceInfo["url"])
             return
 
         # invalid source type
@@ -244,22 +227,22 @@ class FkmKCache:
     def getPatchExecFile(self, patchName):
         return os.path.join(FmConst.dataDir, "kernel-n-patch", "patch", patchName + ".py")
 
-    def getExtraDriverSourceName(self, driverName):
-        return self.extraDriverDict[driverName]["source"]["name"]
+    def getExtraDriverSourceInfo(self, driverName):
+        return self.extraDriverDict[driverName]["source"]
 
     def getExtraDriverSourceDir(self, driverName):
-        sourceName = self.getExtraDriverSourceName(driverName)
-        return os.path.join(FmConst.kcacheDir, "edrv-src-%s" % (sourceName))
+        sourceInfo = self.getExtraDriverSourceInfo(driverName)
+        return os.path.join(FmConst.kcacheDir, "source-%s" % (sourceInfo["name"]))
 
     def getExtraDriverExecFile(self, driverName):
         return os.path.join(FmConst.dataDir, "kernel-n-patch", "driver", driverName, "build.py")
 
-    def getExtraFirmwareSourceName(self, firmwareName):
-        return self.extraFirmwareDict[firmwareName]["source"]["name"]
+    def getExtraFirmwareSourceInfo(self, firmwareName):
+        return self.extraFirmwareDict[firmwareName]["source"]
 
     def getExtraFirmwareSourceDir(self, firmwareName):
-        sourceName = self.getExtraFirmwareSourceName(firmwareName)
-        return os.path.join(FmConst.kcacheDir, "efw-src-%s" % (sourceName))
+        sourceInfo = self.getExtraFirmwareSourceInfo(firmwareName)
+        return os.path.join(FmConst.kcacheDir, "source-%s" % (sourceInfo["name"]))
 
     def getExtraFirmwareFileMapping(self, firmwareName, filePath):
         # return (realFullFilePath, bOverWrite)
