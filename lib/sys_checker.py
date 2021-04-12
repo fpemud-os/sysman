@@ -82,7 +82,7 @@ class FmSysChecker:
                     self._checkLmSensorsCfgFiles()
                     self._checkEtcUdevRuleFiles()
                     self._checkServiceFiles()
-                    # self._checkFirmware()
+                    self._checkFirmware()
                     self._checkPortageCfg()
                     self._checkSystemServices()
                 with self.infoPrinter.printInfoAndIndent("- Check package repositories & overlays..."):
