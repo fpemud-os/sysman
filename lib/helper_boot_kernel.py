@@ -898,6 +898,7 @@ class FkmKernelBuilder:
         cacheDir = self.kcache.getExtraDriverSourceDir(driverName)
         fullfn = self.kcache.getExtraDriverExecFile(driverName)
         buildTmpDir = os.path.join(self.tmpDir, driverName)
+        os.mkdir(buildTmpDir)
         with TempChdir(buildTmpDir):
             assert fullfn.endswith(".py")
             FmUtil.cmdExec("python3", fullfn, cacheDir, self.kernelVer)     # FIXME, should respect shebang
