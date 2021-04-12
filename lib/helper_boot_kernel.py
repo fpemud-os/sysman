@@ -433,11 +433,11 @@ class FkmKCache:
         else:
             raise Exception("invalid update-method \"%s\" in config file of extra firmware \"%s\"", (updateMethod, name))
 
-        # FIXME: file-mapping
-        ret["file-mapping"] = dict()
-
-        # FIXME: file-mapping-overwrite
-        ret["file-mapping-overwrite"] = dict()
+        for section in ["file-mapping", "file-mapping-overwrite"]:
+            ret[section] = dict()
+            if cfg.has_section(section):
+                for opt in cfg.options(section):
+                    ret[section][opt] = cfg.get(section, opt)
 
         return ret
 
@@ -708,7 +708,7 @@ class FkmKernelBuilder:
                 assert fullfn.endswith(".py")
                 out = FmUtil.cmdCall("python3", fullfn)     # FIXME, should respect shebang
             if out == "outdated":
-                print("Kernel patch \"%s\" is outdated." % (name))
+                print("WARNING: Kernel patch \"%s\" is outdated." % (name))
             elif out == "":
                 pass
             else:
@@ -834,7 +834,7 @@ class FkmKernelBuilder:
         self._makeAuxillary(self.realSrcDir, "modules_install")
 
     def buildStepInstallFirmware(self):
-        # get and add all used firmware file
+        # get add all *used* firmware file
         # FIXME:
         # 1. should consider built-in modules by parsing /lib/modules/X.Y.Z/modules.builtin.modinfo
         # 2. currently it seems built-in modules don't need firmware
@@ -846,6 +846,8 @@ class FkmKernelBuilder:
                 m = re.fullmatch("firmware: +(\\S.*)", line)
                 if m is not None:
                     firmwareList.append((m.group(1), fullfn.replace("/lib/modules/%s/" % (self.dstTarget.verstr), "")))
+
+        # copy firmware from official firmware repository
         os.makedirs("/lib/firmware", exist_ok=True)
         for fn, kn in firmwareList:
             srcFn = os.path.join(self.firmwareTmpDir, fn)
@@ -853,14 +855,23 @@ class FkmKernelBuilder:
             if os.path.exists(srcFn):
                 os.makedirs(os.path.dirname(dstFn), exist_ok=True)
                 shutil.copy(srcFn, dstFn)
-            for firmwareName in self.kcache.getExtraFirmwareList():
-                fullfn, bOverWrite = self.kcache.getExtraFirmwareFileMapping(firmwareName, dstFn)
-                if fullfn is None:
-                    continue
-                if os.path.exists(dstFn) and not bOverWrite:
-                    continue
-                os.makedirs(os.path.dirname(dstFn), exist_ok=True)
-                shutil.copy(fullfn, dstFn)
+
+        # copy firmware from extra firmware repositories
+        if True:
+            usedExtraNames = set()
+            for fn, kn in firmwareList:
+                dstFn = os.path.join("/lib/firmware", fn)
+                for firmwareName in self.kcache.getExtraFirmwareList():
+                    fullfn, bOverWrite = self.kcache.getExtraFirmwareFileMapping(firmwareName, dstFn)
+                    if fullfn is None:
+                        continue
+                    if os.path.exists(dstFn) and not bOverWrite:
+                        continue
+                    os.makedirs(os.path.dirname(dstFn), exist_ok=True)
+                    shutil.copy(fullfn, dstFn)
+                    usedExtraNames.add(firmwareName)
+            for firmwareName in set(self.kcache.getExtraFirmwareList()) - usedExtraNames:
+                print("WARNING: Extra firmware \"%s\" is outdated." % (firmwareName))
 
         # copy wireless-regdb
         if True:

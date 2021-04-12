@@ -2204,7 +2204,7 @@ class FmUtil:
                 assert fullfn.endswith(".py")
                 out = FmUtil.cmdCall("python3", fullfn)     # FIXME, should respect shebang
             if out == "outdated":
-                print("%s script \"%s\" for \"%s\" is outdated." % (patchTypeName, fullfn[len(patchDir) + 1:], repoName))
+                print("WARNING: %s script \"%s\" for \"%s\" is outdated." % (patchTypeName, fullfn[len(patchDir) + 1:], repoName))
             elif out == "":
                 pass
             else:
