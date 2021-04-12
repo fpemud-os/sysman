@@ -904,7 +904,7 @@ class FkmKernelBuilder:
             FmUtil.cmdExec("python3", fullfn, cacheDir, self.kernelVer)     # FIXME, should respect shebang
 
     def buildStepClean(self):
-        with open(self.dstTarget.kernelSrcSignatureFile, "w") as f:
+        with open(os.path.join(_bootDir, self.dstTarget.kernelSrcSignatureFile), "w") as f:
             f.write(self.srcSignature)
         os.unlink(os.path.join(self._getModulesDir(), "source"))
         os.unlink(os.path.join(self._getModulesDir(), "build"))
