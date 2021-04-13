@@ -862,7 +862,7 @@ class FkmKernelBuilder:
             for fn, kn in firmwareList:
                 dstFn = os.path.join("/lib/firmware", fn)
                 for firmwareName in self.kcache.getExtraFirmwareList():
-                    fullfn, bOverWrite = self.kcache.getExtraFirmwareFileMapping(firmwareName, dstFn)
+                    fullfn, bOverWrite = self.kcache.getExtraFirmwareFileMapping(firmwareName, fn)
                     if fullfn is None:
                         continue
                     if os.path.exists(dstFn) and not bOverWrite:
