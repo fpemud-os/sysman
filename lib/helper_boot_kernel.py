@@ -249,11 +249,11 @@ class FkmKCache:
 
         obj = self.extraFirmwareDict[firmwareName]["file-mapping-overwrite"]
         if filePath in obj:
-            return (os.path.join(self.getExtraDriverSourceDir(firmwareName), obj[filePath]), True)
+            return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), obj[filePath]), True)
 
         obj = self.extraFirmwareDict[firmwareName]["file-mapping"]
         if filePath in obj:
-            return (os.path.join(self.getExtraDriverSourceDir(firmwareName), obj[filePath]), False)
+            return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), obj[filePath]), False)
 
         return (None, None)
 
