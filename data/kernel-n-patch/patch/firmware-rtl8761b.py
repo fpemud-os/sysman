@@ -12,13 +12,13 @@ try:
     # check
     if 'MODULE_FIRMWARE("rtl_bt/rtl8761b_fw.bin");' in buf:
         raise ValueError()
-    if 'MODULE_FIRMWARE("rtl_bt/rtl8761b_config");' in buf:
+    if 'MODULE_FIRMWARE("rtl_bt/rtl8761b_config.bin");' in buf:
         raise ValueError()
 
     # modify
     buf += '\n'
     buf += 'MODULE_FIRMWARE("rtl_bt/rtl8761b_fw.bin");\n'
-    buf += 'MODULE_FIRMWARE("rtl_bt/rtl8761b_config");\n'
+    buf += 'MODULE_FIRMWARE("rtl_bt/rtl8761b_config.bin");\n'
     with open(fn, "w") as f:
         f.write(buf)
 
