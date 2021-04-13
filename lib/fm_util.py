@@ -1781,7 +1781,8 @@ class FmUtil:
 
         repoNameFn = os.path.join(repoDir, "profiles", "repo_name")
         if os.path.exists(repoNameFn):
-            ret = pathlib.Path(repoNameFn).read_text().rstrip("\n")
+            ret = pathlib.Path(repoNameFn).read_text()
+            ret = ret.rstrip("\n").rstrip()
             ret = ret.replace(" ", "-")                         # it seems this translation is neccessary
             return ret
 
