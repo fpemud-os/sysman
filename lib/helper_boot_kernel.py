@@ -883,6 +883,10 @@ class FkmKernelBuilder:
             assert len(ret) == 1
             shutil.copy(ret[0], "/lib/firmware")
 
+        # ensure corrent permission
+        FmUtil.shellCall("/usr/bin/find /lib/firmware -type f | xargs chmod 644")
+        FmUtil.shellCall("/usr/bin/find /lib/firmware -type d | xargs chmod 755")
+
         # record
         with open("/lib/firmware/.ctime", "w") as f:
             f.write(self.firmwareVer + "\n")
