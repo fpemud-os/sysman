@@ -1,0 +1,4 @@
+[main]
+name = jr386078
+url = https://github.com/jr386078/jr386078_overlay
+package = media-libs/librealsense
