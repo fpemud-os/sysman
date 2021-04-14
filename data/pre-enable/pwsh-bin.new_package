@@ -1,4 +1,3 @@
 [main]
 name = pentoo
-url = https://github.com/pentoo/pentoo-overlay
 package = app-shells/pwsh-bin
