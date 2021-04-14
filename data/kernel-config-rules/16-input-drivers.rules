@@ -1,10 +1,13 @@
 # menu: Input device support
 INPUT=y
+
 INPUT_KEYBOARD=y
 KEYBOARD_ATKBD=y                                        # many notepads still use AT keyboard and, AT keyboard does not support PnP
 [symbols:INPUT_KEYBOARD]=n                              # no deprecated
-INPUT_MISC=n
-[symbols:/Device Drivers/Input device support]=m,y
 
-# menu: HID support
+INPUT_MISC=y
+INPUT_UINPUT=y                                          # /dev/uinput is a very useful interface
+[symbols:INPUT_MISC]=n
+
+[symbols:/Device Drivers/Input device support]=m,y
 [symbols:/Device Drivers/HID support]=m,y
