@@ -663,10 +663,17 @@ class EbuildOverlays:
                     f.write(self._generateCfgReposFile(overlayName, overlayDir, overlayType, vcsType, overlayUrl, repoName))
 
         # check overlay files directory
-        if overlayType in ["static", "trusted"]:
+        if overlayType == "static":
             # overlay files directory should not exist
             if os.path.exists(overlayFilesDir):
                 raise OverlayCheckError("\"%s\" should not have overlay files directory \"%s\"" % (overlayName, overlayFilesDir))
+        elif overlayType == "trusted":
+            # overlay files directory should not exist
+            if os.path.exists(overlayFilesDir):
+                if bAutoFix:
+                    FmUtil.forceDelete(overlayFilesDir)
+                else:
+                    raise OverlayCheckError("\"%s\" should not have overlay files directory \"%s\"" % (overlayName, overlayFilesDir))
         elif overlayType == "transient":
             # doesn't exist or is invalid
             if not os.path.exists(overlayFilesDir) or not os.path.isdir(overlayFilesDir):
