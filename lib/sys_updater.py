@@ -84,9 +84,12 @@ class FmSysUpdater:
                 print("")
 
             # sync overlay directories
+            # FIXME: remove sync down dir in future
             for oname in pkgwh.layman.getOverlayList():
+                if pkgwh.layman.getOverlayType(oname) == "static":
+                    continue
                 self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (oname))
-                self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-overlay %s" % (oname), pkgwh.layman.getOverlayFilesDir(oname))
+                self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-overlay %s" % (oname), pkgwh.layman.getOverlayDir(oname))
                 print("")
 
             # add pre-enabled overlays

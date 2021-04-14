@@ -976,20 +976,20 @@ class FmSysChecker:
                     if self.pkgwh.layman.getOverlayMetadata(oname2, "repo-name") == overlayRepoName:
                         self.infoPrinter.printError("Overlay \"%s\" and \"%s\" has same repo_name." % (oname2, overlayName))
 
-            # there should be no same set files between overlays
-            if True:
-                infoDict = dict()
-                for oname2 in self.pkgwh.layman.getOverlayList():
-                    oSetDir = os.path.join(self.pkgwh.layman.getOverlayFilesDir(oname2), "set")
-                    infoDict[oname2] = set(os.listdir(oSetDir)) if os.path.exists(oSetDir) else set()
-                for oname2 in self.pkgwh.layman.getOverlayList():
-                    if overlayName == oname2:
-                        continue
-                    vi = list(infoDict[overlayName] & infoDict[oname2])
-                    if len(vi) == 0:
-                        continue
-                    for f in vi:
-                        self.infoPrinter.printError("Overlay \"%s\" and \"%s\" has same set file \"%s\"" % (overlayName, oname2, f))
+#            # there should be no same set files between overlays
+#            if True:
+#                infoDict = dict()
+#                for oname2 in self.pkgwh.layman.getOverlayList():
+#                    oSetDir = os.path.join(self.pkgwh.layman.getOverlayFilesDir(oname2), "set")
+#                    infoDict[oname2] = set(os.listdir(oSetDir)) if os.path.exists(oSetDir) else set()
+#                for oname2 in self.pkgwh.layman.getOverlayList():
+#                    if overlayName == oname2:
+#                        continue
+#                    vi = list(infoDict[overlayName] & infoDict[oname2])
+#                    if len(vi) == 0:
+#                        continue
+#                    for f in vi:
+#                        self.infoPrinter.printError("Overlay \"%s\" and \"%s\" has same set file \"%s\"" % (overlayName, oname2, f))
 #                    for f in vi:
 #                        fname1 = os.path.join(self.pkgwh.layman.getOverlayFilesDir(k), "set", f)
 #                        fname2 = os.path.join(self.pkgwh.layman.getOverlayFilesDir(k2), "set", f)

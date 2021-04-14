@@ -532,6 +532,7 @@ class EbuildOverlays:
         # returns /var/lib/portage/overlay-XXXX
         return os.path.join(FmConst.portageDataDir, "overlay-%s" % (overlayName))
 
+    # deprecated
     def getOverlayFilesDir(self, overlayName):
         # returns /var/cache/portage/laymanfiles/XXXX
         return os.path.join(FmConst.laymanfilesDir, overlayName)
@@ -765,7 +766,6 @@ class EbuildOverlays:
 
         cfgFile = self.getOverlayCfgReposFile(overlayName)
         overlayDir = self.getOverlayDir(overlayName)
-        overlayFilesDir = self.getOverlayFilesDir(overlayName)
         overlayType = self.getOverlayType(overlayName)
         buf = pathlib.Path(cfgFile).read_text()
         priority, location, overlayType, vcsType, overlayUrl, repoName = self._parseCfgReposFile(buf)
@@ -780,6 +780,7 @@ class EbuildOverlays:
             except PrivateOverlayNotAccessiableError:
                 print("Overlay not accessible, ignored.")
         elif overlayType == "transient":
+            overlayFilesDir = self.getOverlayFilesDir(overlayName)
             try:
                 self._syncOverlaySourceDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                 self._refreshTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
@@ -794,6 +795,7 @@ class EbuildOverlays:
 
     def enableOverlayPackage(self, overlayName, pkgName, quiet=False):
         assert self.isOverlayExist(overlayName)
+        assert self.getOverlayType(overlayName) == "transient"
 
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
@@ -815,6 +817,7 @@ class EbuildOverlays:
 
     def disableOverlayPackage(self, overlayName, pkgName):
         assert self.isOverlayExist(overlayName)
+        assert self.getOverlayType(overlayName) == "transient"
 
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
@@ -847,8 +850,8 @@ class EbuildOverlays:
 
         if self.__overlayHasPatch(overlayName, ["pkgwh-n-patch", "pkgwh-s-patch"]):
             print("Patching...")
-            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "N-patch", "pkgwh-n-patch")
-            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch")
+            self.__overlaySourceDirPatch(overlayName, overlayFilesDir, "N-patch", "pkgwh-n-patch")
+            self.__overlaySourceDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch")
             print("Done.")
 
         return vcsType
@@ -869,8 +872,8 @@ class EbuildOverlays:
 
         if self.__overlayHasPatch(overlayName, ["pkgwh-n-patch", "pkgwh-s-patch"]):
             print("Patching...")
-            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "N-patch", "pkgwh-n-patch")
-            self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch")
+            self.__overlaySourceDirPatch(overlayName, overlayFilesDir, "N-patch", "pkgwh-n-patch")
+            self.__overlaySourceDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch")
             print("Done.")
 
     def _removeDuplicatePackage(self, overlayFilesDir):
@@ -943,12 +946,12 @@ class EbuildOverlays:
 
         # create eclass directory
         srcEclassDir = os.path.join(overlayFilesDir, "eclass")
-        eclassDir = os.path.join(overlayFilesDir, "eclass")
+        eclassDir = os.path.join(overlayDir, "eclass")
         if os.path.exists(srcEclassDir):
             shutil.copytree(srcEclassDir, eclassDir)
 
         # ugly trick
-        self.__overlayDirUglyTrick(overlayName, overlayDir, overlayFilesDir)
+        self.__overlayDirUglyTrick(overlayName, overlayDir)
 
     def _refreshTransientOverlayDir(self, overlayName, overlayDir, overlayFilesDir):
         profileDir = os.path.join(overlayDir, "profiles")
@@ -999,7 +1002,7 @@ class EbuildOverlays:
             FmUtil.removeEmptyDir(os.path.join(overlayDir, d))
 
         # ugly trick
-        self.__overlayDirUglyTrick(overlayName, overlayDir, overlayFilesDir)
+        self.__overlayDirUglyTrick(overlayName, overlayDir)
 
     def _parseCfgReposFile(self, buf):
         m = re.search("^\\[(.*)\\]$", buf, re.M)
@@ -1060,19 +1063,15 @@ class EbuildOverlays:
                 return True
         return False
 
-    def __overlayFilesDirPatch(self, overlayName, overlayFilesDir, typeName, dirName):
+    def __overlaySourceDirPatch(self, overlayName, overlaySourceDir, typeName, dirName):
         overlayName2 = "overlay-%s" % (overlayName)
         modDir = os.path.join(FmConst.dataDir, dirName, overlayName2)
         if os.path.exists(modDir):
-            FmUtil.portagePatchRepository(overlayName2, overlayFilesDir, typeName, modDir)
+            FmUtil.portagePatchRepository(overlayName2, overlaySourceDir, typeName, modDir)
 
-    def __overlayDirUglyTrick(self, overlayName, overlayDir, overlayFilesDir):
+    def __overlayDirUglyTrick(self, overlayName, overlayDir):
         # common trick
-        if os.path.islink(os.path.join(overlayDir, "metadata")):
-            metaDataDir = os.path.join(overlayFilesDir, "metadata")
-        else:
-            metaDataDir = os.path.join(overlayDir, "metadata")
-        with fileinput.FileInput(os.path.join(metaDataDir, "layout.conf"), inplace=True) as f:
+        with fileinput.FileInput(os.path.join(overlayDir, "metadata", "layout.conf"), inplace=True) as f:
             for line in f:
                 if line.startswith("masters = "):
                     print("masters = gentoo")
@@ -1081,7 +1080,7 @@ class EbuildOverlays:
 
         # ugly trick
         if overlayName == "unity":
-            with fileinput.FileInput(os.path.join(overlayFilesDir, "eclass", "ubuntu-versionator.eclass"), inplace=True) as f:
+            with fileinput.FileInput(os.path.join(overlayDir, "eclass", "ubuntu-versionator.eclass"), inplace=True) as f:
                 for line in f:
                     print(line.replace("if [ -z \"${UNITY_BUILD_OK}\" ]; then", "if false; then"), end='')
 
