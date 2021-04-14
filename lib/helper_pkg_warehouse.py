@@ -574,12 +574,10 @@ class EbuildOverlays:
 
         cfgFile = self.getOverlayCfgReposFile(overlayName)
         overlayDir = self.getOverlayDir(overlayName)
-        overlayFilesDir = self.getOverlayFilesDir(overlayName)
 
-        vcsType = self._createOverlayFilesDir(overlayName, overlayFilesDir, overlayVcsType, overlayUrl)
+        vcsType = self._createOverlaySourceDir(overlayName, overlayDir, overlayVcsType, overlayUrl)
         try:
-            self._removeOverlayFilesDirDuplicatePackage(overlayFilesDir)
-            self._createTrustedOverlayDir(overlayName, overlayDir, overlayFilesDir)
+            self._removeDuplicatePackage(overlayDir)
             repoName = FmUtil.repoGetRepoName(overlayDir)
             with open(cfgFile, "w") as f:
                 f.write(self._generateCfgReposFile(overlayName, overlayDir, "trusted", vcsType, overlayUrl, repoName))
@@ -595,9 +593,9 @@ class EbuildOverlays:
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
 
-        self._createOverlayFilesDir(overlayName, overlayFilesDir, overlayVcsType, overlayUrl)
+        self._createOverlaySourceDir(overlayName, overlayFilesDir, overlayVcsType, overlayUrl)
         try:
-            self._createTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
+            self._createTransientOverlayDirFromOverlayFilesDir(overlayName, overlayDir, overlayFilesDir)
             repoName = FmUtil.repoGetRepoName(overlayDir)
             with open(cfgFile, "w") as f:
                 f.write(self._generateCfgReposFile(overlayName, overlayDir, "transient", overlayVcsType, overlayUrl, repoName))
@@ -608,7 +606,7 @@ class EbuildOverlays:
     def removeOverlay(self, overlayName):
         if not self.isOverlayExist(overlayName):
             raise Exception("overlay \"%s\" is not installed" % (overlayName))
-        if not os.path.exists(self.getOverlayFilesDir(overlayName)):
+        if self.getOverlayType(overlayName) == "static":
             raise Exception("overlay \"%s\" is a static overlay" % (overlayName))
 
         FmUtil.forceDelete(self.getOverlayFilesDir(overlayName))
@@ -665,31 +663,17 @@ class EbuildOverlays:
                     f.write(self._generateCfgReposFile(overlayName, overlayDir, overlayType, vcsType, overlayUrl, repoName))
 
         # check overlay files directory
-        if overlayType == "static":
+        if overlayType in ["static", "trusted"]:
             # overlay files directory should not exist
             if os.path.exists(overlayFilesDir):
                 raise OverlayCheckError("\"%s\" should not have overlay files directory \"%s\"" % (overlayName, overlayFilesDir))
-        elif overlayType == "trusted":
-            # doesn't exist or is invalid
-            if not os.path.exists(overlayFilesDir) or not os.path.isdir(overlayFilesDir):
-                if bAutoFix:
-                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
-                    assert ret == vcsType
-                    self._removeOverlayFilesDirDuplicatePackage(overlayFilesDir)
-                    self._createTrustedOverlayDir(overlayName, overlayDir, overlayFilesDir)
-                else:
-                    raise OverlayCheckError("overlay files directory \"%s\" does not exist or is invalid" % (overlayFilesDir))
-            # invalid layout.conf content
-            with open(os.path.join(overlayFilesDir, "metadata", "layout.conf"), "r") as f:
-                if re.search("^\\s*masters\\s*=\\s*gentoo\\s*$", f.read(), re.M) is None:
-                    raise OverlayCheckError("overlay \"%s\" has illegal layout.conf" % (overlayName))
         elif overlayType == "transient":
             # doesn't exist or is invalid
             if not os.path.exists(overlayFilesDir) or not os.path.isdir(overlayFilesDir):
                 if bAutoFix:
-                    ret = self._createOverlayFilesDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
+                    ret = self._createOverlaySourceDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                     assert ret == vcsType
-                    self._createTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
+                    self._createTransientOverlayDirFromOverlayFilesDir(overlayName, overlayDir, overlayFilesDir)
                 else:
                     raise OverlayCheckError("overlay files directory \"%s\" does not exist or is invalid" % (overlayFilesDir))
         else:
@@ -700,7 +684,7 @@ class EbuildOverlays:
             # doesn't exist or is invalid
             if not os.path.isdir(overlayDir) or os.path.islink(overlayDir):
                 if bAutoFix:
-                    self._createStaticOverlayDir(overlayName, overlayDir)
+                    self._createEmptyStaticOverlayDir(overlayName, overlayDir)
                 else:
                     raise OverlayCheckError("overlay directory \"%s\" does not exist or is invalid" % (overlayDir))
             # no symlink
@@ -710,16 +694,23 @@ class EbuildOverlays:
                     raise OverlayCheckError("package \"%s\" in overlay \"%s\" is a symlink" % (fbasename, overlayName))
         elif overlayType == "trusted":
             # doesn't exist or is invalid
-            if not os.path.isdir(overlayDir) or not os.path.islink(overlayDir) or os.readlink(overlayDir) != overlayFilesDir:
+            if not os.path.isdir(overlayDir):
                 if bAutoFix:
-                    self._createTrustedOverlayDir(overlayName, overlayDir, overlayFilesDir)
+                    FmUtil.forceDelete(overlayDir)
+                    ret = self._createOverlaySourceDir(overlayName, overlayDir, vcsType, overlayUrl)
+                    assert ret == vcsType
+                    self._removeDuplicatePackage(overlayDir)
                 else:
                     raise OverlayCheckError("overlay directory \"%s\" does not exist or is invalid" % (overlayDir))
+            # invalid layout.conf content
+            with open(os.path.join(overlayDir, "metadata", "layout.conf"), "r") as f:
+                if re.search("^\\s*masters\\s*=\\s*gentoo\\s*$", f.read(), re.M) is None:
+                    raise OverlayCheckError("overlay \"%s\" has illegal layout.conf" % (overlayName))
         elif overlayType == "transient":
             # doesn't exist or is invalid
             if not os.path.isdir(overlayDir) or os.path.islink(overlayDir):
                 if bAutoFix:
-                    self._createTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
+                    self._createTransientOverlayDirFromOverlayFilesDir(overlayName, overlayDir, overlayFilesDir)
                 else:
                     raise OverlayCheckError("overlay directory \"%s\" does not exist or is invalid" % (overlayDir))
             # all packages must be the same as overlay files directory
@@ -777,13 +768,13 @@ class EbuildOverlays:
             pass
         elif overlayType == "trusted":
             try:
-                self._syncOverlayFilesDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
-                self._removeOverlayFilesDirDuplicatePackage(overlayFilesDir)
+                self._syncOverlaySourceDir(overlayName, overlayDir, vcsType, overlayUrl)
+                self._removeDuplicatePackage(overlayDir)
             except PrivateOverlayNotAccessiableError:
                 print("Overlay not accessible, ignored.")
         elif overlayType == "transient":
             try:
-                self._syncOverlayFilesDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
+                self._syncOverlaySourceDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                 self._refreshTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
             except PrivateOverlayNotAccessiableError:
                 print("Overlay not accessible, ignored.")
@@ -831,7 +822,7 @@ class EbuildOverlays:
         FmUtil.forceDelete(os.path.join(overlayDir, pkgName))
         FmUtil.removeEmptyDir(os.path.join(overlayDir, pkgName.split("/")[0]))
 
-    def _createOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
+    def _createOverlaySourceDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
             # overlayFilesDir may already exist
             robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
@@ -855,7 +846,7 @@ class EbuildOverlays:
 
         return vcsType
 
-    def _syncOverlayFilesDir(self, overlayName, overlayFilesDir, vcsType, url):
+    def _syncOverlaySourceDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
             try:
                 robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
@@ -875,7 +866,7 @@ class EbuildOverlays:
             self.__overlayFilesDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch")
             print("Done.")
 
-    def _removeOverlayFilesDirDuplicatePackage(self, overlayFilesDir):
+    def _removeDuplicatePackage(self, overlayFilesDir):
         # get all packages in all repositories
         infoDict = dict()
         for repoName in self._repoman.getRepositoryList():
@@ -900,7 +891,7 @@ class EbuildOverlays:
             FmUtil.repoRemovePackageAndCategory(overlayFilesDir, item)
             print("Duplicate package \"%s\" is automatically removed." % (item))
 
-    def _createStaticOverlayDir(self, overlayName, overlayDir):
+    def _createEmptyStaticOverlayDir(self, overlayName, overlayDir):
         FmUtil.forceDelete(overlayDir)
         os.mkdir(overlayDir)
 
@@ -913,11 +904,7 @@ class EbuildOverlays:
             f.write("masters = gentoo\n")
             f.write("thin-manifests = true\n")
 
-    def _createTrustedOverlayDir(self, overlayName, overlayDir, overlayFilesDir):
-        FmUtil.forceDelete(overlayDir)
-        FmUtil.cmdCall("/bin/ln", "-sf", overlayFilesDir, overlayDir)
-
-    def _createTransientOverlayDir(self, overlayName, overlayDir, overlayFilesDir):
+    def _createTransientOverlayDirFromOverlayFilesDir(self, overlayName, overlayDir, overlayFilesDir):
         FmUtil.forceDelete(overlayDir)
         os.mkdir(overlayDir)
 
