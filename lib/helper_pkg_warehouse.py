@@ -941,7 +941,7 @@ class EbuildOverlays:
         srcMetaDataDir = os.path.join(overlayFilesDir, "metadata")
         metaDataDir = os.path.join(overlayDir, "metadata")
         if os.path.exists(srcMetaDataDir):
-            FmUtil.cmdCall("/bin/ln", "-sf", srcMetaDataDir, overlayDir)
+            shutil.copytree(srcMetaDataDir, metaDataDir)
         else:
             os.mkdir(metaDataDir)
             with open(os.path.join(metaDataDir, "layout.conf"), "w") as f:
@@ -949,8 +949,9 @@ class EbuildOverlays:
 
         # create eclass directory
         srcEclassDir = os.path.join(overlayFilesDir, "eclass")
+        eclassDir = os.path.join(overlayFilesDir, "eclass")
         if os.path.exists(srcEclassDir):
-            FmUtil.cmdCall("/bin/ln", "-sf", srcEclassDir, overlayDir)
+            shutil.copytree(srcEclassDir, eclassDir)
 
         # ugly trick
         self.__overlayDirUglyTrick(overlayName, overlayDir, overlayFilesDir)
@@ -974,6 +975,13 @@ class EbuildOverlays:
             with open(os.path.join(profileDir, "repo_name"), "w") as f:
                 f.write(repoName)
         FmUtil.touchFile(os.path.join(profileDir, "transient"))
+
+        # refresh metadata directory
+        srcMetaDataDir = os.path.join(overlayFilesDir, "metadata")
+        metaDataDir = os.path.join(overlayDir, "metadata")
+        if os.path.exists(srcMetaDataDir):
+            FmUtil.forceDelete(metaDataDir)
+            shutil.copytree(srcMetaDataDir, metaDataDir)
 
         # refresh eclass directory
         srcEclassDir = os.path.join(overlayFilesDir, "eclass")
