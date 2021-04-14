@@ -982,6 +982,11 @@ class FmUtil:
         return ret
 
     @staticmethod
+    def isTwoDirSame(dir1, dir2):
+        # FIXME: we could use python to do this
+        return FmUtil.cmdCallWithRetCode("/usr/bin/diff", "-r", dir1, dir2)[0] == 0
+
+    @staticmethod
     def fileHasSameContent(filename1, filename2):
         buf1 = b''
         with open(filename1, "rb") as f:

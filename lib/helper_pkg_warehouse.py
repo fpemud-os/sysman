@@ -722,29 +722,28 @@ class EbuildOverlays:
                     self._createTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
                 else:
                     raise OverlayCheckError("overlay directory \"%s\" does not exist or is invalid" % (overlayDir))
-            # all packages must be symlinks, no invalid symlink
-            if True:
-                flist = []
-                for fbasename in FmUtil.getFileList(overlayDir, 2, "d"):
-                    if FmUtil.repoIsSysFile(fbasename):
-                        continue
-                    flist.append(fbasename)
-                for d in flist:
-                    fulld = os.path.join(overlayDir, d)
-                    if not os.path.islink(fulld):
-                        raise OverlayCheckError("package \"%s\" in overlay \"%s\" is not a symlink" % (d, overlayName))
-                    if not os.path.exists(fulld):
-                        raise OverlayCheckError("package \"%s\" in overlay \"%s\" is a broken symlink" % (d, overlayName))
+            # all packages must be the same as overlay files directory
+            for d in FmUtil.repoGetEbuildDirList(overlayDir):
+                srcEbuildDir = os.path.join(overlayFilesDir, d)
+                dstEbuildDir = os.path.join(overlayDir, d)
+                if not os.path.exists(srcEbuildDir):
+                    if bAutoFix:
+                        FmUtil.ForceDelete(dstEbuildDir)
+                    else:
+                        raise OverlayCheckError("package \"%s\" in overlay \"%s\" should not exist any more" % (d, overlayName))
+                if not FmUtil.isTwoDirSame(srcEbuildDir, dstEbuildDir):
+                    if bAutoFix:
+                        FmUtil.ForceDelete(dstEbuildDir)
+                        shutil.copytree(srcEbuildDir, dstEbuildDir)
+                    else:
+                        raise OverlayCheckError("package \"%s\" in overlay \"%s\" is corrupt" % (d, overlayName))
             # no empty category directory
-            if True:
-                flist = []
-                for fbasename in FmUtil.getFileList(overlayDir, 1, "d"):
-                    if FmUtil.repoIsSysFile(fbasename):
-                        continue
-                    flist.append(fbasename)
-                for d in flist:
-                    fulld = os.path.join(overlayDir, d)
-                    if os.listdir(fulld) == []:
+            for d in FmUtil.repoGetCategoryDirList(overlayDir):
+                fulld = os.path.join(overlayDir, d)
+                if os.listdir(fulld) == []:
+                    if bAutoFix:
+                        os.rmdir(fulld)
+                    else:
                         raise OverlayCheckError("category directory \"%s\" in overlay \"%s\" is empty" % (d, overlayName))
         else:
             assert False
@@ -800,18 +799,18 @@ class EbuildOverlays:
 
         overlayDir = self.getOverlayDir(overlayName)
         overlayFilesDir = self.getOverlayFilesDir(overlayName)
+        srcEbuildDir = os.path.join(overlayFilesDir, pkgName)
+        dstEbuildDir = os.path.join(overlayDir, pkgName)
 
-        if os.path.isdir(os.path.join(overlayDir, pkgName)):
+        if os.path.isdir(dstEbuildDir):
             raise Exception("package \"%s\" has already been enabled" % (pkgName))
-        if not os.path.isdir(os.path.join(overlayFilesDir, pkgName)):
+        if not os.path.isdir(srcEbuildDir):
             raise Exception("package \"%s\" does not exist in overlay \"%s\"" % (pkgName, overlayName))
         if portage.db[portage.root]["porttree"].dbapi.match(pkgName) != []:
             raise Exception("package \"%s\" has already exist" % (pkgName))
 
-        srcEbuildDir = os.path.join(overlayFilesDir, pkgName)
-        dstCategoryDir = os.path.join(overlayDir, pkgName.split("/")[0])
-        os.makedirs(dstCategoryDir, exist_ok=True)
-        FmUtil.cmdCall("/bin/ln", "-sf", srcEbuildDir, dstCategoryDir)
+        os.makedirs(os.path.dirname(dstEbuildDir), exist_ok=True)
+        shutil.copytree(srcEbuildDir, dstEbuildDir)
 
         if not quiet:
             print("Notice: You need to enable any dependent package manually.")
@@ -978,11 +977,24 @@ class EbuildOverlays:
 
         # refresh eclass directory
         srcEclassDir = os.path.join(overlayFilesDir, "eclass")
-        eclassDir = os.path.join(overlayDir, "eclass")
+        dstEclassDir = os.path.join(overlayDir, "eclass")
         if os.path.exists(srcEclassDir):
-            FmUtil.cmdCall("/bin/ln", "-sf", srcEclassDir, overlayDir)
+            FmUtil.forceDelete(dstEclassDir)
+            shutil.copytree(srcEclassDir, dstEclassDir)
         else:
-            FmUtil.forceDelete(eclassDir)
+            FmUtil.forceDelete(dstEclassDir)
+
+        # refresh ebuild directories
+        for d in FmUtil.repoGetEbuildDirList(overlayDir):
+            srcEbuildDir = os.path.join(overlayFilesDir, d)
+            dstEbuildDir = os.path.join(overlayDir, d)
+            FmUtil.forceDelete(dstEbuildDir)
+            if os.path.exists(srcEbuildDir):
+                shutil.copytree(srcEbuildDir, dstEbuildDir)
+
+        # remove empty category directories
+        for d in FmUtil.repoGetCategoryDirList(overlayDir):
+            FmUtil.removeEmptyDir(os.path.join(overlayDir, d))
 
         # ugly trick
         self.__overlayDirUglyTrick(overlayName, overlayDir, overlayFilesDir)
