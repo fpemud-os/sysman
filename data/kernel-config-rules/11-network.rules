@@ -15,7 +15,7 @@ BATMAN_ADV=n                    # B.A.T.M.A.N. Advanced Meshing Protocol
 
 # no uneccessary net-filter modules
 IP_SET=n
-IP_VS=n                         # not needed at all
+IP_VS=n
 
 # no service
 IP_PNP=n                        # IP: kernel level autoconfiguration
