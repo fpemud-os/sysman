@@ -60,6 +60,9 @@ sys-fs/vdfuse
 ## utility: small tools ############################################
 app-arch/rar
 app-editors/hexedit
+app-misc/cpufetch
+app-misc/neofetch
+app-misc/screenfetch
 app-misc/trash-cli
 app-text/dos2unix
 app-text/tree
@@ -79,6 +82,9 @@ sys-apps/dmidecode
 sys-process/bpytop
 x11-misc/qt5ct
 virtual/eject
+
+## utility: terminals ##############################################
+x11-terms/cool-retro-term
 
 ## utility: browsers ###############################################
 www-client/firefox
