@@ -397,7 +397,7 @@ class _Util:
             buf += "*/* ABI_X86: -* 64\n"
             buf += "\n"
             buf += "# support all the common x86 cpu flags\n"
-            buf += "*/* CPU_FLAGS_X86: -* aes avx avx2 fma3 fma4 mmx mmxext popcnt sse sse2 sse3 sse4_1 sse4_2 sse4a ssse3\n"
+            buf += "*/* CPU_FLAGS_X86: -* aes avx avx2 avx512f f16c fma3 fma4 mmx mmxext popcnt sse sse2 sse3 sse4_1 sse4_2 sse4a ssse3\n"
             ret["general"] = buf
         else:
             assert False
