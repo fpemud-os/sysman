@@ -76,6 +76,7 @@ class FmSysChecker:
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):
                     self._checkMachineInfo()
                     self._checkHostsFile()
+                    self._checkNsswitchFile()
                     self._checkSystemLocale()
                     self._checkSystemTime()
                     # self._checkPamCfgFiles()
@@ -373,6 +374,10 @@ class FmSysChecker:
             else:
                 self.infoPrinter.printError("File /etc/hosts has invalid content.")
 
+    def _checkNsswitchFile(self):
+        """Check /etc/nsswitch.conf"""
+        pass
+
     def _checkPamCfgFiles(self):
         # FIXME: change to INSTALL_MASK?
         modBlackList = [
@@ -574,8 +579,7 @@ class FmSysChecker:
         # check /etc/portage/make.conf
         if True:
             # check CHOST variable
-            chost = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "CHOST")
-            if chost != "":
+            if FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "CHOST") != "":
                 raise FmCheckException("variable CHOST should not exist in %s" % (FmConst.portageCfgMakeConf))
 
             # check/fix ACCEPT_LICENSE variable
@@ -592,7 +596,7 @@ class FmSysChecker:
                 else:
                     raise FmCheckException("invalid value of variable DISTDIR in %s" % (FmConst.portageCfgMakeConf))
 
-            # check ACCEPT_KEYWORDS variable
+            # check/fix ACCEPT_KEYWORDS variable
             keywordList = ["~%s" % (x) for x in self.pkgwh.getKeywordList()]
             tlist = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ACCEPT_KEYWORDS").split(" ")
             if set(tlist) != set(keywordList):

@@ -69,7 +69,7 @@ dev-db/mariadb             -~x86 -~amd64
 dev-db/postgresql          -~x86 -~amd64
 
 # ???
-#net-fs/samba               -~x86 -~amd64	# fixme, samba stable can not compile
+net-fs/samba               -~x86 -~amd64
 
 # stable lvm2 only supports "/dev/mapper/hdd-root", we need the newest "/dev/mapper/hdd.root"
 sys-fs/lvm2         ~amd64
