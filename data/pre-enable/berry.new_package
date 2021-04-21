@@ -1,0 +1,4 @@
+[main]
+name = gallifrey
+url = https://github.com/fedeliallalinea/gallifrey
+package = x11-wm/berry
