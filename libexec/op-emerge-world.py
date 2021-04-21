@@ -8,6 +8,7 @@ from helper_pkg_merger import PkgMerger
 
 
 PkgMerger().emergePkg("-uDN --with-bdeps=y @world")
+PkgMerger().emergePkg("@preserved-rebuild")
 
 # sometimes emerge leaves /var/tmp/portage behind
 FmUtil.forceDelete("/var/tmp/portage")
