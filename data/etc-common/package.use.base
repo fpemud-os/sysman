@@ -90,11 +90,12 @@
 app-emulation/wine-vanilla                                                                                pulseaudio -alsa     # gstreamer support in wine is not a pulseaudio replacement
 app-emulation/wine-staging                                                                                pulseaudio -alsa
 dev-util/electron                                                                                         pulseaudio            # doesn't support gstreamer
-games-emulation/dosbox                                                                                    alsa                  # doesn't support gstreamer and pulseaudio
+games-emulation/dosbox-staging                                                                            alsa                  # doesn't support gstreamer and pulseaudio
 media-libs/libsdl                                                                                         pulseaudio            # doesn't support gstreamer
 media-libs/libsdl2                                                                                        pulseaudio            # doesn't support gstreamer
-media-video/mpv                                                                                           alsa                  # it seems v4l needs alsa
-net-im/zoom                                                                                               pulseaudio            # doesn't support gstreamer
+#media-video/mpv                                                                                           alsa                 # it seems v4l needs alsa
+media-video/mpv                                                                                           pulseaudio            # doesn't support gstreamer
+net-im/zoom                                                                                               pulseaudio -alsa      # doesn't support gstreamer
 
 # use dev-python/python-magic instead
 sys-apps/file                                                                                             -python
