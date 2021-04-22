@@ -147,3 +147,6 @@ sys-apps/sysvinit
 
 # too bloated, replaced by net-vpn/i2pd
 net-vpn/i2p
+
+# don't support redirect alsa to sound servers, so that overall architecture can be simpler
+media-plugins/alsa-plugins
