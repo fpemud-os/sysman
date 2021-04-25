@@ -1845,12 +1845,12 @@ class FmUtil:
     def downloadIfNewer(url, fullfn):
         if os.path.exists(fullfn):
             resp = urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=robust_layer.TIMEOUT)
-            remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
+            remoteTm = datetime.strptime(resp.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z")
             localTm = datetime.utcfromtimestamp(os.path.getmtime(fullfn))
             if remoteTm <= localTm:
                 return localTm
-        dummy, resp = urllib.request.urlretrieve(url, fullfn)
-        remoteTm = datetime.strptime(resp.info().get("Last-Modified"), "%a, %d %b %Y %H:%M:%S %Z")
+        dummy, headers = urllib.request.urlretrieve(url, fullfn)
+        remoteTm = datetime.strptime(headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z")
         os.utime(fullfn, (remoteTm.timestamp(), remoteTm.timestamp()))
         return remoteTm
 
