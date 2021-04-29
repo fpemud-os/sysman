@@ -208,7 +208,6 @@ sys-auth/polkit                                                     -pam        
 media-tv/kodi                                                       cec -airplay
 media-libs/opencv                                                   gtk
 app-misc/hivex                                                      -perl           # why app-misc/hivex use +perl in ebuild file?
-media-plugins/gst-plugins-meta                                      pulseaudio      # enable pulseaudio currently
 media-libs/mesa                                                     gbm osmesa
 net-misc/freerdp                                                    cups ffmpeg smartcard usb
 net-misc/xrdp                                                       fuse
