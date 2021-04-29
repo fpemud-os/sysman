@@ -150,6 +150,7 @@ net-vpn/i2p
 
 # don't use pulseaudio
 media-sound/pulseaudio
+media-sound/apulse
 
 # don't redirect alsa to sound servers, so that overall architecture can be simpler
 # media-plugins/alsa-plugins
