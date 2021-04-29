@@ -72,6 +72,7 @@ dev-util/meld
 gnome-base/dconf-editor
 gui-apps/wl-clipboard
 media-gfx/xdot
+media-sound/alsa-utils
 net-analyzer/netcat
 net-analyzer/nmap
 net-analyzer/tcpdump
