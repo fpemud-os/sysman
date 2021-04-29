@@ -219,7 +219,7 @@ dev-games/mygui                                                     -opengl     
 net-misc/networkmanager                                             -modemmanager
 dev-lang/php                                                        gd              # it seems many other use flag needs it
 media-gfx/imagemagick                                               -openmp         # bug 547922
-media-video/pipewire                                                extra
+media-video/pipewire                                                extra pipewire-alsa
 
 # 
 x11-base/xorg-server                        -elogind                        # why it enables by default?
