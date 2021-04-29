@@ -86,19 +86,14 @@
 # don't enable upnp by default
 */*                                                                                                       -upnp
 
-# don't support redirect alsa to pulseaudio, so that overall architecture can be simpler
-media-sound/pulseaudio                                                                                    -alsa-plugin
-
-# preference: gstreamer -> pipewire -> pulseaudio, no alsa
-# finally should be: gstreamer -> pipewire -> alsa
-app-emulation/wine-vanilla                                                                                pulseaudio -alsa      # gstreamer support in wine is not a pulseaudio replacement
-app-emulation/wine-staging                                                                                pulseaudio -alsa
-dev-util/electron                                                                                         pulseaudio            # doesn't support gstreamer
-games-emulation/dosbox-staging                                                                            -alsa                 # doesn't support gstreamer and pulseaudio
-media-libs/libsdl                                                                                         pulseaudio            # doesn't support gstreamer
-media-libs/libsdl2                                                                                        pulseaudio            # doesn't support gstreamer
-media-video/mpv                                                                                           pulseaudio -alsa      # doesn't support gstreamer
-net-im/zoom                                                                                               pulseaudio -alsa      # doesn't support gstreamer
+# preference: gstreamer -> alsa, pipewire should not be used directly
+app-emulation/wine-vanilla                                                                                alsa            # gstreamer support in wine is not an alsa replacement
+app-emulation/wine-staging                                                                                alsa
+games-emulation/dosbox-staging                                                                            alsa            # doesn't support gstreamer
+media-libs/libsdl                                                                                         alsa            # doesn't support gstreamer
+media-libs/libsdl2                                                                                        alsa            # doesn't support gstreamer
+media-video/mpv                                                                                           alsa            # doesn't support gstreamer
+net-im/zoom                                                                                               alsa            # doesn't support gstreamer
 
 # use dev-python/python-magic instead
 sys-apps/file                                                                                             -python
@@ -132,6 +127,9 @@ app-emulation/qemu                                                              
 
 # we use /dev/node permission modification and FUSE to deal with removable block devices
 */*                                                                                                        -udisks
+
+# don't use pulseaudio
+*/*                                                                                                        -pulseaudio
 
 # tcp-wrappers is not a full-fledged firewall, so don't use it
 */*                                                                                                        -tcpd
