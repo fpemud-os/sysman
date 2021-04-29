@@ -41,7 +41,7 @@
 */*                                                        bluray dv dvb dvd mms mpeg theora vcd x264 x265 xvid vpx
 
 # audio format related flags
-*/*                                                        a52 aac airplay alac cdda dts flac lame mad mp3 musepack ogg opus speex vorbis wavpack
+*/*                                                        a52 aac airplay alac aptx cdda dts flac lame ldac mad mp3 musepack ogg opus speex vorbis wavpack
 
 # image format related flags
 */*                                                        apng exif gif jpeg jpeg2k mng png svg tiff webp wmf
@@ -90,6 +90,7 @@
 media-sound/pulseaudio                                                                                    -alsa-plugin
 
 # preference: gstreamer -> pipewire -> pulseaudio, no alsa
+# finally should be: gstreamer -> pipewire -> alsa
 app-emulation/wine-vanilla                                                                                pulseaudio -alsa      # gstreamer support in wine is not a pulseaudio replacement
 app-emulation/wine-staging                                                                                pulseaudio -alsa
 dev-util/electron                                                                                         pulseaudio            # doesn't support gstreamer
@@ -220,6 +221,7 @@ dev-games/mygui                                                     -opengl     
 net-misc/networkmanager                                             -modemmanager
 dev-lang/php                                                        gd              # it seems many other use flag needs it
 media-gfx/imagemagick                                               -openmp         # bug 547922
+media-video/pipewire                                                extra
 
 # 
 x11-base/xorg-server                        -elogind                        # why it enables by default?
