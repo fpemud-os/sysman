@@ -82,6 +82,7 @@ net-misc/aria2
 net-misc/cadaver
 net-misc/nyx
 sys-apps/dmidecode
+sys-apps/ethtool
 sys-process/bpytop
 x11-misc/qt5ct
 virtual/eject
