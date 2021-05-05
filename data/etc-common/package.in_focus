@@ -73,6 +73,7 @@ gnome-base/dconf-editor
 gui-apps/wl-clipboard
 media-gfx/xdot
 media-sound/alsa-utils
+media-sound/mpg123
 net-analyzer/netcat
 net-analyzer/nmap
 net-analyzer/tcpdump

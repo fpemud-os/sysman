@@ -93,6 +93,7 @@ games-emulation/dosbox-staging                                                  
 media-libs/libsdl                                                                                         alsa            # doesn't support gstreamer
 media-libs/libsdl2                                                                                        alsa            # doesn't support gstreamer
 media-libs/mediastreamer2                                                                                 alsa            # doesn't support gstreamer
+media-sound/mpg123                                                                                        alsa            # doesn't support gstreamer
 media-video/mpv                                                                                           alsa            # doesn't support gstreamer
 net-im/zoom                                                                                               alsa            # doesn't support gstreamer
 
