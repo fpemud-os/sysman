@@ -36,6 +36,7 @@ from sys_storage_manager import FmStorageLayoutEmpty
 # 7. systemd unit files reference not-exist service or target file
 # 8. check mount option for boot device
 # 9. should not have uid/gid without name
+# *. remove "default" routing table
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
