@@ -221,7 +221,7 @@ net-misc/networkmanager                                             -modemmanage
 dev-lang/php                                                        gd              # it seems many other use flag needs it
 media-gfx/imagemagick                                               -openmp         # bug 547922
 media-video/pipewire                                                extra pipewire-alsa
-app-misc/ddcutil                                                    x               # drm needs X?
+app-misc/ddcutil                                                    X               # drm needs X?
 
 # 
 x11-base/xorg-server                        -elogind                        # why it enables by default?
