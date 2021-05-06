@@ -61,6 +61,7 @@ sys-fs/vdfuse
 app-arch/rar
 app-editors/hexedit
 app-misc/cpufetch
+app-misc/evtest
 app-misc/neofetch
 app-misc/screenfetch
 app-misc/trash-cli
