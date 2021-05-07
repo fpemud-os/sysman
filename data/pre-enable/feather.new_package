@@ -1,0 +1,3 @@
+[main]
+name = monero
+package = net-misc/feather
