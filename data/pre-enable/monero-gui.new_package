@@ -1,4 +1,3 @@
 [main]
-name = moodytux
-url = https://github.com/moodytux/portage-overlay
+name = booboo
 package = net-p2p/monero-gui
