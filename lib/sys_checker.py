@@ -37,6 +37,7 @@ from sys_storage_manager import FmStorageLayoutEmpty
 # 8. check mount option for boot device
 # 9. should not have uid/gid without name
 # *. remove "default" routing table from /etc/iproute2/rt_tables, remove "32767:  from all lookup default" rule (is it set by kernel?)
+# *. hardware check: monitor config by ddcci
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
