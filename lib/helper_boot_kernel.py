@@ -154,6 +154,11 @@ class FkmKCache:
             robust_layer.simple_git.pull(cacheDir, reclone_on_failure=True, url=sourceInfo["url"])
             return
 
+        # source type "svn"
+        if sourceInfo["update-method"] == "svn":
+            robust_layer.simple_subversion.update(cacheDir, recheckout_on_failure=True, url=sourceInfo["url"])
+            return
+
         # source type "exec"
         if sourceInfo["update-method"] == "exec":
             fullfn = os.path.join(sourceInfo["selfdir"], sourceInfo["executable"])
@@ -405,6 +410,12 @@ class FkmKCache:
                 "update-method": "git",
                 "url": cfg.get("source", "url"),
             }
+        elif updateMethod == "svn":
+            ret["source"] = {
+                "name": cfg.get("source", "name"),
+                "update-method": "svn",
+                "url": cfg.get("source", "url"),
+            }
         elif updateMethod == "exec":
             ret["source"] = {
                 "name": cfg.get("source", "name"),
@@ -428,6 +439,12 @@ class FkmKCache:
             ret["source"] = {
                 "name": cfg.get("source", "name"),
                 "update-method": "git",
+                "url": cfg.get("source", "url"),
+            }
+        elif updateMethod == "svn":
+            ret["source"] = {
+                "name": cfg.get("source", "name"),
+                "update-method": "svn",
                 "url": cfg.get("source", "url"),
             }
         else:
