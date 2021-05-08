@@ -11,6 +11,7 @@ import shutil
 import configparser
 import robust_layer
 import robust_layer.simple_git
+import robust_layer.simple_subversion
 import lxml.html
 import urllib.request
 import urllib.error
