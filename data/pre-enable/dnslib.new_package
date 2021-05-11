@@ -1,0 +1,3 @@
+[main]
+name = pentoo
+package = dev-python/dnslib
