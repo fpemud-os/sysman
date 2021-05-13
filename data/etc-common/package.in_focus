@@ -124,6 +124,11 @@ media-gfx/inkscape
 media-gfx/freecad
 media-gfx/librecad
 
+## utility: minerss ################################################
+net-misc/xmrig
+net-misc/xmrig-mo
+net-p2p/ethminer
+
 ## application: media center #######################################
 media-tv/kodi
 
