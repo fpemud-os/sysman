@@ -1,3 +1,3 @@
 [main]
-name = ethash
+name = reagentoo
 package = net-p2p/ethminer

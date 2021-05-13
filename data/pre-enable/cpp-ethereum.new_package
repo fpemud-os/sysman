@@ -1,4 +1,3 @@
 [main]
 name = reagentoo
-url = https://github.com/reagentoo/gentoo-overlay
 package = net-p2p/cpp-ethereum
