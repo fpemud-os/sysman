@@ -166,7 +166,7 @@ class FkmKCache:
             fnList = []
             with TmpHttpDirFs(sourceInfo["url"]) as mp:
                 fnList = os.listdir(mp.mountpoint)
-            if "filter-regex" in sourceInfo:
+            if sourceInfo["filter-regex"] != "":
                 fnList = [x for x in fnList if re.fullmatch(sourceInfo["filter-regex"], x) is not None]
             if len(fnList) == 0:
                 raise Exception("no file avaiable")
@@ -443,7 +443,7 @@ class FkmKCache:
                 "name": cfg.get("source", "name"),
                 "update-method": "httpdir",
                 "url": cfg.get("source", "url"),
-                "filter-regex": cfg.get("source", "filter-regex"),
+                "filter-regex": cfg.get("source", "filter-regex", ""),
             }
         elif updateMethod == "exec":
             ret["source"] = {
