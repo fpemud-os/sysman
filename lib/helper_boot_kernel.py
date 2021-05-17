@@ -443,7 +443,7 @@ class FkmKCache:
                 "name": cfg.get("source", "name"),
                 "update-method": "httpdir",
                 "url": cfg.get("source", "url"),
-                "filter-regex": cfg.get("source", "filter-regex", ""),
+                "filter-regex": cfg.get("source", "filter-regex", fallback=""),
             }
         elif updateMethod == "exec":
             ret["source"] = {
