@@ -96,11 +96,12 @@ dev-java/ibm-jre-bin
 app-i18n/ibus-pinyin
 
 # we don't use any kernel & firmware related package
-net-wireless/wireless-regdb
 virtual/linux-sources
 sys-kernel/*-sources
 sys-kernel/*-kernel
 sys-kernel/*-kernel-bin
+net-wireless/wireless-regdb
+app-emulation/virtualbox-modules
 sys-fs/vhba
 
 # there's no USE flag to make it not depend on sys-libs/libselinux
