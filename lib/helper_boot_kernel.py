@@ -17,6 +17,7 @@ import urllib.request
 import urllib.error
 from fm_util import FmUtil
 from fm_util import TempChdir
+from fm_util import TmpHttpDirFs
 from fm_param import FmConst
 
 
@@ -158,6 +159,27 @@ class FkmKCache:
         # source type "svn"
         if sourceInfo["update-method"] == "svn":
             robust_layer.simple_subversion.update(cacheDir, recheckout_on_failure=True, url=sourceInfo["url"])
+            return
+
+        # source type "httpdir"
+        if sourceInfo["update-method"] == "httpdir":
+            fnList = []
+            with TmpHttpDirFs(sourceInfo["url"]) as mp:
+                fnList = os.listdir(mp.mountpoint)
+            if sourceInfo["filter-regex"] != "":
+                fnList = [x for x in fnList if re.fullmatch(sourceInfo["filter-regex"], x) is not None]
+            if len(fnList) == 0:
+                raise Exception("no file avaiable")
+            remoteFullFn = os.path.join(sourceInfo["url"], fnList[-1])
+            localFullFn = os.path.join(cacheDir, fnList[-1])
+            if os.path.exists(localFullFn):
+                print("File already downloaded.")
+                return
+            FmUtil.wgetDownload(remoteFullFn, localFullFn)
+            for fn in os.listdir(cacheDir):
+                fullfn = os.path.join(cacheDir, fn)
+                if fullfn != localFullFn:
+                    FmUtil.forceDelete(fullfn)
             return
 
         # source type "exec"
@@ -416,6 +438,13 @@ class FkmKCache:
                 "name": cfg.get("source", "name"),
                 "update-method": "svn",
                 "url": cfg.get("source", "url"),
+            }
+        elif updateMethod == "httpdir":
+            ret["source"] = {
+                "name": cfg.get("source", "name"),
+                "update-method": "httpdir",
+                "url": cfg.get("source", "url"),
+                "filter-regex": cfg.get("source", "filter-regex", fallback=""),
             }
         elif updateMethod == "exec":
             ret["source"] = {

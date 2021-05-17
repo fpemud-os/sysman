@@ -1,13 +1,16 @@
 #!/usr/bin/python3
 
-# import os
-# import sys
-# import subprocess
+import os
+import sys
+import subprocess
 
-# srcDir = sys.argv[1]
-# buildTmpDir = sys.argv[2]
-# kerelVer = sys.argv[3]
+srcDir = os.path.join(sys.argv[1])
+kernelVer = sys.argv[2]
 
-# os.chdir(buildTmpDir)
-# subprocess.run("/bin/cp -r %s/* %s" % (srcDir, buildTmpDir), shell=True)
-# subprocess.run("/usr/bin/make KERN_DIR=\"%s\"" % (os.path.join("/lib/modules", kerelVer, "build")), shell=True)
+fnList = os.listdir(srcDir)
+if len(fnList) != 1:
+    raise Exception("invalid source directory")
+subprocess.run("/bin/tar -xJf %s" % (os.path.join(srcDir, fnList[0])), shell=True)
+
+subprocess.run("/usr/bin/make KERN_VER=%s" % (kernelVer), shell=True)
+subprocess.run("/usr/bin/make install KERN_VER=%s" % (kernelVer), shell=True)

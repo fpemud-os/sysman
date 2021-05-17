@@ -2791,6 +2791,40 @@ class AvahiServiceBrowser:
         self._mainloop.quit()
 
 
+class TmpHttpDirFs:
+
+    def __init__(self, url, options=None):
+        self._url = url
+        self._tmppath = tempfile.mkdtemp()
+
+        try:
+            cmd = ["/usr/bin/httpdirfs"]
+            if options is not None:
+                cmd.append("-o")
+                cmd.append(options)
+            cmd.append(self._url)
+            cmd.append(self._tmppath)
+            # /usr/bin/httpfs sucks: no way to disable it from printing status information on stderr
+            subprocess.run(cmd, check=True, stderr=subprocess.DEVNULL)
+        except:
+            os.rmdir(self._tmppath)
+            raise
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    @property
+    def mountpoint(self):
+        return self._tmppath
+
+    def close(self):
+        subprocess.run(["/bin/umount", self._tmppath], check=True)
+        os.rmdir(self._tmppath)
+
+
 class TmpMount:
 
     def __init__(self, path, options=None):

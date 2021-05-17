@@ -90,7 +90,7 @@ x11-misc/qt5ct
 virtual/eject
 
 ## utility: terminals ##############################################
-x11-terms/cool-retro-term
+
 
 ## utility: browsers ###############################################
 www-client/firefox
@@ -124,7 +124,7 @@ media-gfx/inkscape
 media-gfx/freecad
 media-gfx/librecad
 
-## utility: minerss ################################################
+## utility: miners #################################################
 net-misc/xmrig
 net-misc/xmrig-mo
 net-p2p/ethminer
@@ -161,11 +161,11 @@ media-tv/kodi
 #app-ssb/w3a-cnblogs
 #app-ssb/www.old-games.com
 
+## application: toys ###############################################
+x11-terms/cool-retro-term
+
 ## application: small games ########################################
 games-action/spacewar
-games-board/gnome-chess
-games-board/gnome-mahjongg
-games-board/gnome-mines
 games-misc/katawa-shoujo
 games-puzzle/2048-qt
 games-puzzle/crayon-physics-deluxe
@@ -214,3 +214,15 @@ games-strategy/command-and-conquer-redalert2
 games-strategy/plants-vs-zombies
 games-strategy/starcraft
 games-strategy/total-annihilation
+
+## desktop environment: GNOME ######################################
+games-board/gnome-chess
+games-board/gnome-mahjongg
+games-board/gnome-mines
+x11-terms/gnome-terminal
+
+## desktop environment: KDE ########################################
+kde-apps/konsole
+
+## desktop environment: MATE #######################################
+x11-terms/mate-terminal
