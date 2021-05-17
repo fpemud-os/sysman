@@ -73,7 +73,8 @@ media-libs/libquvi
 media-libs/libquvi-scripts
 
 # deprecated by libsdl2
-media-libs/libsdl
+# virutalbox uses it, many games uses it
+#media-libs/libsdl
 
 # not needed since "glamor" USE flag should be enabled for x11-base/xorg-server
 x11-libs/glamor
