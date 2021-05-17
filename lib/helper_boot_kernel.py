@@ -180,6 +180,7 @@ class FkmKCache:
                 fullfn = os.path.join(cacheDir, fn)
                 if fn != localFullFn:
                     FmUtil.forceDelete(fullfn)
+            return
 
         # source type "exec"
         if sourceInfo["update-method"] == "exec":
