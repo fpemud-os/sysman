@@ -178,7 +178,7 @@ class FkmKCache:
             FmUtil.wgetDownload(remoteFullFn, localFullFn)
             for fn in os.listdir(cacheDir):
                 fullfn = os.path.join(cacheDir, fn)
-                if fn != localFullFn:
+                if fullfn != localFullFn:
                     FmUtil.forceDelete(fullfn)
             return
 
