@@ -88,7 +88,8 @@
 
 # preference: gstreamer -> alsa, pipewire should not be used directly
 app-emulation/wine-vanilla                                                                                alsa            # gstreamer support in wine is not an alsa replacement
-app-emulation/wine-staging                                                                                alsa
+app-emulation/wine-staging                                                                                alsa            # gstreamer support in wine is not an alsa replacement
+app-emulation/virtualbox                                                                                  alsa            # does not and should not support gstreamer
 games-emulation/dosbox-staging                                                                            alsa            # doesn't support gstreamer
 media-libs/libsdl                                                                                         alsa            # doesn't support gstreamer
 media-libs/libsdl2                                                                                        alsa            # doesn't support gstreamer
