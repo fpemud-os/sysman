@@ -21,7 +21,7 @@ find "${D}" -name "*systemd-gpt-auto-generator*" | xargs rm -rf
 find "${D}" -name "*automount*" | xargs rm -rf
 ln -sf "../proc-sys-fs-binfmt_misc.mount" "${D}/usr/lib/systemd/system/sysinit.target.wants/proc-sys-fs-binfmt_misc.mount"
 
-# we have no /etc/rc.local 
+# we have no /etc/rc.local
 find "${D}" -name "*systemd-rc-local-generator*" | xargs rm -rf
 
 # don't use debug facility of systemd
