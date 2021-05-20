@@ -17,6 +17,10 @@ find "${D}" -name "*systemd-efi-boot-generator*" | xargs rm -rf
 # we use an "as simple as possible" mount scheme, and all the key mount point are established in initramfs, no automation needed
 find "${D}" -name "*systemd-gpt-auto-generator*" | xargs rm -rf
 
+# no automount
+find "${D}" -name "*automount*" | xargs rm -rf
+ln -sf "../proc-sys-fs-binfmt_misc.mount" "${D}/usr/lib/systemd/system/sysinit.target.wants/proc-sys-fs-binfmt_misc.mount"
+
 # we have no /etc/rc.local 
 find "${D}" -name "*systemd-rc-local-generator*" | xargs rm -rf
 
