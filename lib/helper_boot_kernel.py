@@ -347,8 +347,8 @@ class FkmKCache:
                 buf = f.read()
                 m = re.search("^>%s-(.*)$" % (prefix), buf, re.M)
                 if m is not None:
-                    if version > m.group(2):
-                        version = m.group(2)
+                    if version > m.group(1):
+                        version = m.group(1)
         return version
 
     def _findKernelVersion(self, typename):
