@@ -351,7 +351,7 @@ class FmSysUpdater:
             iBuilder = FkmInitramfsBuilder(self.param.tmpDir, buildTarget)
             iBuilder.setMntInfo("root", storageLayout.getRootDev(), "")
             if storageLayout.getType() == "efi":
-                iBuilder.setMntInfo("boot", storageLayout.getBootDev(), "ro,umask=0077")
+                iBuilder.setMntInfo("boot", storageLayout.getBootDev(), "ro,dmask=022,fmask=133")
             elif storageLayout.getType() == "bios":
                 pass
             else:
