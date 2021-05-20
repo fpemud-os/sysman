@@ -46,6 +46,7 @@ find "${D}" -name "*update-done*" | xargs rm -rf
 # don't use system-boot functionality
 find "${D}" -name "*bootctl*" | xargs rm -rf
 find "${D}" -name "*/systemd-boot.7.bz2" | xargs rm -rf
+find "${D}" -name "*systemd-boot-system-token*" | xargs rm -rf
 find "${D}" -name "*kernel-install*" | xargs rm -rf
 find "${D}" -name "/usr/lib/kernel" | xargs rm -rf
 
