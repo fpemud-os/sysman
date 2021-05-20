@@ -3261,9 +3261,17 @@ class InfoPrinter:
 
     class _InfoPrinterInfoIndenter:
 
-        def __init__(self, parent, message):
+        def __init__(self, parent, message, bRecallable=False):
             self._parent = parent
+            self._bRecallable = bRecallable
+
+            self._savedIndenter = self._parent._curIndenter
+            self._parent._curIndenter = self
+
+            self._printLen = -1
             self._parent.printInfo(message)
+            self._printLen = len(message)
+
             self._parent.incIndent()
 
         def __enter__(self):
@@ -3272,45 +3280,42 @@ class InfoPrinter:
         def __exit__(self, type, value, traceback):
             self._parent.decIndent()
 
-    class _InfoPrinterErrorIndenter:
+            if self._bRecallable and self._printLen >= 0:
+                # clear current line
+                sys.stdout.buffer.write(self._parent._term_codes['cr'] + self._parent._term_codes['el'])
+                sys.stdout.write(" " * self._printLen)
+                sys.stdout.buffer.write(self._parent._term_codes['cr'] + self._parent._term_codes['el'])
+                sys.stdout.flush()
 
-        def __init__(self, parent, message):
-            self._parent = parent
-            self._parent.printError(message)
-            self._parent.incIndent()
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, type, value, traceback):
-            self._parent.decIndent()
+            self._parent._curIndenter = self._savedIndenter
 
     def __init__(self):
-        self.logFileList = []
-        self.indent = 0
-
-    def addLogFile(self, logFile):
-        assert logFile not in self.logFileList
-        self.logFileList.append(logFile)
+        self._term_codes = FmUtil.outputGetTermCodes()
+        self._indent = 0
+        self._curIndenter = None
 
     def incIndent(self):
-        self.indent = self.indent + 1
+        self._indent = self._indent + 1
 
     def decIndent(self):
-        assert self.indent > 0
-        self.indent = self.indent - 1
+        assert self._indent > 0
+        self._indent = self._indent - 1
 
     def printInfo(self, s):
         line = ""
         line += self.GOOD + "*" + self.NORMAL + " "
-        line += "\t" * self.indent
+        line += "\t" * self._indent
         line += s
-        line += "\n"
 
-        if not hasattr(self, "printByErrorBuffer"):
-            print(line, end='')
+        if self._curIndenter is not None:
+            if self._curIndenter._printLen == -1:
+                print(line, end='')
+            else:
+                self._curIndenter._bRecallable = False
+                print("")
+                print(line)
         else:
-            self.printByErrorBuffer += line
+            print(line)
 
     def printInfoAndIndent(self, s):
         return self._InfoPrinterInfoIndenter(self, s)
@@ -3318,33 +3323,18 @@ class InfoPrinter:
     def printError(self, s):
         line = ""
         line += self.BAD + "*" + self.NORMAL + " "
-        line += "\t" * self.indent
+        line += "\t" * self._indent
         line += s
-        line += "\n"
 
-        if not hasattr(self, "printByErrorBuffer"):
-            print(line, end='')
+        if self._curIndenter is not None:
+            if self._curIndenter._printLen == -1:
+                print(line, end='')
+            else:
+                self._curIndenter._bRecallable = False
+                print("")
+                print(line)
         else:
-            self.printByErrorBuffer += line
-            self.printByErrorHasError = True
-
-    def printErrorAndIndent(self, s):
-        return self._InfoPrinterErrorIndenter(self, s)
-
-    def startPrintByError(self):
-        self.printByErrorBuffer = ""
-        self.printByErrorStartIndent = self.indent
-        self.printByErrorHasError = False
-
-    def endPrintByError(self):
-        assert self.indent == self.printByErrorStartIndent
-
-        if self.printByErrorHasError:
-            print(self.printByErrorBuffer, end='')
-
-        del self.printByErrorHasError
-        del self.printByErrorStartIndent
-        del self.printByErrorBuffer
+            print(line)
 
 
 class PrintLoadAvgThread(threading.Thread):
@@ -3352,7 +3342,6 @@ class PrintLoadAvgThread(threading.Thread):
     def __init__(self, msg):
         super().__init__()
         self._msg = msg
-        self._isatty = FmUtil.outputIsTty()
         self._width = min(FmUtil.outputGetTermSize()[1], 80) - 32
         self._term_codes = FmUtil.outputGetTermCodes()
         self._stopEvent = threading.Event()
