@@ -3256,7 +3256,7 @@ class InfoPrinter:
         line += "\t" * self._indent
         line += s
 
-        if self._curIndenter is not None:
+        if self._curIndenter is not None and self._curIndenter._bRecallable:
             if self._curIndenter._printLen == -1:
                 print(line, end='')
             else:
@@ -3275,7 +3275,7 @@ class InfoPrinter:
         line += "\t" * self._indent
         line += s
 
-        if self._curIndenter is not None:
+        if self._curIndenter is not None and self._curIndenter._bRecallable:
             if self._curIndenter._printLen == -1:
                 print(line, end='')
             else:
