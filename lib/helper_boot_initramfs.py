@@ -112,7 +112,7 @@ class FkmInitramfsBuilder:
                 if mi is not None:
                     tmpList += self._getBlkDevInfoList(mi.devPath)
                     # fill mntInfo.fsType
-                    assert tmpList[-1].fsType in ["ext2", "ext4", "reiserfs", "xfs", "btrfs", "vfat"]
+                    assert tmpList[-1].fsType in ["ext2", "ext4", "xfs", "btrfs", "vfat"]
                     self.mntInfoDict[t].fsType = tmpList[-1].fsType
 
             # remove duplication
@@ -193,7 +193,7 @@ class FkmInitramfsBuilder:
                     pass
                 elif d.fsType == "bcache":
                     pass
-                elif d.fsType in ["ext2", "ext4", "reiserfs", "xfs", "btrfs"]:
+                elif d.fsType in ["ext2", "ext4", "xfs", "btrfs"]:
                     # coincide: fs type and module name are same
                     r1, r2 = FmUtil.getFilesByKmodAlias(self.kernelFile, self.kernelModuleDir, self.firmwareDir, d.fsType)
                     kmodList += r1
@@ -300,7 +300,7 @@ class FkmInitramfsBuilder:
                     pass
                 elif d.fsType == "bcache":
                     pass
-                elif d.fsType in ["ext2", "ext4", "reiserfs", "xfs", "vfat"]:
+                elif d.fsType in ["ext2", "ext4", "xfs", "vfat"]:
                     fsckOpList.append("fsck %s %s" % (d.fsType, FmUtil.getBlkDevUuid(d.devPath)))
                 elif d.fsType in ["btrfs"]:
                     pass
@@ -317,8 +317,6 @@ class FkmInitramfsBuilder:
                 pass
             elif d.fsType in ["ext2", "ext4"]:
                 self._installBin("/sbin/e2fsck", rootDir)
-            elif d.fsType == "reiserfs":
-                self._installBin("/sbin/reiserfsck", rootDir)
             elif d.fsType == "xfs":
                 self._installBin("/sbin/fsck.xfs", rootDir)
             elif d.fsType == "btrfs":
@@ -681,5 +679,5 @@ class _BlkDevInfo:
     def __init__(self):
         self.devPath = None               # str
         self.devType = None               # enum, "scsi_disk", "virtio_disk", "xen_disk", "nvme_disk", lvm2_raid", "bcache_raid", "mbr_partition", "gpt_partition"
-        self.fsType = None                # enum, "", "lvm2_member", "bcache", "ext2", "ext4", "reiserfs", "xfs", "btrfs", "vfat"
+        self.fsType = None                # enum, "", "lvm2_member", "bcache", "ext2", "ext4", "xfs", "btrfs", "vfat"
         self.param = dict()

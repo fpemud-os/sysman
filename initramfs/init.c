@@ -1395,20 +1395,14 @@ int fsckCommand(char * cmd, char * end) {
         } else {
             return runBinary2("/sbin/e2fsck", "-p", device);
         }
-    } else if (strcmp(fstype, "reiserfs") == 0) {
-        if (!quiet) {
-            return runBinary2("/sbin/reiserfsck", "-p", device);
-        } else {
-            return runBinary3("/sbin/reiserfsck", "-p", "-q", device);
-        }
     } else if (strcmp(fstype, "xfs") == 0) {
         return runBinary1("/sbin/fsck.xfs", device);
     } else if (strcmp(fstype, "vfat") == 0) {
         /* fsck.fat is unable to check for any real errors */
         if (!quiet) {
-            runBinary2("/usr/sbin/fsck.fat", "-a", device);
-        } else {
             runBinary2("/usr/sbin/fsck.fat", "-av", device);
+        } else {
+            runBinary2("/usr/sbin/fsck.fat", "-a", device);
         }
         return 0;
     }
