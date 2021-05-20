@@ -3288,6 +3288,10 @@ class InfoPrinter:
 
 class PrintLoadAvgThread(threading.Thread):
 
+    """
+    must call curses.setupterm() before using this class
+    """
+
     def __init__(self, msg):
         super().__init__()
 

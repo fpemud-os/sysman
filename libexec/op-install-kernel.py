@@ -3,6 +3,7 @@
 
 import os
 import sys
+import curses
 import base64
 import pickle
 import pathlib
@@ -17,6 +18,8 @@ from helper_boot_initramfs import FkmInitramfsKcfgChecker
 
 kernelCfgRules = pickle.loads(base64.b64decode(sys.argv[1].encode("ascii")))
 resultFile = sys.argv[2]
+
+curses.setupterm()
 
 bootEntry = FkmBootEntry.findCurrent(strict=False)
 kcache = FkmKCache()
