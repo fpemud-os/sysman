@@ -27,7 +27,7 @@
 */*                                                        opencl
 */*                                                        opencv
 */*                                                        drm gbm
-*/*                                                        egl eglfs gles2 gles2-only gles3 opengl
+*/*                                                        egl eglfs gles2 gles2-only gles3 opengl zink
 */*                                                        gallium vulkan
 */*                                                        openvg
 */*                                                        vaapi vdpau
