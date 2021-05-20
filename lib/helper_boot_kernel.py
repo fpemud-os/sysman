@@ -345,10 +345,10 @@ class FkmKCache:
         for fn in os.listdir(FmConst.kernelMaskDir):
             with open(os.path.join(FmConst.kernelMaskDir, fn), "r") as f:
                 buf = f.read()
-                m = re.search("^%s-(.*)$" % (prefix), buf, re.M)
+                m = re.search("^>%s-(.*)$" % (prefix), buf, re.M)
                 if m is not None:
-                    if version > m.group(1):
-                        version = m.group(1)
+                    if version > m.group(2):
+                        version = m.group(2)
         return version
 
     def _findKernelVersion(self, typename):
