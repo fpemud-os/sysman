@@ -95,7 +95,7 @@ class DynCfgModifier:
             gentooMirrors = ["https://mirrors.tuna.tsinghua.edu.cn/gentoo"]                     # FIXME
             rsyncMirrors = ["rsync://rsync1.cn.gentoo.org/gentoo-portage"]                      # FIXME
             kernelMirrors = ["https://mirrors.tuna.tsinghua.edu.cn/kernel"]                     # FIXME
-            archMirrors = ["http://mirror.lzu.edu.cn/archlinux/"]                               # FIXME
+            archMirrors = ["https://mirror.lzu.edu.cn/archlinux/"]                              # FIXME
 
         # write to make.conf
         if True:
