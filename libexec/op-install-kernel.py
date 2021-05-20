@@ -8,6 +8,7 @@ import pickle
 import pathlib
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import FmUtil
+from fm_util import PrintLoadAvgThread
 from helper_boot_kernel import FkmBootEntry
 from helper_boot_kernel import FkmKernelBuilder
 from helper_boot_kernel import FkmKCache
@@ -51,14 +52,14 @@ if not kernelBuildNeeded:
 print("        - Building...")
 if kernelBuildNeeded:
     if True:
-        print("                - Installing kernel and modules...")
-        kernelBuilder.buildStepMakeInstall()
+        with PrintLoadAvgThread("                - Installing kernel and modules..."):
+            kernelBuilder.buildStepMakeInstall()
     if True:
         print("                - Installing firmware and wireless-regdb...")
         kernelBuilder.buildStepInstallFirmware()
     for name in kcache.getExtraDriverList():
-        print("                - Installing kernel driver \"%s\"..." % (name))
-        kernelBuilder.buildStepBuildAndInstallExtraDriver(name)
+        with PrintLoadAvgThread("                - Installing kernel driver \"%s\"..." % (name)):
+            kernelBuilder.buildStepBuildAndInstallExtraDriver(name)
     if True:
         print("                - Cleaning...")
         kernelBuilder.buildStepClean()

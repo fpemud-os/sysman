@@ -35,6 +35,7 @@ import parted
 import zipfile
 import portage
 import uuid
+import threading
 import urllib.request
 import urllib.error
 import lxml.html
@@ -49,7 +50,79 @@ from gi.repository import GLib
 
 class FmUtil:
 
-    def getLoadAvgStr(self):
+    @staticmethod
+    def outputIsTty():
+        return os.environ.get('TERM') != 'dumb' and hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+
+    @staticmethod
+    def outputGetTermSize():
+        # Returns a tuple of (lines, columns) or (-1, 80) if an error occurs.
+        # The curses module is used if available, otherwise the output of `stty size` is parsed.
+
+        if not hasattr(sys.stdout, 'isatty') or not sys.stdout.isatty():
+            return (-1, 80)
+
+        try:
+            import curses
+            try:
+                curses.setupterm(term=os.environ.get("TERM", "unknown"), fd=sys.stdout.fileno())
+                return curses.tigetnum('lines'), curses.tigetnum('cols')
+            except curses.error:
+                pass
+        except ImportError:
+            pass
+
+        try:
+            proc = subprocess.Popen(["/usr/bin/stty", "size"], stdout=subprocess.PIPE, stderr=sys.stdout, universal_newlines=True)
+            out = proc.communicate()[0]
+            if proc.wait() == os.EX_OK:
+                out = out.split()
+                if len(out) == 2:
+                    try:
+                        val = (int(out[0]), int(out[1]))
+                        if val[0] >= 0 and val[1] >= 0:
+                            return val
+                    except ValueError:
+                        pass
+        except EnvironmentError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            # stty command not found
+            pass
+
+        return (-1, 80)
+
+    @staticmethod
+    def outputGetTermCodes():
+        _default_term_codes = {
+            'cr': b'\r',                   # carriage return
+            'el': b'\x1b[K',               # clr eol
+            'nel': b'\n',                  # newline
+        }
+
+        ret = _default_term_codes.copy()
+
+        term_type = os.environ.get("TERM", "").strip()
+        if term_type == "":
+            return ret
+
+        try:
+            import curses
+            try:
+                curses.setupterm(term_type, sys.stdout.fileno())
+                for capname, code in _default_term_codes.items():
+                    code = curses.tigetstr(capname)                     # Use _native_string for PyPy compat (bug #470258)?
+                    if code is not None:
+                        ret[capname] = code
+            except curses.error:
+                pass
+        except ImportError:
+            pass
+
+        return ret
+
+    @staticmethod
+    def getLoadAvgStr():
         try:
             avg = os.getloadavg()
         except OSError:
@@ -3272,3 +3345,49 @@ class InfoPrinter:
         del self.printByErrorHasError
         del self.printByErrorStartIndent
         del self.printByErrorBuffer
+
+
+class PrintLoadAvgThread(threading.Thread):
+
+    def __init__(self, msg):
+        super().__init__()
+        self._msg = msg
+        self._isatty = FmUtil.outputIsTty()
+        self._width = min(FmUtil.outputGetTermSize()[1], 80) - 32
+        self._term_codes = FmUtil.outputGetTermCodes()
+        self._stopEvent = threading.Event()
+        self._firstTime = True
+        self._min_display_latency = 2
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.stop()
+
+    def start(self):
+        self._print_message()
+        super().start()
+
+    def stop(self):
+        self._stopEvent.set()
+        self.join()
+
+    def run(self):
+        while not self._stopEvent.is_set():
+            self._print_message()
+            self._stopEvent.wait(self._min_display_latency)
+        sys.stdout.buffer.write(self._term_codes['nel'])                                   # go to next line
+        sys.stdout.flush()
+
+    def _print_message(self):
+        if self._firstTime:
+            self._firstTime = False
+        else:
+            sys.stdout.buffer.write(self._term_codes['cr'] + self._term_codes['el'])       # clear current line
+
+        sys.stdout.write(self._msg)                                                        # print message
+        sys.stdout.write(" " * (self._width - len(self._msg)))                             # print padding
+        sys.stdout.write("Load avg: %s" % (FmUtil.getLoadAvgStr()))                        # print load average
+        sys.stdout.flush()
