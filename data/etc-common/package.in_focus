@@ -102,6 +102,10 @@ app-emulation/anbox
 app-emulation/darling
 virtual/wine
 
+## utility: virtual machine ########################################
+app-emulation/virtualbox
+app-emulation/virtualbox-extpack-oracle
+
 ## utility: media player ###########################################
 media-video/celluloid
 media-video/mpv
