@@ -390,19 +390,6 @@ class EbuildRepositories:
         cfgFile = self.getRepoCfgReposFile(repoName)
         repoDir = self.getRepoDir(repoName)
 
-        # check repository directory
-        if not os.path.exists(repoDir):
-            if bAutoFix:
-                self.createRepository(repoName)
-            else:
-                raise RepositoryCheckError("repository directory \"%s\" does not exist" % (repoDir))
-        if not os.path.isdir(repoDir):
-            if bAutoFix:
-                FmUtil.forceDelete(repoDir)
-                self.createRepository(repoName)
-            else:
-                raise RepositoryCheckError("repository directory \"%s\" is invalid" % (repoDir))
-
         # check cfgFile content
         if True:
             standardContent = self.__generateReposConfContent(repoName)
@@ -412,6 +399,29 @@ class EbuildRepositories:
                         f.write(standardContent)
                 else:
                     raise RepositoryCheckError("file content of \"%s\" is invalid" % (cfgFile))
+
+        # check repository directory existence
+        if not os.path.exists(repoDir):
+            if bAutoFix:
+                self.createRepository(repoName)
+            else:
+                raise RepositoryCheckError("repository directory \"%s\" does not exist" % (repoDir))
+
+        # check repository directory validity
+        if not os.path.isdir(repoDir):
+            if bAutoFix:
+                FmUtil.forceDelete(repoDir)
+                self.createRepository(repoName)
+            else:
+                raise RepositoryCheckError("repository directory \"%s\" is invalid" % (repoDir))
+
+        # check repository source url
+        if repoName in self._repoGitUrlDict and FmUtil.gitGetUrl(repoDir) != self._repoGitUrlDict[repoName]:
+            if bAutoFix:
+                FmUtil.forceDelete(repoDir)
+                self.createRepository(repoName)
+            else:
+                raise RepositoryCheckError("repository directory \"%s\" should have URL \"%s\"" % (repoDir, self._repoGitUrlDict[repoName]))
 
     def createRepository(self, repoName):
         """Business exception should not be raise, but be printed as error message"""
@@ -570,25 +580,22 @@ class EbuildOverlays:
             assert False
 
     def addTrustedOverlay(self, overlayName, overlayVcsType, overlayUrl):
-        if self.isOverlayExist(overlayName):
-            raise Exception("the specified overlay has already been installed")
+        assert not self.isOverlayExist(overlayName)
 
         cfgFile = self.getOverlayCfgReposFile(overlayName)
         overlayDir = self.getOverlayDir(overlayName)
 
-        vcsType = self._createOverlaySourceDir(overlayName, overlayDir, overlayVcsType, overlayUrl)
+        self._createOverlaySourceDir(overlayName, overlayDir, overlayVcsType, overlayUrl)
         try:
             self._removeDuplicatePackage(overlayDir)
-            repoName = FmUtil.repoGetRepoName(overlayDir)
             with open(cfgFile, "w") as f:
-                f.write(self._generateCfgReposFile(overlayName, overlayDir, "trusted", vcsType, overlayUrl, repoName))
+                f.write(self._generateCfgReposFile(overlayName, overlayDir, "trusted", overlayVcsType, overlayUrl, FmUtil.repoGetRepoName(overlayDir)))
         except:
             shutil.rmtree(overlayDir)       # keep overlay files directory
             raise
 
     def addTransientOverlay(self, overlayName, overlayVcsType, overlayUrl):
-        if self.isOverlayExist(overlayName):
-            raise Exception("the specified overlay has already been installed")
+        assert not self.isOverlayExist(overlayName)
 
         cfgFile = self.getOverlayCfgReposFile(overlayName)
         overlayDir = self.getOverlayDir(overlayName)
@@ -597,22 +604,44 @@ class EbuildOverlays:
         self._createOverlaySourceDir(overlayName, overlayFilesDir, overlayVcsType, overlayUrl)
         try:
             self._createTransientOverlayDirFromOverlayFilesDir(overlayName, overlayDir, overlayFilesDir)
-            repoName = FmUtil.repoGetRepoName(overlayDir)
             with open(cfgFile, "w") as f:
-                f.write(self._generateCfgReposFile(overlayName, overlayDir, "transient", overlayVcsType, overlayUrl, repoName))
+                f.write(self._generateCfgReposFile(overlayName, overlayDir, "transient", overlayVcsType, overlayUrl, FmUtil.repoGetRepoName(overlayDir)))
         except:
             shutil.rmtree(overlayDir)       # keep overlay files directory
             raise
 
     def removeOverlay(self, overlayName):
-        if not self.isOverlayExist(overlayName):
-            raise Exception("overlay \"%s\" is not installed" % (overlayName))
-        if self.getOverlayType(overlayName) == "static":
-            raise Exception("overlay \"%s\" is a static overlay" % (overlayName))
+        assert self.isOverlayExist(overlayName)
+        assert self.getOverlayType(overlayName) != "static"
 
         FmUtil.forceDelete(self.getOverlayFilesDir(overlayName))
         FmUtil.forceDelete(self.getOverlayDir(overlayName))
         FmUtil.forceDelete(self.getOverlayCfgReposFile(overlayName))
+
+    def modifyOverlayVcsTypeAndUrl(self, overlayName, overlayVcsType, overlayUrl):
+        assert self.isOverlayExist(overlayName)
+
+        cfgFile = self.getOverlayCfgReposFile(overlayName)
+        overlayDir = self.getOverlayDir(overlayName)
+        overlayFilesDir = self.getOverlayFilesDir(overlayName)
+
+        overlayType = self._parseCfgReposFile(pathlib.Path(cfgFile).read_text())[2]
+        if overlayType == "static":
+            assert False
+        elif overlayType == "trusted":
+            FmUtil.forceDelete(overlayDir)
+            self._createOverlaySourceDir(overlayName, overlayDir, overlayVcsType, overlayUrl)
+            self._removeDuplicatePackage(overlayDir)
+            with open(cfgFile, "w") as f:
+                f.write(self._generateCfgReposFile(overlayName, overlayDir, "trusted", overlayVcsType, overlayUrl, FmUtil.repoGetRepoName(overlayDir)))
+        elif overlayType == "transient":
+            FmUtil.forceDelete(overlayFilesDir)
+            self._createOverlaySourceDir(overlayName, overlayFilesDir, overlayVcsType, overlayUrl)
+            self._refreshTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
+            with open(cfgFile, "w") as f:
+                f.write(self._generateCfgReposFile(overlayName, overlayDir, "transient", overlayVcsType, overlayUrl, FmUtil.repoGetRepoName(overlayDir)))
+        else:
+            assert False
 
     def checkOverlay(self, overlayName, bAutoFix=False):
         assert self.isOverlayExist(overlayName)
@@ -679,11 +708,25 @@ class EbuildOverlays:
             # doesn't exist or is invalid
             if not os.path.exists(overlayFilesDir) or not os.path.isdir(overlayFilesDir):
                 if bAutoFix:
-                    ret = self._createOverlaySourceDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
-                    assert ret == vcsType
+                    self._createOverlaySourceDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                     self._createTransientOverlayDirFromOverlayFilesDir(overlayName, overlayDir, overlayFilesDir)
                 else:
                     raise OverlayCheckError("overlay files directory \"%s\" does not exist or is invalid" % (overlayFilesDir))
+            # source url is invalid
+            if True:
+                if vcsType == "git":
+                    realUrl = FmUtil.gitGetUrl(overlayFilesDir)
+                elif vcsType == "svn":
+                    realUrl = FmUtil.svnGetUrl(overlayFilesDir)
+                else:
+                    assert False
+                if realUrl != overlayUrl:
+                    if bAutoFix:
+                        FmUtil.forceDelete(overlayFilesDir)
+                        self._createOverlaySourceDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
+                        self._refreshTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
+                    else:
+                        raise RepositoryCheckError("overlay files directory \"%s\" should have URL \"%s\"" % (overlayFilesDir, overlayUrl))
         else:
             assert False
 
@@ -705,11 +748,25 @@ class EbuildOverlays:
             if not os.path.isdir(overlayDir):
                 if bAutoFix:
                     FmUtil.forceDelete(overlayDir)
-                    ret = self._createOverlaySourceDir(overlayName, overlayDir, vcsType, overlayUrl)
-                    assert ret == vcsType
+                    self._createOverlaySourceDir(overlayName, overlayDir, vcsType, overlayUrl)
                     self._removeDuplicatePackage(overlayDir)
                 else:
                     raise OverlayCheckError("overlay directory \"%s\" does not exist or is invalid" % (overlayDir))
+            # source url is invalid
+            if True:
+                if vcsType == "git":
+                    realUrl = FmUtil.gitGetUrl(overlayDir)
+                elif vcsType == "svn":
+                    realUrl = FmUtil.svnGetUrl(overlayDir)
+                else:
+                    assert False
+                if realUrl != overlayUrl:
+                    if bAutoFix:
+                        FmUtil.forceDelete(overlayDir)
+                        self._createOverlaySourceDir(overlayName, overlayDir, vcsType, overlayUrl)
+                        self._removeDuplicatePackage(overlayDir)
+                    else:
+                        raise RepositoryCheckError("overlay directory \"%s\" should have URL \"%s\"" % (overlayDir, overlayUrl))
             # invalid layout.conf content
             with open(os.path.join(overlayDir, "metadata", "layout.conf"), "r") as f:
                 if re.search("^\\s*masters\\s*=\\s*gentoo\\s*$", f.read(), re.M) is None:
@@ -853,8 +910,6 @@ class EbuildOverlays:
             self.__overlaySourceDirPatch(overlayName, overlayFilesDir, "N-patch", "pkgwh-n-patch")
             self.__overlaySourceDirPatch(overlayName, overlayFilesDir, "S-patch", "pkgwh-s-patch")
             print("Done.")
-
-        return vcsType
 
     def _syncOverlaySourceDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":

@@ -2443,6 +2443,12 @@ class FmUtil:
         return False
 
     @staticmethod
+    def gitGetUrl(dirName):
+        gitDir = os.path.join(dirName, ".git")
+        cmdStr = "/usr/bin/git --git-dir=\"%s\" --work-tree=\"%s\" config --get remote.origin.url" % (gitDir, dirName)
+        return FmUtil.shellCall(cmdStr)
+
+    @staticmethod
     def gitHasUntrackedFiles(dirName):
         ret = FmUtil._gitCall(dirName, "status")
         if re.search("^Untracked files:$", ret, re.M) is not None:
@@ -2454,6 +2460,12 @@ class FmUtil:
         gitDir = os.path.join(dirName, ".git")
         cmdStr = "/usr/bin/git --git-dir=\"%s\" --work-tree=\"%s\" %s" % (gitDir, dirName, command)
         return FmUtil.shellCall(cmdStr)
+
+    @staticmethod
+    def svnGetUrl(dirName):
+        ret = FmUtil.cmdCall("/usr/bin/svn", "info", dirName)
+        m = re.search("^URL: (.*)$", ret, re.M)
+        return m.group(1)
 
     @staticmethod
     def getMachineInfo(filename):

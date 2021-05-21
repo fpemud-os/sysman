@@ -401,6 +401,11 @@ class FmMain:
         self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.hwInfoGetter.current(), layout)
 
     def doAddOverlay(self, overlayName, vcsType, url):
+        layman = EbuildOverlays()
+
+        if layman.isOverlayExist(overlayName):
+            raise Exception("the specified overlay has already been installed")
+
         # update overlay database
         self.infoPrinter.printInfo(">> Updating overlay database...")
         cloudDb = CloudOverlayDb()
@@ -415,17 +420,38 @@ class FmMain:
             self.infoPrinter.printInfo(">> Installing %s overlay \"%s\" from \"%s\"..." % (vcsType, overlayName, url))
         else:
             self.infoPrinter.printInfo(">> Installing overlay...")
-        EbuildOverlays().addTransientOverlay(overlayName, vcsType, url)
+        layman.addTransientOverlay(overlayName, vcsType, url)
         print("")
 
     def doRemoveOverlay(self, overlayName):
-        EbuildOverlays().removeOverlay(overlayName)
+        layman = EbuildOverlays()
+
+        if not layman.isOverlayExist(overlayName):
+            raise Exception("overlay \"%s\" is not installed" % (overlayName))
+        if layman.getOverlayType(overlayName) == "static":
+            raise Exception("overlay \"%s\" is a static overlay" % (overlayName))
+
+        layman.removeOverlay(overlayName)
 
     def doEnableOverlayPkg(self, overlayName, pkgName):
-        EbuildOverlays().enableOverlayPackage(overlayName, pkgName)
+        layman = EbuildOverlays()
+
+        if not layman.isOverlayExist(overlayName):
+            raise Exception("overlay \"%s\" is not installed" % (overlayName))
+        if layman.getOverlayType(overlayName) == "transient":
+            raise Exception("overlay \"%s\" is not a transient overlay" % (overlayName))
+
+        layman.enableOverlayPackage(overlayName, pkgName)
 
     def doDisableOverlayPkg(self, overlayName, pkgName):
-        EbuildOverlays().disableOverlayPackage(overlayName, pkgName)
+        layman = EbuildOverlays()
+
+        if not layman.isOverlayExist(overlayName):
+            raise Exception("overlay \"%s\" is not installed" % (overlayName))
+        if layman.getOverlayType(overlayName) == "transient":
+            raise Exception("overlay \"%s\" is not a transient overlay" % (overlayName))
+
+        layman.disableOverlayPackage(overlayName, pkgName)
 
     def doEnableSwap(self):
         layout = self.param.storageManager.getStorageLayout()
