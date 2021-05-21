@@ -3278,8 +3278,8 @@ class InfoPrinter:
         else:
             print(line)
 
-    def printInfoAndIndent(self, s):
-        return self._InfoPrinterInfoIndenter(self, s)
+    def printInfoAndIndent(self, s, bRecallable=False):
+        return self._InfoPrinterInfoIndenter(self, s, bRecallable)
 
     def printError(self, s):
         line = ""

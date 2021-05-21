@@ -105,7 +105,7 @@ class FmSysChecker:
 
             with self.infoPrinter.printInfoAndIndent(">> Check software packages..."):
                 for pkgNameVer in sorted(FmUtil.portageGetInstalledPkgAtomList(FmConst.portageDbDir)):
-                    with self.infoPrinter.printInfoAndIndent("- Package %s:" % (pkgNameVer)):
+                    with self.infoPrinter.printInfoAndIndent("- Package %s:" % (pkgNameVer), bRecallable=True):
                         self._checkPackageContentFile(pkgNameVer)
                         self._checkPackageFileScope(pkgNameVer)
                         self._checkPackageMd5(pkgNameVer)
@@ -514,13 +514,13 @@ class FmSysChecker:
             # no way to auto fix
             raise Exception("invalid current boot item")
 
-        if entry.buildTarget.postfix != FmUtil.shellCall("/usr/bin/uname -r"):
+        if entry.buildTarget.verstr != FmUtil.shellCall("/usr/bin/uname -r"):
             self.infoPrinter.printError("System is not using the current boot item, reboot needed.")
 
     def _checkFirmware(self):
         processedList = []
         entry = FkmBootEntry.findCurrent()
-        verDir = os.path.join("/lib/modules", entry.buildTarget.postfix)
+        verDir = os.path.join("/lib/modules", entry.buildTarget.verstr)
         for fullfn in glob.glob(os.path.join(verDir, "**", "*.ko"), recursive=True):
             # python-kmod bug: can only recognize the last firmware in modinfo
             # so use the command output of modinfo directly
