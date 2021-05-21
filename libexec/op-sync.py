@@ -19,26 +19,7 @@ if item == "sync-repo":
 
 if item == "sync-overlay":
     overlayName = sys.argv[2]
-    pkgwh = PkgWarehouse()
-    bFound = False
-    if not bFound:
-        for oname, ourl in pkgwh.getPreEnableOverlays().items():
-            if oname == overlayName:
-                vcsType, overlayUrl = pkgwh.layman.getOverlayVcsTypeAndUrl(oname)
-                if ourl != overlayUrl:
-                    bFound = True
-                    break
-    if not bFound:
-        for oname, data in pkgwh.getPreEnablePackages().items():
-            ourl, pkglist = data
-            if oname == overlayName:
-                vcsType, overlayUrl = pkgwh.layman.getOverlayVcsTypeAndUrl(oname)
-                if ourl != overlayUrl:
-                    bFound = True
-                    break
-    if bFound:
-        print("WARNING: Overlay URL is not same with preconfigured data.")
-    pkgwh.layman.syncOverlay(overlayName)
+    EbuildOverlays().syncOverlay(overlayName)
     sys.exit(0)
 
 if item == "add-trusted-overlay":
