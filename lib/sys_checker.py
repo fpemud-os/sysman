@@ -15,6 +15,7 @@ import configparser
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_param import FmConst
+from helper_boot_kernel import FkmBootEntry
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import RepositoryCheckError
 from helper_pkg_warehouse import OverlayCheckError
@@ -75,6 +76,10 @@ class FmSysChecker:
                 with self.infoPrinter.printInfoAndIndent("- Check premount rootfs..."):
                     self._checkPreMountRootfsLayout()
 
+            with self.infoPrinter.printInfoAndIndent("- Check BIOS, bootloader, initramfs and kernel..."):
+                self._checkBootDir()
+                self._checkFirmware()
+
             with self.infoPrinter.printInfoAndIndent(">> Check operating system..."):
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):
                     self._checkMachineInfo()
@@ -86,7 +91,6 @@ class FmSysChecker:
                     self._checkLmSensorsCfgFiles()
                     self._checkEtcUdevRuleFiles()
                     self._checkServiceFiles()
-                    self._checkFirmware()
                     self._checkPortageCfg()
                     self._checkSystemServices()
                 with self.infoPrinter.printInfoAndIndent("- Check package repositories & overlays..."):
@@ -504,23 +508,32 @@ class FmSysChecker:
             if not FmUtil.systemdIsServiceEnabled(s):
                 self.infoPrinter.printError("\"%s\" is not enabled." % (s))
 
+    def _checkBootDir(self):
+        entry = FkmBootEntry.findCurrent()
+        if entry is None:
+            # no way to auto fix
+            raise Exception("invalid current boot item")
+
+        if entry.buildTarget.postfix != FmUtil.shellCall("/usr/bin/uname -r"):
+            self.infoPrinter.printError("System is not using the current boot item, reboot needed.")
+
     def _checkFirmware(self):
         processedList = []
-        for ver in sorted(os.listdir("/lib/modules"), reverse=True):
-            verDir = os.path.join("/lib/modules", ver)
-            for fullfn in glob.glob(os.path.join(verDir, "**", "*.ko"), recursive=True):
-                # python-kmod bug: can only recognize the last firmware in modinfo
-                # so use the command output of modinfo directly
-                for line in FmUtil.cmdCall("/bin/modinfo", fullfn).split("\n"):
-                    m = re.fullmatch("firmware: +(\\S.*)", line)
-                    if m is None:
-                        continue
-                    firmwareName = m.group(1)
-                    if firmwareName in processedList:
-                        continue
-                    if not os.path.exists(os.path.join("/lib/firmware", firmwareName)):
-                        self.infoPrinter.printError("Firmware \"%s\" does not exist. (required by \"%s\")" % (firmwareName, fullfn))
-                    processedList.append(firmwareName)
+        entry = FkmBootEntry.findCurrent()
+        verDir = os.path.join("/lib/modules", entry.buildTarget.postfix)
+        for fullfn in glob.glob(os.path.join(verDir, "**", "*.ko"), recursive=True):
+            # python-kmod bug: can only recognize the last firmware in modinfo
+            # so use the command output of modinfo directly
+            for line in FmUtil.cmdCall("/bin/modinfo", fullfn).split("\n"):
+                m = re.fullmatch("firmware: +(\\S.*)", line)
+                if m is None:
+                    continue
+                firmwareName = m.group(1)
+                if firmwareName in processedList:
+                    continue
+                if not os.path.exists(os.path.join("/lib/firmware", firmwareName)):
+                    self.infoPrinter.printError("Firmware \"%s\" does not exist. (required by \"%s\")" % (firmwareName, fullfn))
+                processedList.append(firmwareName)
 
     def _checkPortageCfg(self, bFullCheck=True):
         # check /var/lib/portage
