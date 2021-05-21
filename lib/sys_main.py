@@ -345,7 +345,7 @@ class FmMain:
                         assert False
                 s1 = FmUtil.pad(lname, maxLen)
                 s2 = "[" + FmUtil.pad(ltype, 10) + "]"
-                s3 = "(" + FmUtil.pad(lurl, FmUtil.terminal_width() - maxLen - 22) + ")" if lurl is not None else ""
+                s3 = lurl if lurl is not None else ""
                 print("    %s %s %s" % (s1, s2, s3))
         else:
             print("    None")
