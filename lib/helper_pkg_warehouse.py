@@ -784,12 +784,12 @@ class EbuildOverlays:
                 dstEbuildDir = os.path.join(overlayDir, d)
                 if not os.path.exists(srcEbuildDir):
                     if bAutoFix:
-                        FmUtil.ForceDelete(dstEbuildDir)
+                        FmUtil.forceDelete(dstEbuildDir)
                     else:
                         raise OverlayCheckError("package \"%s\" in overlay \"%s\" should not exist any more" % (d, overlayName))
                 if not FmUtil.isTwoDirSame(srcEbuildDir, dstEbuildDir):
                     if bAutoFix:
-                        FmUtil.ForceDelete(dstEbuildDir)
+                        FmUtil.forceDelete(dstEbuildDir)
                         shutil.copytree(srcEbuildDir, dstEbuildDir)
                     else:
                         raise OverlayCheckError("package \"%s\" in overlay \"%s\" is corrupt" % (d, overlayName))
