@@ -2,5 +2,15 @@
 ARCNET=n                                                                                      # unfamiliar
 ISDN=n                                                                                        # rare, need special firmware
 [symbols:/Device Drivers/Network device support/Distributed Switch Architecture drivers]=n    # unfamiliar
+
+NET_VENDOR_NETRONOME=n                                                                        # no firmware, we think it's rare
+NET_VENDOR_CHELSIO=n                                                                          # no firmware, we think it's rare
+NET_VENDOR_MELLANOX=n                                                                         # no firmware, we think it's rare
+B43=n                                                                                         # broadcom b43, no firmware, we think it's rare
+B43LEGACY=n                                                                                   # broadcom b43, no firmware, we think it's rare
+WLAN_VENDOR_ATMEL=n                                                                           # no firmware, we think it's rare
+WLAN_VENDOR_ZYDAS=n                                                                           # no firmware, we think it's rare
+WLAN_VENDOR_MEDIATEK=n                                                                        # no firmware, we think it's rare
+
 VMXNET3=n
 [symbols:/Device Drivers/Network device support]=m,y

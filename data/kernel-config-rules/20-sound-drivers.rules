@@ -1,4 +1,23 @@
 # menu: Sound card support
+SND_USB_6FIRE=n                                                                                                                     # no firmware, we think it's rare
+SND_HDSP=n                                                                                                                          # no firmware, we think it's rare
+SND_HDSPM=n                                                                                                                         # no firmware, we think it's rare
+SND_CS46XX=n                                                                                                                        # no firmware, we think it's rare
+SND_MIXART=n                                                                                                                        # no firmware, we think it's rare
+SND_ASIHPI=n                                                                                                                        # no firmware, we think it's rare
+SND_PCXHR=n                                                                                                                         # no firmware, we think it's rare
+[prompt-regex-symbols:(Echoaudio) .*:/Device Drivers/Sound card support/Advanced Linux Sound Architecture/PCI sound devices]=n      # no firmware, we think it's rare
+
+
+#SND_LAYLA24=n                                               # no firmware, we think it's rare
+#SND_INDIGOIO
+#SND_INDIGO
+#SND_INDIGODJ
+#SND_ECHO3G
+#SND_GINA20
+#SND_MONA
+
+
 SOUND=m
 SND_SOC=n
 SND_PCSP=n
