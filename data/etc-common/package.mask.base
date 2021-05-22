@@ -156,3 +156,6 @@ media-sound/apulse
 
 # don't redirect alsa to sound servers, so that overall architecture can be simpler
 # media-plugins/alsa-plugins
+
+# deprecated by dev-libs/rocm-opencl-runtime
+dev-libs/amdgpu-pro-opencl
