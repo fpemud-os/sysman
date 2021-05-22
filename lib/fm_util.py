@@ -3295,7 +3295,7 @@ class PrintLoadAvgThread(threading.Thread):
         self._max_width = 80
 
         self._msg = msg
-        self._width = min(curses.tigetnum('cols'), self._max_width) - 32
+        self._width = min(curses.tigetnum('cols'), self._max_width)
         self._term_codes = {
             'cr': curses.tigetstr('cr'),
             'el': curses.tigetstr('el'),
