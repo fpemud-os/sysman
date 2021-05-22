@@ -279,9 +279,35 @@ class FkmKCache:
         if filePath in obj:
             return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), obj[filePath]), True)
 
+        obj = self.extraFirmwareDict[firmwareName]["file-mapping-overwrite-regex"]
+        for pattern in obj.keys():
+            m = re.fullmatch(pattern, filePath)
+            if m is None:
+                continue
+            ret = obj[filePath]
+            ret = ret.replace("$0", m.group(0))
+            i = 1
+            for v in m.groups():
+                ret = ret.replace("$%d" % (i), v)
+                i += 1
+            return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), ret), True)
+
         obj = self.extraFirmwareDict[firmwareName]["file-mapping"]
         if filePath in obj:
             return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), obj[filePath]), False)
+
+        obj = self.extraFirmwareDict[firmwareName]["file-mapping-regex"]
+        for pattern in obj.keys():
+            m = re.fullmatch(pattern, filePath)
+            if m is None:
+                continue
+            ret = obj[filePath]
+            ret = ret.replace("$0", m.group(0))
+            i = 1
+            for v in m.groups():
+                ret = ret.replace("$%d" % (i), v)
+                i += 1
+            return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), ret), False)
 
         return (None, None)
 
@@ -480,7 +506,7 @@ class FkmKCache:
         else:
             raise Exception("invalid update-method \"%s\" in config file of extra firmware \"%s\"", (updateMethod, name))
 
-        for section in ["file-mapping", "file-mapping-overwrite"]:
+        for section in ["file-mapping", "file-mapping-overwrite", "file-mapping-regex", "file-mapping-overwrite-regex"]:
             ret[section] = dict()
             if cfg.has_section(section):
                 for opt in cfg.options(section):
