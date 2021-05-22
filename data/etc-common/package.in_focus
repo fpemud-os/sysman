@@ -85,7 +85,9 @@ net-misc/cadaver
 net-misc/nyx
 sys-apps/dmidecode
 sys-apps/ethtool
+sys-libs/libhugetlbfs               # it is not only a library
 sys-process/bpytop
+sys-process/lsof
 x11-misc/qt5ct
 
 ## utility: terminals ##############################################

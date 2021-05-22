@@ -52,25 +52,6 @@ from gi.repository import GLib
 class FmUtil:
 
     @staticmethod
-    def outputGetTermCodes():
-        _default_term_codes = {
-            'cr': b'\r',                   # carriage return
-            'el': b'\x1b[K',               # clr eol
-            'nel': b'\n',                  # newline
-        }
-
-        try:
-            ret = _default_term_codes.copy()
-            curses.setupterm()
-            for capname, code in _default_term_codes.items():
-                code = curses.tigetstr(capname)                     # Use _native_string for PyPy compat (bug #470258)?
-                if code is not None:
-                    ret[capname] = code
-            return ret
-        except curses.error:
-            return _default_term_codes
-
-    @staticmethod
     def getLoadAvgStr():
         try:
             avg = os.getloadavg()
@@ -3213,6 +3194,10 @@ class TempCreateFile:
 
 class InfoPrinter:
 
+    """
+    must call curses.setupterm() before using this class
+    """
+
     GOOD = '\033[32;01m'
     WARN = '\033[33;01m'
     BAD = '\033[31;01m'
@@ -3243,15 +3228,14 @@ class InfoPrinter:
 
             if self._bRecallable and self._printLen >= 0:
                 # clear current line
-                sys.stdout.buffer.write(self._parent._term_codes['cr'] + self._parent._term_codes['el'])
+                sys.stdout.buffer.write(curses.tigetstr('cr') + curses.tigetstr('el'))
                 sys.stdout.write(" " * self._printLen)
-                sys.stdout.buffer.write(self._parent._term_codes['cr'] + self._parent._term_codes['el'])
+                sys.stdout.buffer.write(curses.tigetstr('cr') + curses.tigetstr('el'))
                 sys.stdout.flush()
 
             self._parent._curIndenter = self._savedIndenter
 
     def __init__(self):
-        self._term_codes = FmUtil.outputGetTermCodes()
         self._indent = 0
         self._curIndenter = None
 
@@ -3278,9 +3262,6 @@ class InfoPrinter:
         else:
             print(line)
 
-    def printInfoAndIndent(self, s, bRecallable=False):
-        return self._InfoPrinterInfoIndenter(self, s, bRecallable)
-
     def printError(self, s):
         line = ""
         line += self.BAD + "*" + self.NORMAL + " "
@@ -3296,6 +3277,9 @@ class InfoPrinter:
                 print(line)
         else:
             print(line)
+
+    def printInfoAndIndent(self, s, bRecallable=False):
+        return self._InfoPrinterInfoIndenter(self, s, bRecallable)
 
 
 class PrintLoadAvgThread(threading.Thread):

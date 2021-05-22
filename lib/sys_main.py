@@ -438,7 +438,7 @@ class FmMain:
 
         if not layman.isOverlayExist(overlayName):
             raise Exception("overlay \"%s\" is not installed" % (overlayName))
-        if layman.getOverlayType(overlayName) == "transient":
+        if layman.getOverlayType(overlayName) != "transient":
             raise Exception("overlay \"%s\" is not a transient overlay" % (overlayName))
 
         layman.enableOverlayPackage(overlayName, pkgName)
@@ -448,7 +448,7 @@ class FmMain:
 
         if not layman.isOverlayExist(overlayName):
             raise Exception("overlay \"%s\" is not installed" % (overlayName))
-        if layman.getOverlayType(overlayName) == "transient":
+        if layman.getOverlayType(overlayName) != "transient":
             raise Exception("overlay \"%s\" is not a transient overlay" % (overlayName))
 
         layman.disableOverlayPackage(overlayName, pkgName)
