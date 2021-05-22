@@ -1,0 +1,3 @@
+[main]
+name = wownero
+package = acct-user/wownero
