@@ -1,3 +1,5 @@
 net-ftp/pftp                                                        -ssl        # it depends a very low version of openssl 
 net-ftp/pftp-shit                                                   -ssl        # it depends a very low version of openssl 
 */*                                                                 -adns       # "adns" is not compatible with "nss-mdns + TYPE_CNAME"
+media-libs/mesa                                                     -opencl     # https://bugs.gentoo.org/782685: Clover (the OpenCL runtime in Mesa) supports only a small set of some rather old Radeons, it still tries to attach itself to newer AMD GPUs - and fails, causing segfaults.
+
