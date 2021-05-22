@@ -159,3 +159,6 @@ media-sound/apulse
 
 # deprecated by dev-libs/rocm-opencl-runtime
 dev-libs/amdgpu-pro-opencl
+
+# it is a standalone program, somehow conflicts with net-p2p/bitcoind
+#net-p2p/bitcoin-qt

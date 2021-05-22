@@ -132,6 +132,11 @@ media-gfx/inkscape
 media-gfx/freecad
 media-gfx/librecad
 
+## utility: coin endpoints #########################################
+net-p2p/monero
+net-p2p/bitcoind
+net-p2p/bitcoin-cli
+
 ## utility: miners #################################################
 net-misc/xmrig
 net-misc/xmrig-mo
