@@ -277,7 +277,9 @@ class FkmKCache:
 
         obj = self.extraFirmwareDict[firmwareName]["file-mapping-overwrite"]
         if filePath in obj:
-            return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), obj[filePath]), True)
+            ret = os.path.join(self.getExtraFirmwareSourceDir(firmwareName), obj[filePath])
+            assert os.path.exists(ret)
+            return (ret, True)
 
         obj = self.extraFirmwareDict[firmwareName]["file-mapping-overwrite-regex"]
         for pattern in obj.keys():
@@ -290,11 +292,16 @@ class FkmKCache:
             for v in m.groups():
                 ret = ret.replace("$%d" % (i), v)
                 i += 1
-            return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), ret), True)
+            ret = os.path.join(self.getExtraFirmwareSourceDir(firmwareName), ret)       # change to full filename
+            if not os.path.exists(ret):
+                continue
+            return (ret, True)
 
         obj = self.extraFirmwareDict[firmwareName]["file-mapping"]
         if filePath in obj:
-            return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), obj[filePath]), False)
+            ret = os.path.join(self.getExtraFirmwareSourceDir(firmwareName), obj[filePath])
+            assert os.path.exists(ret)
+            return (ret, False)
 
         obj = self.extraFirmwareDict[firmwareName]["file-mapping-regex"]
         for pattern in obj.keys():
@@ -307,7 +314,10 @@ class FkmKCache:
             for v in m.groups():
                 ret = ret.replace("$%d" % (i), v)
                 i += 1
-            return (os.path.join(self.getExtraFirmwareSourceDir(firmwareName), ret), False)
+            ret = os.path.join(self.getExtraFirmwareSourceDir(firmwareName), ret)       # change to full filename
+            if not os.path.exists(ret):
+                continue
+            return (ret, True)
 
         return (None, None)
 
