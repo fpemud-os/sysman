@@ -17,6 +17,10 @@ dev-lang/go
 gui-wm/wayfire
 net-libs/nodejs
 
+## platform: opencl runtime ########################################
+dev-libs/intel-neo
+dev-libs/rocm-opencl-runtime
+
 ## business server #################################################
 net-im/coturn
 
