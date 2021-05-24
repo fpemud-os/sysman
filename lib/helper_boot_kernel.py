@@ -286,7 +286,7 @@ class FkmKCache:
             m = re.fullmatch(pattern, filePath)
             if m is None:
                 continue
-            ret = obj[filePath]
+            ret = obj[pattern]
             ret = ret.replace("$0", m.group(0))
             i = 1
             for v in m.groups():
@@ -308,7 +308,7 @@ class FkmKCache:
             m = re.fullmatch(pattern, filePath)
             if m is None:
                 continue
-            ret = obj[filePath]
+            ret = obj[pattern]
             ret = ret.replace("$0", m.group(0))
             i = 1
             for v in m.groups():
