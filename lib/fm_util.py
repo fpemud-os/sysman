@@ -32,11 +32,11 @@ import selectors
 import tempfile
 import random
 import parted
+import blessed
 import zipfile
 import portage
 import uuid
 import threading
-import curses
 import urllib.request
 import urllib.error
 import lxml.html
@@ -2652,34 +2652,6 @@ class FmUtil:
         return ret
 
     @staticmethod
-    def printInfo(msgStr):
-        print(FmUtil.fmt("*", "GOOD") + " " + msgStr)
-
-    @staticmethod
-    def fmt(msgStr, fmtStr):
-
-        FMT_GOOD = "\x1B[32;01m"
-        FMT_WARN = "\x1B[33;01m"
-        FMT_BAD = "\x1B[31;01m"
-        FMT_NORMAL = "\x1B[0m"
-        FMT_BOLD = "\x1B[0;01m"
-        FMT_UNDER = "\x1B[4m"
-
-        for fo in fmtStr.split("+"):
-            if fo == "GOOD":
-                return FMT_GOOD + msgStr + FMT_NORMAL
-            elif fo == "WARN":
-                return FMT_WARN + msgStr + FMT_NORMAL
-            elif fo == "BAD":
-                return FMT_BAD + msgStr + FMT_NORMAL
-            elif fo == "BOLD":
-                return FMT_BOLD + msgStr + FMT_NORMAL
-            elif fo == "UNDER":
-                return FMT_UNDER + msgStr + FMT_NORMAL
-            else:
-                assert False
-
-    @staticmethod
     def unixHasUser(username):
         try:
             pwd.getpwnam(username)
@@ -3194,17 +3166,6 @@ class TempCreateFile:
 
 class InfoPrinter:
 
-    """
-    must call curses.setupterm() before using this class
-    """
-
-    GOOD = '\033[32;01m'
-    WARN = '\033[33;01m'
-    BAD = '\033[31;01m'
-    NORMAL = '\033[0m'
-    BOLD = '\033[0;01m'
-    UNDER = '\033[4m'
-
     class _InfoPrinterInfoIndenter:
 
         def __init__(self, parent, message, bRecallable=False):
@@ -3227,15 +3188,13 @@ class InfoPrinter:
             self._parent.decIndent()
 
             if self._bRecallable and self._printLen >= 0:
-                # clear current line
-                sys.stdout.buffer.write(curses.tigetstr('cr') + curses.tigetstr('el'))
-                sys.stdout.write(" " * self._printLen)
-                sys.stdout.buffer.write(curses.tigetstr('cr') + curses.tigetstr('el'))
+                sys.stdout.buffer.write("\r" + self._parent._t.clear_eol)       # clear current line
                 sys.stdout.flush()
 
             self._parent._curIndenter = self._savedIndenter
 
     def __init__(self):
+        self._t = blessed.Terminal()
         self._indent = 0
         self._curIndenter = None
 
@@ -3248,7 +3207,7 @@ class InfoPrinter:
 
     def printInfo(self, s):
         line = ""
-        line += self.GOOD + "*" + self.NORMAL + " "
+        line += self._t.green("*") + " "
         line += "\t" * self._indent
         line += s
 
@@ -3264,7 +3223,7 @@ class InfoPrinter:
 
     def printError(self, s):
         line = ""
-        line += self.BAD + "*" + self.NORMAL + " "
+        line += self._t.red("*") + " "
         line += "\t" * self._indent
         line += s
 
@@ -3284,23 +3243,15 @@ class InfoPrinter:
 
 class PrintLoadAvgThread(threading.Thread):
 
-    """
-    must call curses.setupterm() before using this class
-    """
-
     def __init__(self, msg):
         super().__init__()
 
         self._min_display_latency = 2
         self._max_width = 80
+        self._t = blessed.Terminal()
 
         self._msg = msg
-        self._width = min(curses.tigetnum('cols'), self._max_width)
-        self._term_codes = {
-            'cr': curses.tigetstr('cr'),
-            'el': curses.tigetstr('el'),
-            'nel': b'\n',                  # FIXME: curses returns None, wrong key?
-        }
+        self._width = min(self._t.width, self._max_width)
         self._stopEvent = threading.Event()
         self._firstTime = True
 
@@ -3323,14 +3274,14 @@ class PrintLoadAvgThread(threading.Thread):
         while not self._stopEvent.is_set():
             self._print_message()
             self._stopEvent.wait(self._min_display_latency)
-        sys.stdout.buffer.write(self._term_codes['nel'])                                   # go to next line
+        sys.stdout.buffer.write("\n")
         sys.stdout.flush()
 
     def _print_message(self):
         if self._firstTime:
             self._firstTime = False
         else:
-            sys.stdout.buffer.write(self._term_codes['cr'] + self._term_codes['el'])       # clear current line
+            sys.stdout.buffer.write("\r" + self._t.clear_eol)                              # clear current line
 
         sys.stdout.write(self._msg)                                                        # print message
         sys.stdout.write(" " * (self._width - len(self._msg)))                             # print padding

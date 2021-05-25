@@ -4,7 +4,6 @@
 import os
 import sys
 import shutil
-import curses
 import argparse
 
 if os.getuid() != 0:
@@ -193,7 +192,6 @@ try:
     with SingletonProcess(param.singletonFile):
         FmUtil.mkDirAndClear(param.tmpDir)
         os.makedirs(param.tmpDirOnHdd, exist_ok=True)
-        curses.setupterm()
 
         param.infoPrinter = InfoPrinter()
         param.hwInfoGetter = FmHwInfoGetter()
