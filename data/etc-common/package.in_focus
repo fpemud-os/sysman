@@ -100,6 +100,9 @@ x11-misc/qt5ct
 ## utility: terminals ##############################################
 
 
+## utility: anti-virus #############################################
+app-antivirus/clamav
+
 ## utility: browsers ###############################################
 www-client/firefox
 www-client/google-chrome
@@ -137,9 +140,10 @@ media-gfx/freecad
 media-gfx/librecad
 
 ## utility: coin endpoints #########################################
-net-p2p/monero
 net-p2p/bitcoind
 net-p2p/bitcoin-cli
+net-p2p/monero
+net-p2p/monero-gui
 
 ## utility: miners #################################################
 net-misc/xmrig
