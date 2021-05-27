@@ -1,0 +1,3 @@
+[main]
+name = monero
+package = acct-group/xmrig-proxy
