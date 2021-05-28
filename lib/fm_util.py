@@ -1258,66 +1258,6 @@ class FmUtil:
         ret.check_returncode()
 
     @staticmethod
-    def shellExecWithStuckCheck(cmd, timeout=60, quiet=False):
-        if hasattr(selectors, 'PollSelector'):
-            pselector = selectors.PollSelector
-        else:
-            pselector = selectors.SelectSelector
-
-        # run the process
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                shell=True, universal_newlines=True)
-
-        # redirect proc.stdout/proc.stderr to stdout/stderr
-        # make CalledProcessError contain stdout/stderr content
-        # terminate the process and raise exception if they stuck
-        sStdout = ""
-        sStderr = ""
-        bStuck = False
-        with pselector() as selector:
-            selector.register(proc.stdout, selectors.EVENT_READ)
-            selector.register(proc.stderr, selectors.EVENT_READ)
-            while selector.get_map():
-                res = selector.select(timeout)
-                if res == []:
-                    bStuck = True
-                    if not quiet:
-                        sys.stderr.write("Process stuck for %d second(s), terminated.\n" % (timeout))
-                    proc.terminate()
-                    break
-                for key, events in res:
-                    data = key.fileobj.read()
-                    if not data:
-                        selector.unregister(key.fileobj)
-                        continue
-                    if key.fileobj == proc.stdout:
-                        sStdout += data
-                        sys.stdout.write(data)
-                    elif key.fileobj == proc.stderr:
-                        sStderr += data
-                        sys.stderr.write(data)
-                    else:
-                        assert False
-
-        proc.communicate()
-
-        if proc.returncode > 128:
-            time.sleep(1.0)
-        if bStuck:
-            raise FmUtil.ProcessStuckError(proc.args, timeout)
-        if proc.returncode:
-            raise subprocess.CalledProcessError(proc.returncode, proc.args, sStdout, sStderr)
-
-    class ProcessStuckError(Exception):
-
-        def __init__(self, cmd, timeout):
-            self.timeout = timeout
-            self.cmd = cmd
-
-        def __str__(self):
-            return "Command '%s' stucked for %d seconds." % (self.cmd, self.timeout)
-
-    @staticmethod
     def getFreeTcpPort(start_port=10000, end_port=65536):
         for port in range(start_port, end_port):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
