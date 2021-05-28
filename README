@@ -32,13 +32,13 @@ Basic Usage:
      * Do "emerge --depclean"
      * Optimize all logical volumes in volume group "hdd" (size, fragmentation)
 
-  sysman purify [--remove-i18n] [--remove-doc]
+  sysman solder [--remove-i18n] [--remove-doc]
      * Delete Fpemud OS related packages
      * Delete build tool chain, all DEPEND package
      * Delete portage
      * Delete all trace of Gentoo, including reporistories, overlays, configurations
-     * Optionally delete i18n, document files
-     * The result is a pure, minimal, general, static Linux system
+     * Optionally delete I18N, document files
+     * The result will be a general, minimal, static(soldered) Linux system
 
 
 Storage Management:
