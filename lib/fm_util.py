@@ -1257,6 +1257,16 @@ class FmUtil:
         ret.check_returncode()
 
     @staticmethod
+    async def asyncStartShellExec(cmd, loop=None):
+        assert loop is not None
+        proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
+        return (proc, proc.stdout)
+
+    @staticmethod
+    async def asyncWaitShellExec(proc):
+        await proc.wait()
+
+    @staticmethod
     def getFreeTcpPort(start_port=10000, end_port=65536):
         for port in range(start_port, end_port):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -3229,14 +3239,17 @@ class PrintLoadAvgThread(threading.Thread):
 
 class ParallelRunSequencialPrint:
 
-    def __init__(self, infoPrinter):
-        self.loop = asyncio.get_event_loop()
-        self.p = infoPrinter
-
+    def __init__(self):
         self.prePrintFuncList = []
         self.postPrintFuncList = []
         self.taskDataList = []
         self.stdoutList = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.run()
 
     # pre_print_func can't be a coroutine because there's no "async lambda" in python
     def add_task(self, pre_print_func, post_print_func, start_coro, start_param, wait_coro):
@@ -3245,17 +3258,24 @@ class ParallelRunSequencialPrint:
         self.taskDataList.append((start_coro, start_param, wait_coro))
 
     def run(self):
+        loop = asyncio.get_event_loop()
+
         tlist = []
         for start_coro, start_param, wait_coro in self.taskDataList:
-            proc, outf = self.loop.run_until_complete(start_coro(*start_param, loop=self.loop))
+            proc, outf = loop.run_until_complete(start_coro(*start_param, loop=loop))
             self.stdoutList.append(outf)
             tlist.append((proc, wait_coro))
 
-        pool = asyncio_pool.AioPool(loop=self.loop)
+        pool = asyncio_pool.AioPool(loop=loop)
         pool.spaw_n(self._showResult())
         for proc, wait_coro in tlist:
             pool.spaw_n(wait_coro(proc))
-        self.loop.run_until_complete(pool.join())
+        loop.run_until_complete(pool.join())
+
+        self.prePrintFuncList = []
+        self.postPrintFuncList = []
+        self.taskDataList = []
+        self.stdoutList = []
 
     async def _showResult(self):
         for i in range(0, len(self.prePrintFuncList)):

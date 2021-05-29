@@ -85,22 +85,25 @@ class FmSysUpdater:
                 print("")
 
             # sync overlay directories
-            if True:
-                prspObj = ParallelRunSequencialPrint()
+            with ParallelRunSequencialPrint() as prspObj:
+                if buildServer is None:
+                    startCoro = buildServer.asyncStartSshExec
+                    waitCoro = buildServer.asyncWaitSshExec
+                else:
+                    startCoro = FmUtil.asyncStartShellExec
+                    waitCoro = FmUtil.asyncWaitShellExec
                 for oname in pkgwh.layman.getOverlayList():
                     if pkgwh.layman.getOverlayType(oname) == "static":
                         continue
                     prspObj.add_task(
                         lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
                         lambda: print(""),
-                        buildServer.asyncStartSshExec,
-                        (self.opSync + "sync-overlay %s" % (oname)),
-                        buildServer.asyncWaitSshExec,
+                        startCoro,
+                        (self.opSync + " sync-overlay %s" % (oname)),
+                        waitCoro,
                     )
-                prspObj.run()
-
-                # FIXME: there should be no sync down after realtime network filesystem support is done
-                buildServer.syncDownDirectory(FmConst.portageDataDir)
+            # FIXME: there should be no sync down after realtime network filesystem support is done
+            buildServer.syncDownDirectory(FmConst.portageDataDir)
 
             # add pre-enabled overlays
             for oname, ourl in pkgwh.getPreEnableOverlays().items():
