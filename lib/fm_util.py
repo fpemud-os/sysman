@@ -3214,16 +3214,56 @@ class PrintLoadAvgThread(threading.Thread):
         while not self._stopEvent.is_set():
             self._print_message()
             self._stopEvent.wait(self._min_display_latency)
-        sys.stdout.buffer.write("\n")
-        sys.stdout.flush()
+        sys.stdout.write("\n")
 
     def _print_message(self):
         if self._firstTime:
             self._firstTime = False
         else:
-            sys.stdout.buffer.write("\r" + self._t.clear_eol)                              # clear current line
+            sys.stdout.buffer.write(b'\r' + self._t.clear_eol)                             # clear current line
 
         sys.stdout.write(self._msg)                                                        # print message
         sys.stdout.write(" " * (self._width - len(self._msg)))                             # print padding
         sys.stdout.write("Load avg: %s" % (FmUtil.getLoadAvgStr()))                        # print load average
         sys.stdout.flush()
+
+
+# class RunningParallelPrintSequencial:
+
+#     def __init__(self):
+#         pass
+
+#     def cmdRun(self, cmd, *kargs):
+#         pass
+
+#     def shellRun(self, cmd):
+#         pass
+
+#     @staticmethod
+#     def _communicate(ptyProc):
+#         if hasattr(selectors, 'PollSelector'):
+#             pselector = selectors.PollSelector
+#         else:
+#             pselector = selectors.SelectSelector
+
+#         # redirect proc.stdout/proc.stderr to stdout/stderr
+#         # make CalledProcessError contain stdout/stderr content
+#         sStdout = ""
+#         with pselector() as selector:
+#             selector.register(ptyProc, selectors.EVENT_READ)
+#             while selector.get_map():
+#                 res = selector.select(TIMEOUT)
+#                 for key, events in res:
+#                     try:
+#                         data = key.fileobj.read()
+#                     except EOFError:
+#                         selector.unregister(key.fileobj)
+#                         continue
+#                     sStdout += data
+#                     sys.stdout.write(data)
+
+#         ptyProc.wait()
+#         if ptyProc.signalstatus is not None:
+#             time.sleep(PARENT_WAIT)
+#         if ptyProc.exitstatus:
+#             raise subprocess.CalledProcessError(ptyProc.exitstatus, ptyProc.argv, sStdout, "")

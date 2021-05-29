@@ -112,9 +112,12 @@ class BuildServer:
         self.sslSock = None
 
         self.wSshPort = None
-        self.wSshKey = None
         self.wRsyncPort = None
         self.wCatFilePort = None
+        self.identityFile = None
+        self.cfgFile = None
+
+        self.asyncJobCount = 0
 
     def getHostname(self):
         return self.hostname
@@ -152,16 +155,25 @@ class BuildServer:
             raise
 
     def dispose(self):
+        assert self.asyncJobCount == 0
+
+        if self.identityFile is None:
+            os.unlink(self.identityFile)
+            self.identityFile = None
+        if self.cfgFile is None:
+            os.unlink(self.cfgFile)
+            self.cfgFile = None
         self.wSshPort = None
-        self.wSshKey = None
         self.wRsyncPort = None
         self.wCatFilePort = None
+
         if self.sslSock is not None:
             self.sslSock.close()
             self.sslSock = None
         if self.sock is not None:
             self.sock.close()
             self.sock = None
+
         self.ctrlPort = None
         self.hostname = None
 
@@ -222,20 +234,17 @@ class BuildServer:
         assert resp["return"]["stage"] == "working"
 
         self.wSshPort = resp["return"]["ssh-port"]
-        self.wSshKey = resp["return"]["ssh-key"]
         self.wRsyncPort = resp["return"]["rsync-port"]
         self.wCatFilePort = resp["return"]["catfile-port"]
 
-    def sshExec(self, cmd):
-        assert self.wSshPort is not None
+        self.identityFile = tempfile.mktemp()
+        if True:
+            with open(self.identityFile, "w") as f:
+                f.write(resp["return"]["ssh-key"])
+            os.chmod(self.identityFile, 0o600)
 
-        identityFile = tempfile.mktemp()
-        cfgFile = tempfile.mktemp()
-        try:
-            with open(identityFile, "w") as f:
-                f.write(self.wSshKey)
-            os.chmod(identityFile, 0o600)
-
+        self.cfgFile = tempfile.mktemp()
+        if True:
             buf = ""
             buf += "LogLevel QUIET\n"
             buf += "\n"
@@ -244,21 +253,31 @@ class BuildServer:
             buf += "PubkeyAuthentication yes\n"
             buf += "PreferredAuthentications publickey\n"
             buf += "\n"
-            buf += "IdentityFile %s\n" % (identityFile)
+            buf += "IdentityFile %s\n" % (self.identityFile)
             buf += "UserKnownHostsFile /dev/null\n"
             buf += "StrictHostKeyChecking no\n"
             buf += "\n"
             buf += "SendEnv LANG LC_*\n"
-            with open(cfgFile, "w") as f:
+            with open(self.cfgFile, "w") as f:
                 f.write(buf)
 
-            # "-t" can get Ctrl+C controls remote process
-            # XXXXX so that we forward signal to remote process, FIXME
-            cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, cfgFile, self.hostname, cmd)
-            FmUtil.shellExec(cmd)
-        finally:
-            os.unlink(cfgFile)
-            os.unlink(identityFile)
+    def sshExec(self, cmd):
+        assert self.wSshPort is not None
+
+        # "-t" can get Ctrl+C controls remote process
+        # XXXXX so that we forward signal to remote process, FIXME
+        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd)
+        FmUtil.shellExec(cmd)
+
+    # async def sshExecAsync(self, cmd):
+    #     assert self.wSshPort is not None
+
+    #     self.asyncJobCount += 1
+    #     try:
+    #         cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd)
+    #         FmUtil.shellExec(cmd)
+    #     finally:
+    #         self.asyncJobCount -= 1
 
     def getFile(self, filename):
         assert self.wSshPort is not None
