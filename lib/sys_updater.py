@@ -6,6 +6,7 @@ import re
 import base64
 import pickle
 from fm_util import FmUtil
+from fm_util import ParallelRunSequencialPrint
 from fm_param import FmConst
 from helper_boot import FkmBootDir
 from helper_boot import FkmBootLoader
@@ -84,13 +85,22 @@ class FmSysUpdater:
                 print("")
 
             # sync overlay directories
-            # FIXME: remove sync down dir in future
-            for oname in pkgwh.layman.getOverlayList():
-                if pkgwh.layman.getOverlayType(oname) == "static":
-                    continue
-                self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (oname))
-                self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-overlay %s" % (oname), pkgwh.layman.getOverlayDir(oname))
-                print("")
+            if True:
+                prspObj = ParallelRunSequencialPrint()
+                for oname in pkgwh.layman.getOverlayList():
+                    if pkgwh.layman.getOverlayType(oname) == "static":
+                        continue
+                    prspObj.add_task(
+                        lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
+                        lambda: print(""),
+                        buildServer.asyncStartSshExec,
+                        (self.opSync + "sync-overlay %s" % (oname)),
+                        buildServer.asyncWaitSshExec,
+                    )
+                prspObj.run()
+
+                # FIXME: there should be no sync down after realtime network filesystem support is done
+                buildServer.syncDownDirectory(FmConst.portageDataDir)
 
             # add pre-enabled overlays
             for oname, ourl in pkgwh.getPreEnableOverlays().items():

@@ -6,6 +6,7 @@ import re
 import json
 import socket
 import struct
+import asyncio
 import tempfile
 import subprocess
 from OpenSSL import SSL
@@ -269,15 +270,22 @@ class BuildServer:
         cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd)
         FmUtil.shellExec(cmd)
 
-    # async def sshExecAsync(self, cmd):
-    #     assert self.wSshPort is not None
+    async def asyncStartSshExec(self, cmd, loop=None):
+        assert self.wSshPort is not None
+        assert loop is not None
 
-    #     self.asyncJobCount += 1
-    #     try:
-    #         cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd)
-    #         FmUtil.shellExec(cmd)
-    #     finally:
-    #         self.asyncJobCount -= 1
+        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd)
+        proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
+        self.asyncJobCount += 1
+        return (proc, proc.stdout)
+
+    async def asyncWaitSshExec(self, proc):
+        try:
+            retcode = await proc.wait()
+            if retcode != 0:
+                raise subprocess.CalledProcessError(retcode, proc.args)      # use subprocess.CalledProcessError since there's no equivalent in asyncio
+        finally:
+            self.asyncJobCount -= 1
 
     def getFile(self, filename):
         assert self.wSshPort is not None

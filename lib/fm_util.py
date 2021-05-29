@@ -28,7 +28,6 @@ import termios
 import hashlib
 import pyudev
 import kmod
-import selectors
 import tempfile
 import random
 import parted
@@ -3228,42 +3227,43 @@ class PrintLoadAvgThread(threading.Thread):
         sys.stdout.flush()
 
 
-# class RunningParallelPrintSequencial:
+class ParallelRunSequencialPrint:
 
-#     def __init__(self):
-#         pass
+    def __init__(self, infoPrinter):
+        self.loop = asyncio.get_event_loop()
+        self.p = infoPrinter
 
-#     def cmdRun(self, cmd, *kargs):
-#         pass
+        self.prePrintFuncList = []
+        self.postPrintFuncList = []
+        self.taskDataList = []
+        self.stdoutList = []
 
-#     def shellRun(self, cmd):
-#         pass
+    # pre_print_func can't be a coroutine because there's no "async lambda" in python
+    def add_task(self, pre_print_func, post_print_func, start_coro, start_param, wait_coro):
+        self.prePrintFuncList.append(pre_print_func)
+        self.postPrintFuncList.append(post_print_func)
+        self.taskDataList.append((start_coro, start_param, wait_coro))
 
-#     @staticmethod
-#     def _communicate(ptyProc):
-#         if hasattr(selectors, 'PollSelector'):
-#             pselector = selectors.PollSelector
-#         else:
-#             pselector = selectors.SelectSelector
+    def run(self):
+        tlist = []
+        for start_coro, start_param, wait_coro in self.taskDataList:
+            proc, outf = self.loop.run_until_complete(start_coro(*start_param, loop=self.loop))
+            self.stdoutList.append(outf)
+            tlist.append((proc, wait_coro))
 
-#         # redirect proc.stdout/proc.stderr to stdout/stderr
-#         # make CalledProcessError contain stdout/stderr content
-#         sStdout = ""
-#         with pselector() as selector:
-#             selector.register(ptyProc, selectors.EVENT_READ)
-#             while selector.get_map():
-#                 res = selector.select(TIMEOUT)
-#                 for key, events in res:
-#                     try:
-#                         data = key.fileobj.read()
-#                     except EOFError:
-#                         selector.unregister(key.fileobj)
-#                         continue
-#                     sStdout += data
-#                     sys.stdout.write(data)
+        pool = asyncio_pool.AioPool(loop=self.loop)
+        pool.spaw_n(self._showResult())
+        for proc, wait_coro in tlist:
+            pool.spaw_n(wait_coro(proc))
+        self.loop.run_until_complete(pool.join())
 
-#         ptyProc.wait()
-#         if ptyProc.signalstatus is not None:
-#             time.sleep(PARENT_WAIT)
-#         if ptyProc.exitstatus:
-#             raise subprocess.CalledProcessError(ptyProc.exitstatus, ptyProc.argv, sStdout, "")
+    async def _showResult(self):
+        for i in range(0, len(self.prePrintFuncList)):
+            self.prePrintFuncList[i]()
+            while True:
+                buf = await self.stdoutList[i].readany()
+                if buf == b'':
+                    break
+                sys.stdout.buffer.write()
+                sys.stdout.flush()
+            self.postPrintFuncList[i]()
