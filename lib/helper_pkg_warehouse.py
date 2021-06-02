@@ -16,7 +16,6 @@ import robust_layer.simple_git
 import robust_layer.subversion
 import robust_layer.simple_subversion
 import robust_layer.rsync
-from datetime import datetime
 from fm_util import FmUtil
 from fm_param import FmConst
 
@@ -440,8 +439,6 @@ class EbuildRepositories:
             self.__patchRepoS(repoName)
             print("Done.")
 
-        self.__recordUpdateTime(repoName)
-
         with open(self.getRepoCfgReposFile(repoName), "w") as f:
             f.write(self.__generateReposConfContent(repoName))
 
@@ -461,8 +458,6 @@ class EbuildRepositories:
             self.__patchRepoN(repoName)
             self.__patchRepoS(repoName)
             print("Done.")
-
-        self.__recordUpdateTime(repoName)
 
     def _repoGentooCreate(self, repoDir):
         os.makedirs(repoDir, exist_ok=True)
@@ -500,11 +495,6 @@ class EbuildRepositories:
         modDir = os.path.join(FmConst.dataDir, "pkgwh-s-patch", repoName2)
         if os.path.exists(modDir):
             FmUtil.portagePatchRepository(repoName2, self.getRepoDir(repoName), "S-patch", modDir)
-
-    def __recordUpdateTime(self, repoName):
-        with open(os.path.join(self.getRepoDir(repoName), "update-time.txt"), "w") as f:
-            f.write(datetime.now().date().strftime("%Y-%m-%d"))
-            f.write("\n")
 
 
 class RepositoryCheckError(Exception):
@@ -1156,12 +1146,14 @@ class CloudOverlayDb:
 
     def __init__(self):
         self.itemDict = {
-            "gentoo-overlays": ("Gentoo Overlay Database", "https://api.gentoo.org/overlays/repositories.xml"),
+            "gentoo-overlays": (
+                "Gentoo Overlay Database",
+                "https://api.gentoo.org/overlays/repositories.xml"
+            ),
         }
         self.parseDict = {k: None for k in self.itemDict}
 
     def updateCache(self):
-        os.makedirs(FmConst.cloudOverlayDbDir, exist_ok=True)
         for itemName, val in self.itemDict.items():
             dispName, url = val
             fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)

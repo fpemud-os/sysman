@@ -551,6 +551,13 @@ class FmSysChecker:
             else:
                 raise FmCheckException("\"%s\" is not a directory" % (FmConst.portageCacheDir))
 
+        # check /var/cache/portage/overlay-db
+        if not os.path.isdir(FmConst.cloudOverlayDbDir):
+            if self.bAutoFix:
+                os.makedirs(FmConst.cloudOverlayDbDir, exist_ok=True)
+            else:
+                raise FmCheckException("\"%s\" is not a directory" % (FmConst.cloudOverlayDbDir))
+
         # check /var/cache/portage/laymanfiles
         if not os.path.isdir(FmConst.laymanfilesDir):
             if self.bAutoFix:
