@@ -12,3 +12,13 @@ INTEL_IDLE=y
 [symbols:/Power management and ACPI options/CPU Idle]=y
 
 X86_PM_TIMER=y
+
+# menu: /Device Drivers/Hardware Monitoring support
+[symbols:HWMON]=m,y
+
+# menu: /Device Drivers/Generic Thermal sysfs driver
+[symbols:THERMAL]=m,y
+
+# menu: /Device Drivers/Generic powercap sysfs driver
+POWERCAP=y
+INTEL_RAPL=m,y
