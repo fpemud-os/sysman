@@ -21,4 +21,4 @@ X86_PM_TIMER=y
 
 # menu: /Device Drivers/Generic powercap sysfs driver
 POWERCAP=y
-INTEL_RAPL=m,y
+INTEL_RAPL=m,y          # currently we enable only this one in this menu
