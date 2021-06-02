@@ -82,6 +82,7 @@ media-sound/alsa-utils
 media-sound/mpg123
 media-tv/v4l-utils
 net-analyzer/netcat
+net-analyzer/nethogs
 net-analyzer/nmap
 net-analyzer/tcpdump
 net-analyzer/tcping
