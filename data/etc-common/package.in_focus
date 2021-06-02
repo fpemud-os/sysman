@@ -21,6 +21,16 @@ net-libs/nodejs
 dev-libs/intel-neo
 dev-libs/rocm-opencl-runtime
 
+## platform: kubernetes ############################################
+sys-cluster/kube-apiserver
+sys-cluster/kube-controller-manager
+sys-cluster/kube-router
+sys-cluster/kube-proxy
+sys-cluster/kubelet
+sys-cluster/kubectl
+sys-cluster/k3s
+sys-cluster/minikube
+
 ## business server #################################################
 net-im/coturn
 
