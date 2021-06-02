@@ -27,7 +27,10 @@ sys-cluster/kube-controller-manager
 sys-cluster/kube-router
 sys-cluster/kube-proxy
 sys-cluster/kubelet
-sys-cluster/kubectl
+app-admin/helm                      # client utility
+sys-cluster/kubectl                 # client utility
+
+## platform: lightweight kubernetes ################################
 sys-cluster/k3s
 sys-cluster/minikube
 
