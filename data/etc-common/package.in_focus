@@ -34,6 +34,9 @@ sys-cluster/kubectl                 # client utility
 sys-cluster/k3s
 sys-cluster/minikube
 
+## platform: boinc #################################################
+sci-misc/boinc
+
 ## business server #################################################
 net-im/coturn
 
