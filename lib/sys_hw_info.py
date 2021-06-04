@@ -352,7 +352,7 @@ class _Util:
     @staticmethod
     def kernelCfgRulesNoPowerSave(kernelCfgRules):
         if True:
-            rname = "power-management-and-acpi"
+            rname = "hardware-management-and-monitor"
 
             buf = ""
             buf += "ACPI_PROCESSOR=n\n"
@@ -368,7 +368,7 @@ class _Util:
     @staticmethod
     def kernelCfgRulesForOnlyNewestIntelCpu(kernelCfgRules):
         if True:
-            rname = "power-management-and-acpi"
+            rname = "hardware-management-and-monitor"
 
             toBeReplaced = "[symbols:/Power management and ACPI options/CPU Frequency scaling]=y\n"
             buf = ""

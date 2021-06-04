@@ -3137,7 +3137,7 @@ class InfoPrinter:
             self._parent.decIndent()
 
             if self._bRecallable and self._printLen >= 0:
-                sys.stdout.buffer.write("\r" + self._parent._t.clear_eol)       # clear current line
+                sys.stdout.buffer.write(b'\r' + self._parent._t.clear_eol)       # clear current line
                 sys.stdout.flush()
 
             self._parent._curIndenter = self._savedIndenter
