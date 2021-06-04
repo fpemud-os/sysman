@@ -3267,9 +3267,9 @@ class ParallelRunSequencialPrint:
             tlist.append((proc, wait_coro))
 
         pool = asyncio_pool.AioPool(loop=loop)
-        pool.spaw_n(self._showResult())
+        pool.spawn_n(self._showResult())
         for proc, wait_coro in tlist:
-            pool.spaw_n(wait_coro(proc))
+            pool.spawn_n(wait_coro(proc))
         loop.run_until_complete(pool.join())
 
         self.preFuncList = []

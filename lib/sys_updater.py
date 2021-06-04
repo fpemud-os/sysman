@@ -41,6 +41,21 @@ class FmSysUpdater:
         overlayDb = CloudOverlayDb()
         kcache = FkmKCache()
 
+        # sync overlay directories
+        with ParallelRunSequencialPrint() as prspObj:
+            startCoro = FmUtil.asyncStartShellExec
+            waitCoro = FmUtil.asyncWaitShellExec
+            for oname in pkgwh.layman.getOverlayList():
+                if pkgwh.layman.getOverlayType(oname) == "static":
+                    continue
+                prspObj.add_task(
+                    startCoro, ["%s sync-overlay %s" % (self.opSync, oname)],
+                    waitCoro,
+                    pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
+                    post_func=lambda: print(""),
+                )
+        raise Exception("complete")
+
         # set system to unstable status
         with FkmMountBootDirRw(layout):
             helperBootLoader.setStable(False)
@@ -86,7 +101,7 @@ class FmSysUpdater:
 
             # sync overlay directories
             with ParallelRunSequencialPrint() as prspObj:
-                if buildServer is None:
+                if buildServer is not None:
                     startCoro = buildServer.asyncStartSshExec
                     waitCoro = buildServer.asyncWaitSshExec
                 else:
@@ -96,8 +111,7 @@ class FmSysUpdater:
                     if pkgwh.layman.getOverlayType(oname) == "static":
                         continue
                     prspObj.add_task(
-                        startCoro,
-                        (self.opSync + " sync-overlay %s" % (oname)),
+                        startCoro, ["%s sync-overlay %s" % (self.opSync, oname)],
                         waitCoro,
                         pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
                         post_func=lambda: print(""),

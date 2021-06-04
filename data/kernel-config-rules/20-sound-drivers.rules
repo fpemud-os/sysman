@@ -6,7 +6,7 @@ SND_CS46XX=n                                                                    
 SND_MIXART=n                                                                                                                        # no firmware, we think it's rare
 SND_ASIHPI=n                                                                                                                        # no firmware, we think it's rare
 SND_PCXHR=n                                                                                                                         # no firmware, we think it's rare
-[prompt-regex-symbols:(Echoaudio) .*:/Device Drivers/Sound card support/Advanced Linux Sound Architecture/PCI sound devices]=n      # no firmware, we think it's rare
+[prompt-regex-symbols:\(Echoaudio\) .*:/Device Drivers/Sound card support/Advanced Linux Sound Architecture/PCI sound devices]=n    # no firmware, we think it's rare
 
 
 #SND_LAYLA24=n                                               # no firmware, we think it's rare
