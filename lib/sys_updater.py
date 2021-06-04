@@ -102,7 +102,8 @@ class FmSysUpdater:
                         post_func=lambda: print(""),
                     )
             # FIXME: there should be no sync down after realtime network filesystem support is done
-            buildServer.syncDownDirectory(FmConst.portageDataDir)
+            if buildServer is not None:
+                buildServer.syncDownDirectory(FmConst.portageDataDir)
 
             # add pre-enabled overlays
             for oname, ourl in pkgwh.getPreEnableOverlays().items():
@@ -231,7 +232,8 @@ class FmSysUpdater:
                 )
 
             # FIXME: there should be no sync down after realtime network filesystem support is done
-            buildServer.syncDownDirectory(FmConst.kcacheDir)
+            if buildServer is not None:
+                buildServer.syncDownDirectory(FmConst.kcacheDir)
 
             # install kernel, initramfs and bootloader
             with FkmMountBootDirRw(layout):
