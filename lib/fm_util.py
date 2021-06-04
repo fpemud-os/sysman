@@ -3282,10 +3282,10 @@ class ParallelRunSequencialPrint:
             if self.preFuncList[i] is not None:
                 self.preFuncList[i]()
             while True:
-                buf = await self.stdoutList[i].readany()
+                buf = await self.stdoutList[i].read(1)      # no way to read all data in buffer, python sucks
                 if buf == b'':
                     break
-                sys.stdout.buffer.write()
+                sys.stdout.buffer.write(buf)
                 sys.stdout.flush()
             if self.postFuncList[i] is not None:
                 self.postFuncList[i]()
