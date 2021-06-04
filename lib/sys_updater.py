@@ -169,25 +169,7 @@ class FmSysUpdater:
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             kernelCfgRules = base64.b64encode(pickle.dumps(self.param.hwInfoGetter.current().kernelCfgRules)).decode("ascii")
 
-            # update kernel in kcache
-            if True:
-                v = kcache.getLatestKernelVersion()
-                fn = os.path.basename(kcache.getKernelFileByVersion(v))
-                self.infoPrinter.printInfo(">> Fetching %s..." % (fn))
-                self._execAndSyncDownQuietly(buildServer, self.opFetch, "kernel \'%s\'" % (v), FmConst.kcacheDir)
-                print("")
-
-            # update firmware in kcache
-            if True:
-                v = kcache.getLatestFirmwareVersion()
-                fn = os.path.basename(kcache.getFirmwareFileByVersion(v))
-                self.infoPrinter.printInfo(">> Fetching %s..." % (fn))
-                self._execAndSyncDownQuietly(buildServer, self.opFetch, "firmware \'%s\'" % (v), FmConst.kcacheDir)
-                print("")
-
-            # update extra kernel driver in kcache
             with ParallelRunSequencialPrint() as prspObj:
-                tset = set()
                 if buildServer is not None:
                     startCoro = buildServer.asyncStartSshExec
                     waitCoro = buildServer.asyncWaitSshExec
@@ -195,6 +177,28 @@ class FmSysUpdater:
                     startCoro = FmUtil.asyncStartShellExec
                     waitCoro = FmUtil.asyncWaitShellExec
 
+                # update kernel in kcache
+                v = kcache.getLatestKernelVersion()
+                fn = os.path.basename(kcache.getKernelFileByVersion(v))
+                prspObj.add_task(
+                    startCoro, ["%s kernel \'%s\'" % (self.opFetch, v)],
+                    waitCoro,
+                    pre_func=lambda x=fn: self.infoPrinter.printInfo(">> Fetching %s..." % (x)),
+                    post_func=lambda: print(""),
+                )
+
+                # update firmware in kcache
+                v = kcache.getLatestFirmwareVersion()
+                fn = os.path.basename(kcache.getFirmwareFileByVersion(v))
+                prspObj.add_task(
+                    startCoro, ["%s firmware \'%s\'" % (self.opFetch, v)],
+                    waitCoro,
+                    pre_func=lambda x=fn: self.infoPrinter.printInfo(">> Fetching %s..." % (x)),
+                    post_func=lambda: print(""),
+                )
+
+                # update extra kernel driver in kcache
+                tset = set()
                 for name in kcache.getExtraDriverList():
                     sourceName = kcache.getExtraDriverSourceInfo(name)["name"]
                     if sourceName in tset:
@@ -205,7 +209,6 @@ class FmSysUpdater:
                         pre_func=lambda x=sourceName: self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (x)),
                         post_func=lambda: print(""),
                     )
-
                 for name in kcache.getExtraFirmwareList():
                     sourceName = kcache.getExtraFirmwareSourceInfo(name)["name"]
                     if sourceName in tset:
@@ -216,16 +219,19 @@ class FmSysUpdater:
                         pre_func=lambda x=sourceName: self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (x)),
                         post_func=lambda: print(""),
                     )
-            # FIXME: there should be no sync down after realtime network filesystem support is done
-            buildServer.syncDownDirectory(FmConst.kcacheDir)
 
-            # update wireless-regulatory-database in kcache
-            if True:
+                # update wireless-regulatory-database in kcache
                 v = kcache.getLatestWirelessRegDbVersion()
                 fn = os.path.basename(kcache.getWirelessRegDbFileByVersion(v))
-                self.infoPrinter.printInfo(">> Fetching %s..." % (fn))
-                self._execAndSyncDownQuietly(buildServer, self.opFetch, "wireless-regdb \'%s\'" % (v), FmConst.kcacheDir)
-                print("")
+                prspObj.add_task(
+                    startCoro, ["%s wireless-regdb \'%s\'" % (self.opFetch, v)],
+                    waitCoro,
+                    pre_func=lambda x=fn: self.infoPrinter.printInfo(">> Fetching %s..." % (x)),
+                    post_func=lambda: print(""),
+                )
+
+            # FIXME: there should be no sync down after realtime network filesystem support is done
+            buildServer.syncDownDirectory(FmConst.kcacheDir)
 
             # install kernel, initramfs and bootloader
             with FkmMountBootDirRw(layout):
