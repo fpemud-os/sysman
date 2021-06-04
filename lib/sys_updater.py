@@ -204,6 +204,7 @@ class FmSysUpdater:
                     sourceName = kcache.getExtraDriverSourceInfo(name)["name"]
                     if sourceName in tset:
                         continue
+                    tset.add(sourceName)
                     prspObj.add_task(
                         startCoro, ["%s extra-driver-source \'%s\' \'%s\'" % (self.opFetch, name, sourceName)],
                         waitCoro,
@@ -214,6 +215,7 @@ class FmSysUpdater:
                     sourceName = kcache.getExtraFirmwareSourceInfo(name)["name"]
                     if sourceName in tset:
                         continue
+                    tset.add(sourceName)
                     prspObj.add_task(
                         startCoro, ["%s extra-firmware-source \'%s\' \'%s\'" % (self.opFetch, name, sourceName)],
                         waitCoro,
