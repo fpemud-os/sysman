@@ -961,7 +961,7 @@ class FmSysChecker:
         for overlayName in self.pkgwh.layman.getOverlayList():
             oDir = self.pkgwh.layman.getOverlayDir(overlayName)
 
-            # compare overlay vcs-type and name with cloud database, use cache only
+            # 1. compare overlay vcs-type and name with cloud database, use cache only
             if overlayDb.hasOverlay(overlayName):
                 ret = overlayDb.getOverlayVcsTypeAndUrl(overlayName)
                 if ret != self.pkgwh.layman.getOverlayVcsTypeAndUrl(overlayName):
@@ -970,16 +970,7 @@ class FmSysChecker:
                     else:
                         self.infoPrinter.printError("Overlay \"%s\" should have VCS type \"%s\" and URL \"%s\", same with the cloud overlay database." % (overlayName, ret[0], ret[1]))
 
-            # transient overlay must has at least one enabled package
-            if self.pkgwh.layman.getOverlayType(overlayName) == "transient":
-                if len(FmUtil.repoGetEbuildDirList(oDir)) == 0:
-                    if self.bAutoFix:
-                        self.pkgwh.layman.removeOverlay(overlayName)
-                        continue
-                    else:
-                        self.infoPrinter.printError("Overlay \"%s\" has no enabled package." % (overlayName))
-
-            # there should be no same ebuild directory between repository and overlay
+            # 2. there should be no same ebuild directory between repository and overlay
             if True:
                 infoDict = dict()
                 for repoName in self.pkgwh.repoman.getRepositoryList():
@@ -989,12 +980,22 @@ class FmSysChecker:
                 oDirInfo = set(FmUtil.repoGetEbuildDirList(oDir))
                 for k, v in infoDict.items():
                     for vi in list(v & oDirInfo):
-                        if self.bAutoFix and self.pkgwh.layman.getOverlayType(overlayName) == "trusted":
+                        if self.bAutoFix and self.pkgwh.layman.getOverlayType(overlayName) in ["trusted", "transient"]:
                             FmUtil.repoRemovePackageAndCategory(oDir, vi)
                         else:
                             self.infoPrinter.printError("Repository \"%s\" and overlay \"%s\" has same package \"%s\"." % (k, overlayName, vi))
 
-            # overlays should not have same repo_name
+            # 3. transient overlay must has at least one enabled package
+            #    this should be after check 2 since check 2 may auto remove package from overlay
+            if self.pkgwh.layman.getOverlayType(overlayName) == "transient":
+                if len(FmUtil.repoGetEbuildDirList(oDir)) == 0:
+                    if self.bAutoFix:
+                        self.pkgwh.layman.removeOverlay(overlayName)
+                        continue
+                    else:
+                        self.infoPrinter.printError("Overlay \"%s\" has no enabled package." % (overlayName))
+
+            # 4. overlays should not have same repo_name
             if True:
                 overlayRepoName = self.pkgwh.layman.getOverlayMetadata(overlayName, "repo-name")
                 for repoName in self.pkgwh.repoman.getRepositoryList():
