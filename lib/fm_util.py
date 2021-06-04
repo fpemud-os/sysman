@@ -3139,7 +3139,7 @@ class InfoPrinter:
             self._parent.decIndent()
 
             if self._bRecallable and self._printLen >= 0:
-                sys.stdout.buffer.write(b'\r' + self._parent._t.clear_eol)       # clear current line
+                sys.stdout.write("\r" + self._parent._t.clear_eol)       # clear current line
                 sys.stdout.flush()
 
             self._parent._curIndenter = self._savedIndenter
@@ -3231,7 +3231,7 @@ class PrintLoadAvgThread(threading.Thread):
         if self._firstTime:
             self._firstTime = False
         else:
-            sys.stdout.buffer.write(b'\r' + self._t.clear_eol)                             # clear current line
+            sys.stdout.write("\r" + self._t.clear_eol)                                     # clear current line
 
         sys.stdout.write(self._msg)                                                        # print message
         sys.stdout.write(" " * (self._width - len(self._msg)))                             # print padding
@@ -3284,7 +3284,7 @@ class ParallelRunSequencialPrint:
             if self.preFuncList[i] is not None:
                 self.preFuncList[i]()
             while True:
-                buf = await self.stdoutList[i].read(1)      # no way to read all data in buffer, python sucks
+                buf = await self.stdoutList[i].read(1)      # no way to read all data in buffer, sucks
                 if buf == b'':
                     break
                 sys.stdout.buffer.write(buf)
