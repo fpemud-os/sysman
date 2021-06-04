@@ -1264,7 +1264,9 @@ class FmUtil:
 
     @staticmethod
     async def asyncWaitShellExec(proc):
-        await proc.wait()
+        retcode = await proc.wait()
+        if retcode != 0:
+            raise subprocess.CalledProcessError(retcode, [])      # use subprocess.CalledProcessError since there's no equivalent in asyncio
 
     @staticmethod
     def getFreeTcpPort(start_port=10000, end_port=65536):
