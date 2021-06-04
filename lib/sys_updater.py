@@ -186,23 +186,38 @@ class FmSysUpdater:
                 print("")
 
             # update extra kernel driver in kcache
-            tset = set()
-            for name in kcache.getExtraDriverList():
-                sourceName = kcache.getExtraDriverSourceInfo(name)["name"]
-                if sourceName in tset:
-                    continue
-                self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (sourceName))
-                self._execAndSyncDownQuietly(buildServer, self.opFetch, "extra-driver-source \'%s\' \'%s\'" % (name, sourceName), FmConst.kcacheDir)
-                tset.add(sourceName)
-                print("")
-            for name in kcache.getExtraFirmwareList():
-                sourceName = kcache.getExtraFirmwareSourceInfo(name)["name"]
-                if sourceName in tset:
-                    continue
-                self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (sourceName))
-                self._execAndSyncDownQuietly(buildServer, self.opFetch, "extra-firmware-source \'%s\' \'%s\'" % (name, sourceName), FmConst.kcacheDir)
-                tset.add(sourceName)
-                print("")
+            with ParallelRunSequencialPrint() as prspObj:
+                tset = set()
+                if buildServer is not None:
+                    startCoro = buildServer.asyncStartSshExec
+                    waitCoro = buildServer.asyncWaitSshExec
+                else:
+                    startCoro = FmUtil.asyncStartShellExec
+                    waitCoro = FmUtil.asyncWaitShellExec
+
+                for name in kcache.getExtraDriverList():
+                    sourceName = kcache.getExtraDriverSourceInfo(name)["name"]
+                    if sourceName in tset:
+                        continue
+                    prspObj.add_task(
+                        startCoro, ["%s extra-driver-source \'%s\' \'%s\'" % (self.opFetch, name, sourceName)],
+                        waitCoro,
+                        pre_func=lambda x=sourceName: self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (x)),
+                        post_func=lambda: print(""),
+                    )
+
+                for name in kcache.getExtraFirmwareList():
+                    sourceName = kcache.getExtraFirmwareSourceInfo(name)["name"]
+                    if sourceName in tset:
+                        continue
+                    prspObj.add_task(
+                        startCoro, ["%s extra-firmware-source \'%s\' \'%s\'" % (self.opFetch, name, sourceName)],
+                        waitCoro,
+                        pre_func=lambda x=sourceName: self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (x)),
+                        post_func=lambda: print(""),
+                    )
+            # FIXME: there should be no sync down after realtime network filesystem support is done
+            buildServer.syncDownDirectory(FmConst.kcacheDir)
 
             # update wireless-regulatory-database in kcache
             if True:
