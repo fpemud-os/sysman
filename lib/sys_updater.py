@@ -96,11 +96,11 @@ class FmSysUpdater:
                     if pkgwh.layman.getOverlayType(oname) == "static":
                         continue
                     prspObj.add_task(
-                        lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
-                        lambda: print(""),
                         startCoro,
                         (self.opSync + " sync-overlay %s" % (oname)),
                         waitCoro,
+                        pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
+                        post_func=lambda: print(""),
                     )
             # FIXME: there should be no sync down after realtime network filesystem support is done
             buildServer.syncDownDirectory(FmConst.portageDataDir)

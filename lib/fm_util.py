@@ -3240,8 +3240,8 @@ class PrintLoadAvgThread(threading.Thread):
 class ParallelRunSequencialPrint:
 
     def __init__(self):
-        self.prePrintFuncList = []
-        self.postPrintFuncList = []
+        self.preFuncList = []
+        self.postFuncList = []
         self.taskDataList = []
         self.stdoutList = []
 
@@ -3251,18 +3251,18 @@ class ParallelRunSequencialPrint:
     def __exit__(self, type, value, traceback):
         self.run()
 
-    # pre_print_func can't be a coroutine because there's no "async lambda" in python
-    def add_task(self, pre_print_func, post_print_func, start_coro, start_param, wait_coro):
-        self.prePrintFuncList.append(pre_print_func)
-        self.postPrintFuncList.append(post_print_func)
-        self.taskDataList.append((start_coro, start_param, wait_coro))
+    # pre_func can't be a coroutine because there's no "async lambda" in python
+    def add_task(self, start_coro, start_coro_param, wait_coro, pre_func=None, post_func=None):
+        self.preFuncList.append(pre_func)
+        self.postFuncList.append(post_func)
+        self.taskDataList.append((start_coro, start_coro_param, wait_coro))
 
     def run(self):
         loop = asyncio.get_event_loop()
 
         tlist = []
-        for start_coro, start_param, wait_coro in self.taskDataList:
-            proc, outf = loop.run_until_complete(start_coro(*start_param, loop=loop))
+        for start_coro, start_coro_param, wait_coro in self.taskDataList:
+            proc, outf = loop.run_until_complete(start_coro(*start_coro_param, loop=loop))
             self.stdoutList.append(outf)
             tlist.append((proc, wait_coro))
 
@@ -3272,18 +3272,20 @@ class ParallelRunSequencialPrint:
             pool.spaw_n(wait_coro(proc))
         loop.run_until_complete(pool.join())
 
-        self.prePrintFuncList = []
-        self.postPrintFuncList = []
+        self.preFuncList = []
+        self.postFuncList = []
         self.taskDataList = []
         self.stdoutList = []
 
     async def _showResult(self):
-        for i in range(0, len(self.prePrintFuncList)):
-            self.prePrintFuncList[i]()
+        for i in range(0, len(self.preFuncList)):
+            if self.preFuncList[i] is not None:
+                self.preFuncList[i]()
             while True:
                 buf = await self.stdoutList[i].readany()
                 if buf == b'':
                     break
                 sys.stdout.buffer.write()
                 sys.stdout.flush()
-            self.postPrintFuncList[i]()
+            if self.postFuncList[i] is not None:
+                self.postFuncList[i]()
