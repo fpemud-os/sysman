@@ -162,3 +162,6 @@ dev-libs/amdgpu-pro-opencl
 
 # it is a standalone program, somehow conflicts with net-p2p/bitcoind
 #net-p2p/bitcoin-qt
+
+# newer libstdc++ is integrated in gcc
+sys-libs/libstdc++-v3
