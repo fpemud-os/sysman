@@ -348,10 +348,12 @@ class EbuildRepositories:
         self._repoInfoDict = {
             "gentoo": 5000,
             "guru": 4900,
+            "mirrorshq": 4800,      # app-admin/fpemud-os-sysman in fpemud-os repository needs dev-python/robust_layer in mirrorshq repository
             "fpemud-os": 4800,
         }
         self._repoGitUrlDict = {
             "guru": "https://github.com/gentoo/guru",
+            "mirrorshq": "https://github.com/mirrorshq/gentoo-overlay",
             "fpemud-os": "https://github.com/fpemud-os/gentoo-overlay",
         }
 
