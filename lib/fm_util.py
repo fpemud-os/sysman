@@ -1803,8 +1803,10 @@ class FmUtil:
             localTm = datetime.utcfromtimestamp(os.path.getmtime(fullfn))
             if remoteTm <= localTm:
                 return localTm
-        dummy, headers = urllib.request.urlretrieve(url, fullfn)
-        remoteTm = datetime.strptime(headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z")
+        resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
+        with open(fullfn, "w") as f:
+            f.write(resp.read())
+        remoteTm = datetime.strptime(resp.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z")
         os.utime(fullfn, (remoteTm.timestamp(), remoteTm.timestamp()))
         return remoteTm
 
