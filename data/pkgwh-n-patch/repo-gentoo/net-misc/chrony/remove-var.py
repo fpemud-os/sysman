@@ -9,8 +9,8 @@ try:
     buf2 = """
 ## patched by fpemud-refsystem ####
 mkdir -p "${D}/usr/lib/tmpfiles.d"
-echo "d /var/lib/chrony" >> "${D}/usr/lib/tmpfiles.d/chrony.conf"
-echo "d /var/log/chrony" >> "${D}/usr/lib/tmpfiles.d/chrony.conf"
+echo "d /var/lib/chrony 770 ntp ntp" >> "${D}/usr/lib/tmpfiles.d/chronyd.conf"
+echo "d /var/log/chrony 755 ntp ntp" >> "${D}/usr/lib/tmpfiles.d/chronyd.conf"
 
 rm -rf ${D}/var/lib/chrony
 [ -z "$(ls -A ${D}/var/lib)" ] && rmdir ${D}/var/lib
