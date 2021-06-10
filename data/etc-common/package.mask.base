@@ -6,83 +6,23 @@ www-plugins/nspluginwrapper
 sys-fs/udev
 sys-fs/eudev
 
-# sys-auth/consolekit is deprecated
-sys-auth/consolekit
-
 # use gvfs to handle user-mount & auto-mount
 sys-apps/pmount
 sys-apps/uam
 sys-apps/udevil
 sys-fs/udisks-glue
 
-# do not use gnash, it's nearly dead
-www-plugins/gnash
-
-# deprecated gnome libs
-# gnome-base/gconf			# dirt-rally needs it
-gnome-base/gnome-vfs
-gnome-base/libbonobo
-
 # use the nscd in glibc
 sys-apps/unscd
 
-# app-misc/profiled & app-misc/mplugd replaces them all
-sys-power/acpid
-sys-power/cpufreqd
-sys-power/cpufrequtils
-sys-power/ncpufreqd
-
-# dev-db/mariadb deprecates dev-db/mysql
-dev-db/mysql
-
-# app-cdr/mirage2iso deprecates the following packages
-app-cdr/bchunk
-app-cdr/ccd2iso
-app-cdr/nrg2iso
-
 # use qemu directly, so libvirt is not needed
 app-emulation/libvirt
-
-# not active developed and "equery hasuse -p" can do its job
-app-portage/euses
-
-# inetd is deprecated by systemd socket activation
-virtual/inetd
 
 # kerberos is too complex to be used
 virtual/krb5
 
 # have a too complex concept, break the simplicity of the whole system
 www-apache/pwauth
-
-# deprecated by www-apache/mod_wsgi
-www-apache/mod_python
-
-# language bindings that are replaced by gobject-introspection
-dev-python/pygtk
-dev-python/pywebkitgtk
-
-# modern laptop uses SSD, so it is deprecated ?
-app-laptop/laptop-mode-tools
-
-# replaced by dev-python/pillow
-dev-python/imaging
-
-# this package is bad because it depends on dev-lang/lua[deprecated]
-media-libs/libquvi
-media-libs/libquvi-scripts
-
-# deprecated by libsdl2
-# virutalbox uses it, many games uses it
-#media-libs/libsdl
-
-# not needed since "glamor" USE flag should be enabled for x11-base/xorg-server
-x11-libs/glamor
-
-# xorg is replaced by wayland
-#x11-base/xorg-server
-#x11-base/xorg-proto
-#x11-libs/libX11
 
 # no, we prefer sys-libs/readline
 dev-libs/libedit
@@ -111,12 +51,6 @@ sys-fs/f2fs-tools
 # these packages installs key files in /usr/src, which is bad
 dev-cpp/gmock
 
-# use net-misc/chrony instead
-net-misc/ntp
-net-misc/ntpclient
-net-misc/ntpsec
-net-misc/openntpd
-
 # we use /dev/node permission modification and FUSE to deal with removable block devices
 sys-fs/udisks
 
@@ -129,23 +63,8 @@ net-misc/tcp-wrappers
 # we don't use "XDG user dir", for example ~/Desktop or ~/Downloads
 x11-misc/xdg-user-dirs
 
-# FUSE2 is deprecated
-#sys-fs/fuse:0
-
-# why application relies on old electon?
-<dev-util/electon-6.0.0
-
 # /usr/bin/dotlock has SGID bit set, why?
 net-mail/mailutils
-
-# replaced by games-emulation/dosbox-staging
-games-emulation/dosbox
-
-# replaced by net-wireless/iwd
-net-wireless/wpa_supplicant
-
-# too old
-sys-apps/sysvinit
 
 # too bloated, replaced by net-vpn/i2pd
 net-vpn/i2p
@@ -157,11 +76,5 @@ media-sound/apulse
 # don't redirect alsa to sound servers, so that overall architecture can be simpler
 # media-plugins/alsa-plugins
 
-# deprecated by dev-libs/rocm-opencl-runtime
-dev-libs/amdgpu-pro-opencl
-
 # it is a standalone program, somehow conflicts with net-p2p/bitcoind
 #net-p2p/bitcoin-qt
-
-# newer libstdc++ is integrated in gcc
-sys-libs/libstdc++-v3

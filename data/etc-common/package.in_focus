@@ -37,6 +37,9 @@ sys-cluster/minikube
 ## platform: boinc #################################################
 sci-misc/boinc
 
+## database ########################################################
+dev-db/mariadb
+
 ## business server #################################################
 net-im/coturn
 
@@ -79,6 +82,7 @@ sys-fs/vdfuse
 
 ## utility: small tools ############################################
 app-arch/rar
+app-cdr/mirage2iso
 app-editors/hexedit
 app-misc/cpufetch
 app-misc/evtest
@@ -115,7 +119,6 @@ sys-process/lsof
 sys-process/numactl
 x11-misc/qt5ct
 
-
 ## utility: terminals ##############################################
 
 
@@ -130,6 +133,7 @@ www-client/microsoft-edge-dev
 ## utility: os translator ##########################################
 app-emulation/anbox
 app-emulation/darling
+games-emulation/dosbox-staging
 virtual/wine
 
 ## utility: virtual machine ########################################

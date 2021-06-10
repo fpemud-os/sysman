@@ -682,6 +682,8 @@ class FmSysChecker:
             commonDir = os.path.join(FmConst.dataDir, "etc-common")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgMaskDir, "?-base",               # /etc/portage/package.mask/01-base
                                          commonDir, "package.mask.base")
+            self.__checkAndFixEtcSymlink(FmConst.portageCfgMaskDir, "?-base_deprecated",    # /etc/portage/package.mask/02-base_deprecated
+                                         commonDir, "package.mask.base_deprecated")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgMaskDir, "?-base_bugfix",        # /etc/portage/package.mask/02-base_bugfix
                                          commonDir, "package.mask.base_bugfix")
 

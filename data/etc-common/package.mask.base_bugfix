@@ -1,8 +1,8 @@
->=dev-util/opencl-headers-2021.04.29
->sys-devel/llvm-roc-4.0.0
->dev-util/rocminfo-4.0.0
->dev-util/rocm-cmake-4.0.0
->dev-libs/rocm-device-libs-4.0.0
->dev-libs/rocm-opencl-runtime-4.0.0
->dev-libs/rocm-comgr-4.0.0
->dev-libs/rocr-runtime-4.0.0
+#>=dev-util/opencl-headers-2021.04.29
+#>sys-devel/llvm-roc-4.0.0
+#>dev-util/rocminfo-4.0.0
+#>dev-util/rocm-cmake-4.0.0
+#>dev-libs/rocm-device-libs-4.0.0
+#>dev-libs/rocm-opencl-runtime-4.0.0
+#>dev-libs/rocm-comgr-4.0.0
+#>dev-libs/rocr-runtime-4.0.0
