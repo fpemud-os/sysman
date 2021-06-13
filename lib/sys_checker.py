@@ -513,7 +513,7 @@ class FmSysChecker:
         entry = FkmBootEntry.findCurrent()
         if entry is None:
             # no way to auto fix
-            raise Exception("invalid current boot item")
+            raise FmCheckException("invalid current boot item")
 
         if entry.buildTarget.verstr != FmUtil.shellCall("/usr/bin/uname -r"):
             self.infoPrinter.printError("System is not using the current boot item, reboot needed.")
@@ -627,7 +627,7 @@ class FmSysChecker:
                 if self.bAutoFix:
                     FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "ACCEPT_KEYWORDS", " ".join(keywordList))
                 else:
-                    raise Exception("invalid value of variable ACCEPT_KEYWORDS in %s" % (FmConst.portageCfgMakeConf))
+                    raise FmCheckException("invalid value of variable ACCEPT_KEYWORDS in %s" % (FmConst.portageCfgMakeConf))
 
             # check/fix EMERGE_DEFAULT_OPTS variable
             value = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "EMERGE_DEFAULT_OPTS")
@@ -960,6 +960,12 @@ class FmSysChecker:
             return
 
         overlayDb = CloudOverlayDb()
+        if not overlayDb.isUpdateComplete():
+            if self.bAutoFix:
+                overlayDb.update()
+            else:
+                raise FmCheckException("overlay database is not updated")
+
         for overlayName in self.pkgwh.layman.getOverlayList():
             oDir = self.pkgwh.layman.getOverlayDir(overlayName)
 

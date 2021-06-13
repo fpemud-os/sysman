@@ -409,7 +409,7 @@ class FmMain:
         # update overlay database
         self.infoPrinter.printInfo(">> Updating overlay database...")
         cloudDb = CloudOverlayDb()
-        cloudDb.updateCache()
+        cloudDb.update()
         print("")
 
         # install overlay

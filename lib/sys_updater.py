@@ -74,7 +74,7 @@ class FmSysUpdater:
             # update cache
             self.infoPrinter.printInfo(">> Retrieving general information...")
             kcache.sync()
-            overlayDb.updateCache()
+            overlayDb.update()
             print("")
 
             # sync repository directories
