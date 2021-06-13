@@ -1148,32 +1148,44 @@ class CloudOverlayDb:
 
     def __init__(self):
         self.itemDict = {
-            "gentoo-overlays": (
-                "Gentoo Overlay Database",
-                "https://api.gentoo.org/overlays/repositories.xml"
-            ),
+            "gentoo-overlays": [
+                "Gentoo Overlay Database",                              # elem0: display name
+                "https://api.gentoo.org/overlays/repositories.xml",     # elem1: url
+                None,                                                   # elem2: parsed data
+            ],
         }
-        self.parseDict = {k: None for k in self.itemDict}
+
+        # try parse all items
+        for itemName, val in self.itemDict.items():
+            fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)
+            try:
+                val[2] = self.__parse(fullfn)
+            except BaseException:
+                pass
 
     def updateCache(self):
         for itemName, val in self.itemDict.items():
-            dispName, url = val
             fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)
             tm = None
             while True:
                 try:
-                    tm = FmUtil.downloadIfNewer(url, fullfn)
+                    tm = FmUtil.downloadIfNewer(val[1], fullfn)
                     break
-                except Exception as e:
-                    print("Failed to acces %s, %s" % (url, e))
+                except BaseException as e:
+                    print("Failed to acces %s, %s" % (val[1], e))
                     time.sleep(1.0)
-            self.parseDict[itemName] = None
-            print("%s: %s" % (dispName, tm.strftime("%Y%m%d%H%M%S")))
+            val[2] = self.__parse(fullfn)
+            print("%s: %s" % (val[0], tm.strftime("%Y%m%d%H%M%S")))
+
+    def isUpdateComplete(self):
+        return all([val[2] is not None for val in self.itemDict.values()])
 
     def hasOverlay(self, overlayName):
+        assert self.isUpdateComplete()
         return self._getOverlayVcsTypeAndUrl(overlayName) is not None
 
     def getOverlayVcsTypeAndUrl(self, overlayName):
+        assert self.isUpdateComplete()
         ret = self._getOverlayVcsTypeAndUrl(overlayName)
         assert ret is not None
         return ret
@@ -1185,20 +1197,11 @@ class CloudOverlayDb:
         else:
             overlayNameList = [overlayName, overlayName + "-overlay", overlayName + "_overlay"]
 
-        # pre-parse overlay database
-        for itemName in self.itemDict.keys():
-            if self.parseDict[itemName] is None:
-                fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)
-                if os.path.exists(fullfn):
-                    self.parseDict[itemName] = self.__parse(fullfn)
-                else:
-                    self.parseDict[itemName] = dict()
-
         # find overlay
         for overlayName in overlayNameList:
-            for itemName in self.itemDict.keys():
-                if overlayName in self.parseDict[itemName]:
-                    return self.parseDict[itemName][overlayName]
+            for val in self.itemDict.values():
+                if overlayName in val[2]:
+                    return val[2][overlayName]
         return None
 
     def __parse(self, fullfn):
