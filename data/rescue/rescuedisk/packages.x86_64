@@ -44,7 +44,7 @@ ipw2100-fw
 ipw2200-fw
 irssi
 iwd
-joe
+# joe                       # this package disppears
 keepassxc
 lftp
 lightdm

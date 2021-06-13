@@ -1804,7 +1804,7 @@ class FmUtil:
             if remoteTm <= localTm:
                 return localTm
         resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
-        with open(fullfn, "w") as f:
+        with open(fullfn, "wb") as f:
             f.write(resp.read())
         remoteTm = datetime.strptime(resp.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z")
         os.utime(fullfn, (remoteTm.timestamp(), remoteTm.timestamp()))
