@@ -383,7 +383,7 @@ class FkmKCache:
                 buf = f.read()
                 m = re.search("^>%s-(.*)$" % (prefix), buf, re.M)
                 if m is not None:
-                    if version > m.group(1):
+                    if FmUtil.compareVersion(m.group(1), version) < 0:
                         version = m.group(1)
         return version
 
