@@ -83,7 +83,7 @@ ppp
 pptpclient
 pv
 rdesktop
-refind-efi
+# refind-efi                    # this package disappears
 rkhunter
 rp-pppoe
 rsync
