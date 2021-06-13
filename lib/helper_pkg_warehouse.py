@@ -1163,7 +1163,7 @@ class CloudOverlayDb:
             except BaseException:
                 pass
 
-    def updateCache(self):
+    def update(self):
         for itemName, val in self.itemDict.items():
             fullfn = os.path.join(FmConst.cloudOverlayDbDir, itemName)
             tm = None
