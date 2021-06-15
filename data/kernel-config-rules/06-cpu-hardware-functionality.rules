@@ -4,5 +4,11 @@ X86_CPUID=y
 [symbols:MTRR]=y
 X86_PAT=y
 
+# for amd rysen cpu
+X86_AMD_PLATFORM_DEVICE=y
+
+# ???
+[symbols:PROCESSOR_SELECT]=y
+
 HOTPLUG_CPU=y
 BOOTPARAM_HOTPLUG_CPU0=y
