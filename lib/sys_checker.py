@@ -90,7 +90,8 @@ class FmSysChecker:
                     self._checkSystemLocale()
                     self._checkSystemTime()
                     # self._checkPamCfgFiles()
-                    self._checkLmSensorsCfgFiles()
+                    self._checkEtcModprobeCfgFiles()
+                    self._checkEtcLmSensorsCfgFiles()
                     self._checkEtcUdevRuleFiles()
                     self._checkServiceFiles()
                     self._checkPortageCfg()
@@ -426,74 +427,40 @@ class FmSysChecker:
                         self.infoPrinter.printError("Inappropriate \"optional\" control flag order in PAM config file \"%s\"." % (fullfn))
                     ctrlFlagCur = ctrlFlag
 
-    def _checkLmSensorsCfgFiles(self):
+    def _checkEtcModprobeCfgFiles(self):
+        fileSet = None
+        dn = "/etc/modprobe.d"
+        if os.path.exists(dn):
+            for fullfn in glob.glob(os.path.jion(dn, "*")):
+                if fileSet is None:
+                    fileSet = FmUtil.portageGetInstalledFileSet()
+                if fullfn in fileSet:
+                    self.infoPrinter.printError("\"%s\" should contain only user created files, but \"%s\" is not." % (dn, fullfn))
+
+    def _checkEtcLmSensorsCfgFiles(self):
         fn = "/etc/modules-load.d/lm_sensors.conf"
         if not os.path.exists(fn):
             self.infoPrinter.printError("You should use \"sensors-detect\" command from package \"sys-apps/lm-sensors\" to generate \"%s\"." % (fn))
 
     def _checkEtcUdevRuleFiles(self):
+        fileSet = None
+
         # check /etc/udev/hwdb.d
         hwdbDir = "/etc/udev/hwdb.d"
-        if not os.path.exists(hwdbDir):
-            self.infoPrinter.printError("\"%s\" does not exist." % (hwdbDir))
-        else:
-            for fn in os.listdir(hwdbDir):
-                if fn.startswith("."):
-                    continue
-                self.infoPrinter.printError("\"%s\" should not exist." % (os.path.join(hwdbDir, fn)))
+        if os.path.exists(hwdbDir):
+            for fn, fullfn in FmUtil.listDirWithoutKeepFiles(hwdbDir):
+                self.infoPrinter.printError("\"%s\" should be empty, so \"%s\" should not exist." % (hwdbDir, fullfn))
 
         # check /etc/udev/rules.d
         rulesDir = "/etc/udev/rules.d"
-        if not os.path.exists(rulesDir):
-            self.infoPrinter.printError("\"%s\" does not exist." % (rulesDir))
-        else:
-            for fn in os.listdir(rulesDir):
-                fullfn = os.path.join(rulesDir, fn)
-                if fn.startswith("."):
-                    continue
-                elif fn.startswith("72-"):
-                    lineList = [x.strip() for x in pathlib.Path(fullfn).read_text().split("\n")]
-
-                    # find and check first line
-                    firstLineNo = -1
-                    firstLineTagName = None
-                    for i in range(0, len(lineList)):
-                        line = lineList[i]
-                        if line != "" and not line.startswith("#"):
-                            firstLineNo = i
-                            m = re.fullmatch('ACTION=="remove", GOTO="(.*)_end"', line)
-                            if m is not None:
-                                firstLineTagName = m.group(1)
-                            break
-                    if firstLineNo == -1:
-                        self.infoPrinter.printError("No valid line in \"%s\"." % (fullfn))
-                        continue
-                    if firstLineTagName is None:
-                        self.infoPrinter.printError("Line %d is invalid in \"%s\"." % (firstLineNo + 1, fullfn))
-                        continue
-
-                    # find and check last line
-                    lastLineNo = -1
-                    for i in reversed(range(firstLineNo + 1, len(lineList))):
-                        line = lineList[i]
-                        if line != "" and not line.startswith("#"):
-                            if re.fullmatch('LABEL="%s_end"' % (firstLineTagName), line) is not None:
-                                lastLineNo = i
-                            break
-                    if lastLineNo == -1:
-                        self.infoPrinter.printError("No valid end line in \"%s\"." % (fullfn))
-                        continue
-
-                    # check middle lines
-                    pat = '.*, TAG-="uaccess", TAG-="seat", TAG-="master-of-seat", ENV{ID_SEAT}="", ENV{ID_AUTOSEAT}="", ENV{ID_FOR_SEAT}=""'
-                    for i in range(firstLineNo + 1, lastLineNo):
-                        line = lineList[i]
-                        if line != "" and not line.startswith("#"):
-                            if re.fullmatch(pat, line) is None:
-                                self.infoPrinter.printError("Line %d is invalid in \"%s\"." % (i + 1, fullfn))
-                                break
-                else:
-                    self.infoPrinter.printError("\"%s\" should not exist." % (fullfn))
+        if os.path.exists(rulesDir):
+            for fn, fullfn in FmUtil.listDirWithoutKeepFiles(rulesDir):
+                if fileSet is None:
+                    fileSet = FmUtil.portageGetInstalledFileSet()
+                if fullfn in fileSet:
+                    self.infoPrinter.printError("\"%s\" should contain only user created files, but \"%s\" is not." % (rulesDir, fullfn))
+                if not FmUtil.udevIsPureUaccessRuleFile(fullfn):
+                    self.infoPrinter.printError("\"%s\" is not a pure uaccess udev rule file." % (fullfn))
 
     def _checkServiceFiles(self):
         mustEnableServiceList = [

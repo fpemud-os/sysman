@@ -51,6 +51,15 @@ from gi.repository import GLib
 class FmUtil:
 
     @staticmethod
+    def listDirWithoutKeepFiles(dirpath):
+        ret = []
+        for fn in os.listdir(dirpath):
+            if fn.startswith(".keep"):
+                continue
+            ret.append((fn, os.path.join(dirpath, fn)))
+        return ret
+
+    @staticmethod
     def getLoadAvgStr():
         try:
             avg = os.getloadavg()
@@ -1813,6 +1822,50 @@ class FmUtil:
     @staticmethod
     def urlopenTimeout():
         return 60
+
+    @staticmethod
+    def udevIsPureUaccessRuleFile(filepath):
+        if not os.path.basename(filepath).startswith("72-"):
+            return False
+
+        lineList = [x.strip() for x in pathlib.Path(filepath).read_text().split("\n")]
+
+        # find and check first line
+        firstLineNo = -1
+        firstLineTagName = None
+        for i in range(0, len(lineList)):
+            line = lineList[i]
+            if line != "" and not line.startswith("#"):
+                firstLineNo = i
+                m = re.fullmatch('ACTION=="remove", GOTO="(.*)_end"', line)
+                if m is not None:
+                    firstLineTagName = m.group(1)
+                break
+        if firstLineNo == -1:
+            return False
+        if firstLineTagName is None:
+            return False
+
+        # find and check last line
+        lastLineNo = -1
+        for i in reversed(range(firstLineNo + 1, len(lineList))):
+            line = lineList[i]
+            if line != "" and not line.startswith("#"):
+                if re.fullmatch('LABEL="%s_end"' % (firstLineTagName), line) is not None:
+                    lastLineNo = i
+                break
+        if lastLineNo == -1:
+            return False
+
+        # check middle lines
+        pat = '.*, TAG-="uaccess", TAG-="seat", TAG-="master-of-seat", ENV{ID_SEAT}="", ENV{ID_AUTOSEAT}="", ENV{ID_FOR_SEAT}=""'
+        for i in range(firstLineNo + 1, lastLineNo):
+            line = lineList[i]
+            if line != "" and not line.startswith("#"):
+                if re.fullmatch(pat, line) is None:
+                    return False
+
+        return True
 
     @staticmethod
     def portageGetMakeConfList():
