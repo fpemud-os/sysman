@@ -432,7 +432,7 @@ class FmSysChecker:
 
         dn = "/etc/modprobe.d"
         if os.path.exists(dn):
-            for fullfn in glob.glob(os.path.jion(dn, "*")):
+            for fullfn in glob.glob(os.path.join(dn, "*")):
                 if fileSet is None:
                     fileSet = FmUtil.portageGetInstalledFileSet()
                 if fullfn in fileSet:
