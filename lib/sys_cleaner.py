@@ -6,7 +6,7 @@ from fm_util import FmUtil
 from fm_param import FmConst
 from helper_boot import FkmBootLoader
 from helper_boot import FkmMountBootDirRw
-from helper_build_server import BuildServerSelector
+from client_build_server import BuildServerSelector
 from helper_dyncfg import DynCfgModifier
 
 

@@ -15,7 +15,7 @@ from helper_boot_kernel import FkmBootEntry
 from helper_boot_kernel import FkmBuildTarget
 from helper_boot_kernel import FkmKCache
 from helper_boot_initramfs import FkmInitramfsBuilder
-from helper_build_server import BuildServerSelector
+from client_build_server import BuildServerSelector
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import CloudOverlayDb
 from helper_dyncfg import DynCfgModifier

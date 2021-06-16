@@ -2,7 +2,7 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 from fm_util import FmUtil
-from helper_build_server import BuildServerSelector
+from client_build_server import BuildServerSelector
 from helper_pkg_merger import PkgMerger
 from helper_dyncfg import DynCfgModifier
 
