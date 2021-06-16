@@ -429,6 +429,7 @@ class FmSysChecker:
 
     def _checkEtcModprobeCfgFiles(self):
         fileSet = None
+
         dn = "/etc/modprobe.d"
         if os.path.exists(dn):
             for fullfn in glob.glob(os.path.jion(dn, "*")):
