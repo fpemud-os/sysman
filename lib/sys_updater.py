@@ -166,7 +166,7 @@ class FmSysUpdater:
             self._execAndSyncDownQuietly(buildServer, self.opSync, "touch-portage-tree", FmConst.portageDbDir)     # FIXME
 
         # do fetch and build
-        if bFetchAndBuild:
+        if True:
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             kernelCfgRules = base64.b64encode(pickle.dumps(self.param.hwInfoGetter.current().kernelCfgRules)).decode("ascii")
 
@@ -206,7 +206,7 @@ class FmSysUpdater:
                         continue
                     tset.add(sourceName)
                     prspObj.add_task(
-                        startCoro, ["%s extra-driver-source \'%s\' \'%s\'" % (self.opFetch, name, sourceName)],
+                        startCoro, ["%s extra-driver-source \'%s\' \'%s\' %d" % (self.opFetch, name, sourceName, bSync)],
                         waitCoro,
                         pre_func=lambda x=sourceName: self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (x)),
                         post_func=lambda: print(""),
@@ -217,7 +217,7 @@ class FmSysUpdater:
                         continue
                     tset.add(sourceName)
                     prspObj.add_task(
-                        startCoro, ["%s extra-firmware-source \'%s\' \'%s\'" % (self.opFetch, name, sourceName)],
+                        startCoro, ["%s extra-firmware-source \'%s\' \'%s\' %d" % (self.opFetch, name, sourceName, bSync)],
                         waitCoro,
                         pre_func=lambda x=sourceName: self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (x)),
                         post_func=lambda: print(""),

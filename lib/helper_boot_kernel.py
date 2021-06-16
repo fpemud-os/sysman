@@ -148,8 +148,11 @@ class FkmKCache:
         FmUtil.wgetDownload("%s/%s" % (mr, firmwareFile), myFirmwareFile)
         FmUtil.wgetDownload("%s/%s" % (mr, signFile), mySignFile)
 
-    def updateExtraSourceCache(self, sourceInfo):
+    def updateExtraSourceCache(self, sourceInfo, bForce=True):
         cacheDir = os.path.join(FmConst.kcacheDir, "source-%s" % (sourceInfo["name"]))
+        if not bForce and os.path.exists(cacheDir):
+            print("Use existing data.")
+            return
 
         # source type "git"
         if sourceInfo["update-method"] == "git":
