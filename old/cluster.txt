@@ -1,0 +1,23 @@
+fully manage: BIOS, bootloader, initramfs, kernel, rootfs
+
+how to update:
+   1. update when controller is update itself, compile in controller
+   2. initramfs, kernel, rootfs is stored in controller and send to all slaves.
+
+
+
+for fpemud-os-cluster:
+*. every slave has an agent daemon?
+*. initramfs and squashfs is the slave's rootfs, modules is used for slave's kernel
+*. no nfs is used. slave can have it's own hdd to save persistent data, if no hdd is on slave, slave store data in tmpfs.
+   slave's hdd is not used to save system files.
+*. slave should be rebooted for any update on rootfs
+*. every slave has pxe server, tftp server. slaves advertise themself through dns-sd. master has no deemon
+*. dhcp server is on router or wrtd, not provide by fpemud-os-cluster.
+*. master can be temporarily be pxe server and tftp server in the foreground by run a command, this has higher priority than slaves
+*. when update, master will send all images to all slaves.
+*. one kernel and image for one cpu-arch.
+*. a configure modify engine to replace variables in configure file for each node.
+*. run app though ssh (or ansible?)?
+*. internet access for slave is done by router or wrtd, not provide by fpemud-os-cluster.
+*. slave does have a system hdd, so that it can boot with no daemon on master. but when boot failure, it will do pxe boot, so that it can get the newest image.

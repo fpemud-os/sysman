@@ -490,13 +490,15 @@ class EbuildRepositories:
         repoName2 = "repo-%s" % (repoName)
         modDir = os.path.join(FmConst.dataDir, "pkgwh-n-patch", repoName2)
         if os.path.exists(modDir):
-            FmUtil.portagePatchRepository(repoName2, self.getRepoDir(repoName), "N-patch", modDir)
+            jobCount = FmUtil.portageGetJobCount(FmConst.portageCfgMakeConf)
+            FmUtil.portagePatchRepository(repoName2, self.getRepoDir(repoName), "N-patch", modDir, jobCount)
 
     def __patchRepoS(self, repoName):
         repoName2 = "repo-%s" % (repoName)
         modDir = os.path.join(FmConst.dataDir, "pkgwh-s-patch", repoName2)
         if os.path.exists(modDir):
-            FmUtil.portagePatchRepository(repoName2, self.getRepoDir(repoName), "S-patch", modDir)
+            jobCount = FmUtil.portageGetJobCount(FmConst.portageCfgMakeConf)
+            FmUtil.portagePatchRepository(repoName2, self.getRepoDir(repoName), "S-patch", modDir, jobCount)
 
 
 class RepositoryCheckError(Exception):
@@ -1114,7 +1116,8 @@ class EbuildOverlays:
         overlayName2 = "overlay-%s" % (overlayName)
         modDir = os.path.join(FmConst.dataDir, dirName, overlayName2)
         if os.path.exists(modDir):
-            FmUtil.portagePatchRepository(overlayName2, overlaySourceDir, typeName, modDir)
+            jobCount = FmUtil.portageGetJobCount(FmConst.portageCfgMakeConf)
+            FmUtil.portagePatchRepository(overlayName2, overlaySourceDir, typeName, modDir, jobCount)
 
     def __overlayDirUglyTrick(self, overlayName, overlayDir):
         # common trick

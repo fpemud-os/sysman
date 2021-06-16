@@ -2066,6 +2066,15 @@ class FmUtil:
         return FmUtil.shellCall("/usr/bin/portageq envvar CHOST 2>/dev/null").rstrip("\n")
 
     @staticmethod
+    def portageGetJobCount(makeConf):
+        s = FmUtil.getMakeConfVar(makeConf, "EMERGE_DEFAULT_OPTS")
+        m = re.search("--jobs=([0-9]+)", s)
+        if m is not None:
+            return int(m.group(1))
+        else:
+            return 1
+
+    @staticmethod
     def portageReadWorldFile(worldFile):
         pkgList = pathlib.Path(worldFile).read_text().split("\n")
         return [x for x in pkgList if x != ""]
