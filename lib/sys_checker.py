@@ -513,8 +513,8 @@ class FmSysChecker:
     def _checkBootDir(self):
         entry = FkmBootEntry.findCurrent()
         if entry is None:
-            # no way to auto fix
-            raise FmCheckException("invalid current boot item")
+            self.infoPrinter.printError("Invalid current boot item.")
+            return
 
         if entry.buildTarget.verstr != FmUtil.shellCall("/usr/bin/uname -r"):
             self.infoPrinter.printError("System is not using the current boot item, reboot needed.")
