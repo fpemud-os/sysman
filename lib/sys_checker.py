@@ -84,7 +84,7 @@ class FmSysChecker:
 
             with self.infoPrinter.printInfoAndIndent(">> Check operating system..."):
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):
-                    self._checkMachineInfo()
+                    # self._checkMachineInfo()
                     self._checkHostsFile()
                     self._checkNsswitchFile()
                     self._checkSystemLocale()
