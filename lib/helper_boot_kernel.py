@@ -985,7 +985,7 @@ class FkmKernelBuilder:
         os.mkdir(buildTmpDir)
         with TempChdir(buildTmpDir):
             assert fullfn.endswith(".py")
-            FmUtil.cmdExec("python3", fullfn, cacheDir, self.kernelVer)     # FIXME, should respect shebang
+            FmUtil.cmdCall("python3", fullfn, cacheDir, self.kernelVer)     # FIXME, should respect shebang
 
     def buildStepClean(self):
         with open(os.path.join(_bootDir, self.dstTarget.kernelSrcSignatureFile), "w") as f:
