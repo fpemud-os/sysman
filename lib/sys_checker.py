@@ -80,6 +80,7 @@ class FmSysChecker:
 
             with self.infoPrinter.printInfoAndIndent("- Check BIOS, bootloader, initramfs and kernel..."):
                 self._checkBootDir()
+                self._checkBootloader()
                 self._checkFirmware()
 
             with self.infoPrinter.printInfoAndIndent(">> Check operating system..."):
@@ -486,6 +487,15 @@ class FmSysChecker:
 
         if entry.buildTarget.verstr != FmUtil.shellCall("/usr/bin/uname -r"):
             self.infoPrinter.printError("System is not using the current boot item, reboot needed.")
+
+    def _checkBootloader(self):
+        fn = "/boot/grub/grub.cfg"
+        if not os.path.exists(fn):
+            self.infoPrinter.printError("\"%s\" does not exist." % (fn))
+            return
+        if FmUtil.cmdCallWithRetCode("/usr/bin/grub-script-check", fn)[0] != 0:
+            self.infoPrinter.printError("Invalid \"%s\" content." % (fn))
+            return
 
     def _checkFirmware(self):
         processedList = []
