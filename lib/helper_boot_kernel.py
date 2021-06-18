@@ -515,6 +515,13 @@ class FkmKCache:
                 "update-method": "svn",
                 "url": cfg.get("source", "url"),
             }
+        elif updateMethod == "exec":
+            ret["source"] = {
+                "name": cfg.get("source", "name"),
+                "update-method": "exec",
+                "executable": cfg.get("source", "executable"),
+                "selfdir": dir_path,
+            }
         else:
             raise Exception("invalid update-method \"%s\" in config file of extra firmware \"%s\"", (updateMethod, name))
 
