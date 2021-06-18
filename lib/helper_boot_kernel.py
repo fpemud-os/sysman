@@ -47,9 +47,7 @@ class FkmKCache:
         self.extraFirmwareDir = os.path.join(FmConst.dataDir, "kernel-n-patch", "firmware")
         self.extraFirmwareDict = dict()
         for fn in os.listdir(self.extraFirmwareDir):
-            name = re.sub(r'\.ini$', "", fn)
-            assert name != fn
-            self.extraFirmwareDict[name] = self._parseExtraFirmware(name, os.path.join(self.extraFirmwareDir, fn))
+            self.extraFirmwareDict[fn] = self._parseExtraFirmware(fn, os.path.join(self.extraFirmwareDir, fn))
 
         # wireless-regdb
         self.wirelessRegDbDirUrl = "https://www.kernel.org/pub/software/network/wireless-regdb"
@@ -151,6 +149,7 @@ class FkmKCache:
     def updateExtraSourceCache(self, sourceInfo, bForce=True):
         cacheDir = os.path.join(FmConst.kcacheDir, "source-%s" % (sourceInfo["name"]))
         if not bForce and os.path.exists(cacheDir):
+            # FIXME: should check integrety
             print("Use existing data.")
             return
 
@@ -497,11 +496,11 @@ class FkmKCache:
 
         return ret
 
-    def _parseExtraFirmware(self, name, file_path):
+    def _parseExtraFirmware(self, name, dir_path):
         ret = {}
 
         cfg = configparser.ConfigParser()
-        cfg.read(os.path.join(file_path))
+        cfg.read(os.path.join(dir_path, "main.ini"))
 
         updateMethod = cfg.get("source", "update-method")
         if updateMethod == "git":
