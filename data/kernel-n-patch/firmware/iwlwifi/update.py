@@ -22,7 +22,7 @@ while True:
             relativeUrl = relativeUrl[1:] if relativeUrl.startswith("/") else relativeUrl
             remoteFileList.append((aTag.text, os.path.join(baseUrl, relativeUrl)))
         break
-    except BaseException as e:
+    except BaseException as e:                                          # FIXME: should replace with urlopen Exception
         print("Failed to acces %s, %s" % (baseUrl, e))
         time.sleep(1.0)
 
@@ -42,7 +42,7 @@ for dn, url in remoteFileList:
                 with tarfile.open(fileobj=resp, mode="r:gz") as tarf:
                     tarf.extractall(dn)
                 break
-            except BaseException as e:
+            except BaseException as e:                                  # FIXME: should replace with urlopen Exception
                 print("Failed to acces %s, %s" % (url, e))
                 time.sleep(1.0)
 
