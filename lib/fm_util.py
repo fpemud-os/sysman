@@ -1820,10 +1820,6 @@ class FmUtil:
         return remoteTm
 
     @staticmethod
-    def urlopenTimeout():
-        return 60
-
-    @staticmethod
     def udevIsPureUaccessRuleFile(filepath):
         if not os.path.basename(filepath).startswith("72-"):
             return False

@@ -1,20 +1,30 @@
 #!/usr/bin/python3
 
 import os
-import lxml
+import io
 import time
 import shutil
 import tarfile
 import robust_layer
+import lxml.html
 import urllib.request
 
 # parse files
 remoteFileList = []
-if True:
-    resp = urllib.request.urlopen("https://wireless.wiki.kernel.org/en/users/drivers/iwlwifi", timeout=robust_layer.TIMEOUT)
-    root = lxml.html.parse(resp)
-    for aTag in root.xpath(".//table/tr/td[3]/a"):
-        remoteFileList.append((aTag.text, aTag.href))
+while True:
+    baseUrl = "https://wireless.wiki.kernel.org"
+    homepageUrl = os.path.join(baseUrl, "en/users/drivers/iwlwifi")
+    try:
+        resp = urllib.request.urlopen(homepageUrl, timeout=robust_layer.TIMEOUT)
+        root = lxml.html.parse(resp)
+        for aTag in root.xpath(".//table/tr/td/a"):
+            relativeUrl = aTag.get("href")
+            relativeUrl = relativeUrl[1:] if relativeUrl.startswith("/") else relativeUrl
+            remoteFileList.append((aTag.text, os.path.join(baseUrl, relativeUrl)))
+        break
+    except BaseException as e:
+        print("Failed to acces %s, %s" % (baseUrl, e))
+        time.sleep(1.0)
 
 # download and extract files
 dirSet = set()
@@ -22,25 +32,35 @@ for dn, url in remoteFileList:
     if os.path.exists(dn):
         continue
 
-    # create directory and download content
+    print("Downloading and extracting \"%s\"..." % (dn))
     os.mkdir(dn)
-    while True:
-        try:
-            resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
-            with tarfile.TarFile(fileobj=resp) as tarf:
-                tarf.extractall(dn)
-            break
-        except BaseException as e:
-            print("Failed to acces %s, %s" % (url, e))
-            time.sleep(1.0)
+    try:
+        # download content
+        while True:
+            try:
+                resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
+                with tarfile.open(fileobj=resp, mode="r:gz") as tarf:
+                    tarf.extractall(dn)
+                break
+            except BaseException as e:
+                print("Failed to acces %s, %s" % (url, e))
+                time.sleep(1.0)
 
-    # create symlinks
-    for fn in os.listdir(dn):
-        if fn.endswith(".ucode"):
-            os.symlink(os.path.join(dn, fn), fn)
+        # create symlinks
+        if True:
+            flist = os.listdir(dn)
+            if len(flist) != 1:
+                raise Exception("invalid content for file \"%s\"" % (dn))
+            dn2 = os.path.join(dn, flist[0])
+            for fn in os.listdir(dn2):
+                if fn.endswith(".ucode"):
+                    os.symlink(os.path.join(dn2, fn), fn)
 
-    # record directory
-    dirSet.add(dn)
+        # record directory
+        dirSet.add(dn)
+    except BaseException:
+        shutil.rmtree(dn)
+        raise
 
 # remove obselete directories
 for dn in os.listdir("."):
