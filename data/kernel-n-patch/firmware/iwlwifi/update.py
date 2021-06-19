@@ -20,7 +20,7 @@ while True:
         for aTag in root.xpath(".//table/tr/td/a"):
             relativeUrl = aTag.get("href")
             relativeUrl = relativeUrl[1:] if relativeUrl.startswith("/") else relativeUrl
-            m = re.fullmatch(r"(.*)-([0-9]\.[0-9\.]+\.[0-9]).*", aTag.text)
+            m = re.fullmatch(r"(.*)-([0-9]+(\.|-)[0-9A-Za-z\.-]+(\.|-)[0-9]+).*", aTag.text)
             name = m.group(1)
             version = m.group(2)
             remoteFileDict[name] = {                                    # only keeps newest "version" for a "name"
