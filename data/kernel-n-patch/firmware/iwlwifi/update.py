@@ -61,7 +61,7 @@ for name in remoteFileDict:
                     raise Exception("invalid content for file \"%s\"" % (dn))
                 dn2 = os.path.join(dn, flist[0])
                 for fn in os.listdir(dn2):
-                    if fn.endswith(".ucode"):
+                    if fn.startswith("iwlwifi-") and (fn.endswith(".ucode") or fn.endswith(".pnvm")):
                         if os.path.exists(fn):
                             os.unlink(fn)
                         os.symlink(os.path.join(dn2, fn), fn)
