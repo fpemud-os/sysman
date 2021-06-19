@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import os
-import io
+import re
 import time
 import shutil
 import tarfile
@@ -10,7 +10,7 @@ import lxml.html
 import urllib.request
 
 # parse files
-remoteFileList = []
+remoteFileDict = dict()
 while True:
     baseUrl = "https://wireless.wiki.kernel.org"
     homepageUrl = os.path.join(baseUrl, "en/users/drivers/iwlwifi")
@@ -20,7 +20,12 @@ while True:
         for aTag in root.xpath(".//table/tr/td/a"):
             relativeUrl = aTag.get("href")
             relativeUrl = relativeUrl[1:] if relativeUrl.startswith("/") else relativeUrl
-            remoteFileList.append((aTag.text, os.path.join(baseUrl, relativeUrl)))
+            m = re.fullmatch(r"(.*)-([0-9]\.[0-9\.]+\.[0-9]).*", aTag.text)
+            name = m.group(1)
+            version = m.group(2)
+            remoteFileDict[name] = {                                    # only keeps newest "version" for a "name"
+                version: (aTag.text, os.path.join(baseUrl, relativeUrl)),
+            }
         break
     except BaseException as e:                                          # FIXME: should replace with urlopen Exception
         print("Failed to acces %s, %s" % (baseUrl, e))
@@ -28,39 +33,41 @@ while True:
 
 # download and extract files
 dirSet = set()
-for dn, url in remoteFileList:
-    if os.path.exists(dn):
-        continue
+for name in remoteFileDict:
+    for ver in remoteFileDict[name]:
+        dn, url = remoteFileDict[name][ver]
+        if os.path.exists(dn):
+            continue
 
-    print("Downloading and extracting \"%s\"..." % (dn))
-    os.mkdir(dn)
-    try:
-        # download content
-        while True:
-            try:
-                resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
-                with tarfile.open(fileobj=resp, mode="r:gz") as tarf:
-                    tarf.extractall(dn)
-                break
-            except BaseException as e:                                  # FIXME: should replace with urlopen Exception
-                print("Failed to acces %s, %s" % (url, e))
-                time.sleep(1.0)
+        print("Downloading and extracting \"%s\"..." % (dn))
+        os.mkdir(dn)
+        try:
+            # download content
+            while True:
+                try:
+                    resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
+                    with tarfile.open(fileobj=resp, mode="r:gz") as tarf:
+                        tarf.extractall(dn)
+                    break
+                except BaseException as e:                                  # FIXME: should replace with urlopen Exception
+                    print("Failed to acces %s, %s" % (url, e))
+                    time.sleep(1.0)
 
-        # create symlinks
-        if True:
-            flist = os.listdir(dn)
-            if len(flist) != 1:
-                raise Exception("invalid content for file \"%s\"" % (dn))
-            dn2 = os.path.join(dn, flist[0])
-            for fn in os.listdir(dn2):
-                if fn.endswith(".ucode"):
-                    os.symlink(os.path.join(dn2, fn), fn)
+            # create symlinks
+            if True:
+                flist = os.listdir(dn)
+                if len(flist) != 1:
+                    raise Exception("invalid content for file \"%s\"" % (dn))
+                dn2 = os.path.join(dn, flist[0])
+                for fn in os.listdir(dn2):
+                    if fn.endswith(".ucode"):
+                        os.symlink(os.path.join(dn2, fn), fn)
 
-        # record directory
-        dirSet.add(dn)
-    except BaseException:
-        shutil.rmtree(dn)
-        raise
+            # record directory
+            dirSet.add(dn)
+        except BaseException:
+            shutil.rmtree(dn)
+            raise
 
 # remove obselete directories
 for dn in os.listdir("."):
