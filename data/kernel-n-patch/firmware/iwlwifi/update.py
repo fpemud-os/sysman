@@ -61,6 +61,8 @@ for name in remoteFileDict:
                 dn2 = os.path.join(dn, flist[0])
                 for fn in os.listdir(dn2):
                     if fn.endswith(".ucode"):
+                        if os.path.exists(fn):
+                            os.unlink(fn)
                         os.symlink(os.path.join(dn2, fn), fn)
 
             # record directory
