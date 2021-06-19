@@ -406,7 +406,7 @@ class FkmKCache:
             while len(td) > 0:
                 td = td[0]
             return td.text
-        except Exception as e:
+        except OSError as e:
             print("Failed to acces %s, %s" % (self.kernelUrl, e))
             return None
 
@@ -422,7 +422,7 @@ class FkmKCache:
                         ret = m.group(1)
             assert ret is not None
             return ret
-        except Exception as e:
+        except OSError as e:
             print("Failed to acces %s, %s" % (self.firmwareUrl, e))
             return None
 
@@ -435,7 +435,7 @@ class FkmKCache:
                 if ver is None or m.group(1) > ver:
                     ver = m.group(1)
             return ver
-        except Exception as e:
+        except OSError as e:
             print("Failed to acces %s, %s" % (self.wirelessRegDbDirUrl, e))
             return None
 

@@ -3,6 +3,7 @@
 import os
 import re
 import time
+import socket
 import shutil
 import tarfile
 import robust_layer
@@ -27,7 +28,7 @@ while True:
                 version: (aTag.text, os.path.join(baseUrl, relativeUrl)),
             }
         break
-    except BaseException as e:                                          # FIXME: should replace with urlopen Exception
+    except OSError as e:
         print("Failed to acces %s, %s" % (baseUrl, e))
         time.sleep(1.0)
 
@@ -49,7 +50,7 @@ for name in remoteFileDict:
                     with tarfile.open(fileobj=resp, mode="r:gz") as tarf:
                         tarf.extractall(dn)
                     break
-                except BaseException as e:                                  # FIXME: should replace with urlopen Exception
+                except OSError as e:
                     print("Failed to acces %s, %s" % (url, e))
                     time.sleep(1.0)
 
