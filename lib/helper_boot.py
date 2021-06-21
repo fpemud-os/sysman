@@ -25,8 +25,7 @@ class FkmBootDir:
     def updateBootEntry(self, postfixCurrent):
         """require files already copied into /boot directory"""
 
-        if not os.path.exists(self.historyDir):
-            os.mkdir(self.historyDir)
+        os.makedirs(self.historyDir, exist_ok=True)
 
         buildTarget = FkmBuildTarget.newFromPostfix(postfixCurrent)
 
@@ -325,13 +324,18 @@ class FkmBootLoader:
 
         grubKernelOpt = ""
 
+        # backup old directory
+        if os.path.exists("/boot/grub"):
+            os.makedirs(self.historyDir, exist_ok=True)
+            FmUtil.forceDelete(os.path.join(self.historyDir, "grub"))
+            os.rename("/boot/grub"), os.path.join(self.historyDir, "grub")
+
         # install /boot/grub directory
         # install grub into disk MBR
-        FmUtil.forceDelete(os.path.join(_bootDir, "grub"))
         FmUtil.cmdCall("/usr/sbin/grub-install", "--target=i386-pc", storageLayout.getBootHdd())
 
         # generate grub.cfg
-        self._genGrubCfg(os.path.join(_bootDir, "grub", "grub.cfg"),
+        self._genGrubCfg("/boot/grub/grub.cfg",
                          "bios",
                          storageLayout,
                          _bootDir,
@@ -363,14 +367,23 @@ class FkmBootLoader:
 
         grubKernelOpt = ""
 
-        # install /boot/grub directory
-        # install grub into ESP and UEFI firmware variable
-        FmUtil.forceDelete(os.path.join(_bootDir, "EFI", "grub"))
-        FmUtil.forceDelete(os.path.join(_bootDir, "grub"))
-        FmUtil.cmdCall("/usr/sbin/grub-install", "--target=x86_64-efi", "--efi-directory=%s" % (_bootDir))
+        # backup old directory
+        if os.path.exists("/boot/grub"):
+            os.makedirs(self.historyDir, exist_ok=True)
+            FmUtil.forceDelete(os.path.join(self.historyDir, "grub"))
+            os.rename("/boot/grub"), os.path.join(self.historyDir, "grub")
+        if os.path.exists("/boot/EFI"):
+            os.makedirs(self.historyDir, exist_ok=True)
+            FmUtil.forceDelete(os.path.join(self.historyDir, "EFI"))
+            os.rename("/boot/EFI"), os.path.join(self.historyDir, "EFI")
+
+        # install /boot/grub and /boot/EFI directory
+        # install grub into ESP
+        # *NO* UEFI firmware variable is touched, so that we are portable
+        FmUtil.cmdCall("/usr/sbin/grub-install", "--removable", "--target=x86_64-efi", "--efi-directory=/boot", "--no-nvram")
 
         # generate grub.cfg
-        self._genGrubCfg(os.path.join(_bootDir, "grub", "grub.cfg"),
+        self._genGrubCfg("/boot/grub/grub.cfg",
                          "efi",
                          storageLayout,
                          "/",
@@ -380,18 +393,7 @@ class FkmBootLoader:
                          FmConst.kernelInitCmd)
 
     def _uefiGrubRemove(self):
-        # remove nvram boot entry
-        while True:
-            msg = FmUtil.cmdCall("/usr/sbin/efibootmgr")
-            m = re.search("^Boot([0-9]+)\\*? +grub$", msg, re.M)
-            if m is None:
-                break
-            FmUtil.cmdCall("/usr/sbin/efibootmgr", "-b", m.group(1), "-B")
-
-        # remove /boot/EFI/grub directory
-        FmUtil.forceDelete(os.path.join(_bootDir, "EFI", "grub"))
-
-        # remove /boot/grub directory
+        FmUtil.forceDelete(os.path.join(_bootDir, "EFI"))
         FmUtil.forceDelete(os.path.join(_bootDir, "grub"))
 
     def _getGrubRootDevCmd(self, devPath):
@@ -446,4 +448,4 @@ class FkmMountBootDirRw:
             assert False
 
 
-_bootDir = "/boot"
+_bootDir = "/boot"      # deprecated
