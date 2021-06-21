@@ -300,9 +300,9 @@ class FkmInitramfsBuilder:
                     pass
                 elif d.fsType == "bcache":
                     pass
-                elif d.fsType in ["ext2", "ext4", "xfs", "vfat"]:
+                elif d.fsType in ["ext2", "ext4"]:
                     fsckOpList.append("fsck %s %s" % (d.fsType, FmUtil.getBlkDevUuid(d.devPath)))
-                elif d.fsType in ["btrfs"]:
+                elif d.fsType in ["btrfs", "xfs", "vfat"]:
                     pass
                 else:
                     assert False
@@ -318,11 +318,11 @@ class FkmInitramfsBuilder:
             elif d.fsType in ["ext2", "ext4"]:
                 self._installBin("/sbin/e2fsck", rootDir)
             elif d.fsType == "xfs":
-                self._installBin("/sbin/fsck.xfs", rootDir)
+                pass                                            # fsck for XFS is implemented in kernel, /usr/sbin/fsck.xfs is only a dummy
             elif d.fsType == "btrfs":
-                pass
+                pass                                            # FIXME
             elif d.fsType == "vfat":
-                self._installBin("/usr/sbin/fsck.fat", rootDir)
+                pass                                            # /usr/sbin/fsck.fat can do nearly nothing.
             else:
                 assert False
 
