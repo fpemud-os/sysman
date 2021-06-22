@@ -5,7 +5,6 @@ import os
 import sys
 import robust_layer.simple_fops
 sys.path.append('/usr/lib64/fpemud-os-sysman')
-from fm_util import FmUtil
 from fm_param import FmConst
 from helper_boot import FkmBootEntry
 from helper_boot_kernel import FkmKCache
