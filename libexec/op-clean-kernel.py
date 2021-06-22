@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import glob
+import robust_layer.simple_fops
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import FmUtil
 from helper_boot import FkmBootDir
@@ -95,12 +96,12 @@ if len(bootFileList) > 0 or len(moduleFileList) > 0 or len(firmwareFileList) > 0
     ret = 1
     print("        - Deleting...")
     for f in bootFileList:
-        FmUtil.forceDelete(os.path.join(bootDir, f))
+        robust_layer.simple_fops.rm(os.path.join(bootDir, f))
     for f in moduleFileList:
-        FmUtil.forceDelete(os.path.join(kernelModuleDir, f))
+        robust_layer.simple_fops.rm(os.path.join(kernelModuleDir, f))
     for f in firmwareFileList:
         fullfn = os.path.join(firmwareDir, f)
-        FmUtil.forceDelete(os.path.join(firmwareDir, f))
+        robust_layer.simple_fops.rm(os.path.join(firmwareDir, f))
         d = os.path.dirname(fullfn)
         if len(os.listdir(d)) == 0:
             os.rmdir(d)

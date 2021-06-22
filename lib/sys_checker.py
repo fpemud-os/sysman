@@ -12,6 +12,7 @@ import filecmp
 import strict_pgs
 import strict_fsh
 import configparser
+import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_param import FmConst
@@ -885,7 +886,7 @@ class FmSysChecker:
             if len(flist) > 0:
                 if self.bAutoFix:
                     for fn in flist:
-                        FmUtil.forceDelete(fn)
+                        robust_layer.simple_fops.rm(fn)
                 else:
                     for fn in flist:
                         self.infoPrinter.printError("Redundant file \"%s\" exist." % (fn))
@@ -1039,7 +1040,7 @@ class FmSysChecker:
             fn = os.path.basename(fullfn)
             if not os.path.exists(os.path.join(FmConst.portageCfgReposDir, "%s.conf" % (fn))):
                 if self.bAutoFix:
-                    FmUtil.forceDelete(fullfn)
+                    robust_layer.simple_fops.rm(fullfn)
                 else:
                     redundantList.append(fullfn)
                     self.infoPrinter.printError("Redundant directory \"%s\" found." % (fullfn))
@@ -1050,7 +1051,7 @@ class FmSysChecker:
             libFullfn = os.path.join(FmConst.portageDataDir, "overlay-%s" % (fn))
             if not os.path.exists(libFullfn) or libFullfn in redundantList:
                 if self.bAutoFix:
-                    FmUtil.forceDelete(fullfn)
+                    robust_layer.simple_fops.rm(fullfn)
                 else:
                     self.infoPrinter.printError("Redundant directory \"%s\" found." % (fullfn))
 
@@ -1384,8 +1385,7 @@ class FmSysChecker:
         # <linkFile> is wrong, fix: re-create the symlink
         if os.readlink(linkFile) != targetFile:
             if self.bAutoFix:
-                os.unlink(linkFile)
-                os.symlink(targetFile, linkFile)
+                robust_layer.simple_fops.ln(targetFile, linkFile)
             else:
                 raise FmCheckException("\"%s\" must be a symlink to \"%s\"" % (linkFile, targetFile))
 

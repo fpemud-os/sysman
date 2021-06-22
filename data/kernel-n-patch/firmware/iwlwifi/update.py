@@ -3,10 +3,10 @@
 import os
 import re
 import time
-import socket
 import shutil
 import tarfile
 import robust_layer
+import robust_layer.simple_fops
 import lxml.html
 import urllib.request
 
@@ -62,9 +62,7 @@ for name in remoteFileDict:
                 dn2 = os.path.join(dn, flist[0])
                 for fn in os.listdir(dn2):
                     if fn.startswith("iwlwifi-") and (fn.endswith(".ucode") or fn.endswith(".pnvm")):
-                        if os.path.exists(fn):
-                            os.unlink(fn)
-                        os.symlink(os.path.join(dn2, fn), fn)
+                        robust_layer.simple_fops.ln(os.path.join(dn2, fn), fn)
 
             # record directory
             dirSet.add(dn)

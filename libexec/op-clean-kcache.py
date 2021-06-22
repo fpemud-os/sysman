@@ -3,6 +3,7 @@
 
 import os
 import sys
+import robust_layer.simple_fops
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import FmUtil
 from fm_param import FmConst
@@ -54,8 +55,8 @@ else:
 if len(kernelFileList) > 0 or len(firmwareFileList) > 0 or len(wirelessRegDbFileList) > 0:
     print("        - Deleting...")
     for f in kernelFileList:
-        FmUtil.forceDelete(os.path.join(FmConst.kcacheDir, f))
+        robust_layer.simple_fops.rm(os.path.join(FmConst.kcacheDir, f))
     for f in firmwareFileList:
-        FmUtil.forceDelete(os.path.join(FmConst.kcacheDir, f))
+        robust_layer.simple_fops.rm(os.path.join(FmConst.kcacheDir, f))
     for f in wirelessRegDbFileList:
-        FmUtil.forceDelete(os.path.join(FmConst.kcacheDir, f))
+        robust_layer.simple_fops.rm(os.path.join(FmConst.kcacheDir, f))

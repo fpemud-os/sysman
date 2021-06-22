@@ -1053,16 +1053,6 @@ class FmUtil:
         return 0
 
     @staticmethod
-    def mkDirWithParent(dirname):
-        assert os.path.isabs(dirname)
-
-        cdir = "/"
-        for d in dirname.split("/"):        # fixme: don't support special character currently
-            cdir = os.path.join(cdir, d)
-            if not os.path.exists(cdir):
-                os.mkdir(cdir)
-
-    @staticmethod
     def mkDirAndClear(dirname):
         FmUtil.forceDelete(dirname)
         os.mkdir(dirname)
