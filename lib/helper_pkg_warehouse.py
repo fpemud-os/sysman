@@ -247,9 +247,9 @@ class PkgWarehouse:
         b = b.replace("python_targets_", "")
 
         if a.startswith("python") and b.startswith("python"):
-            a = float(a.replace("python", "").replace("_", "."))
-            b = float(b.replace("python", "").replace("_", "."))
-            return FmUtil.cmpSimple(a, b)
+            a = a.replace("python", "").replace("_", ".")
+            b = b.replace("python", "").replace("_", ".")
+            return FmUtil.compareVersion(a, b)
 
         # we think "pypy" always be less than "pythonX.Y", so it won't be selected
         if a.startswith("pypy") and b.startswith("pypy"):
@@ -315,9 +315,9 @@ class PkgWarehouse:
             return -1
 
         if a.startswith("ruby") and b.startswith("ruby"):
-            a = int(a.replace("ruby", ""))
-            b = int(b.replace("ruby", ""))
-            return FmUtil.cmpSimple(a, b)
+            a = a.replace("ruby", "")
+            b = b.replace("ruby", "")
+            return FmUtil.compareVersion(a, b)
 
         assert False
 

@@ -364,14 +364,6 @@ class FmUtil:
         return None
 
     @staticmethod
-    def cmpSimple(a, b):
-        if a > b:
-            return 1
-        if a < b:
-            return -1
-        return 0
-
-    @staticmethod
     def is_int(s):
         try:
             int(s)
@@ -1029,8 +1021,18 @@ class FmUtil:
         verList2 = partList2[0].split(".")
         assert len(verList1) == 3 and len(verList2) == 3
 
-        ver1 = int(verList1[0]) * 10000 + int(verList1[1]) * 100 + int(verList1[2])
-        ver2 = int(verList2[0]) * 10000 + int(verList2[1]) * 100 + int(verList2[2])
+        if len(verList1) == 3 and len(verList2) == 3:
+            ver1 = int(verList1[0]) * 10000 + int(verList1[1]) * 100 + int(verList1[2])
+            ver2 = int(verList2[0]) * 10000 + int(verList2[1]) * 100 + int(verList2[2])
+        elif len(verList1) == 2 and len(verList2) == 2:
+            ver1 = int(verList1[0]) * 100 + int(verList1[1])
+            ver2 = int(verList2[0]) * 100 + int(verList2[1])
+        elif len(verList1) == 1 and len(verList2) == 1:
+            ver1 = int(verList1[0])
+            ver2 = int(verList2[0])
+        else:
+            assert False
+
         if ver1 > ver2:
             return 1
         elif ver1 < ver2:
