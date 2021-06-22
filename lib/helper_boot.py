@@ -4,10 +4,11 @@
 import os
 import re
 import glob
+import robust_layer.simple_fops
 from fm_util import FmUtil
+from fm_param import FmConst
 from helper_boot_kernel import FkmBuildTarget
 from helper_boot_kernel import FkmBootEntry
-from fm_param import FmConst
 
 
 class FkmBootDir:
@@ -327,8 +328,7 @@ class FkmBootLoader:
         # backup old directory
         if os.path.exists("/boot/grub"):
             os.makedirs(self.historyDir, exist_ok=True)
-            FmUtil.forceDelete(os.path.join(self.historyDir, "grub"))
-            os.rename("/boot/grub"), os.path.join(self.historyDir, "grub")
+            robust_layer.simple_fops.move("/boot/grub", os.path.join(self.historyDir, "grub"))
 
         # install /boot/grub directory
         # install grub into disk MBR
@@ -370,12 +370,10 @@ class FkmBootLoader:
         # backup old directory
         if os.path.exists("/boot/grub"):
             os.makedirs(self.historyDir, exist_ok=True)
-            FmUtil.forceDelete(os.path.join(self.historyDir, "grub"))
-            os.rename("/boot/grub"), os.path.join(self.historyDir, "grub")
+            robust_layer.simple_fops.move("/boot/grub", os.path.join(self.historyDir, "grub"))
         if os.path.exists("/boot/EFI"):
             os.makedirs(self.historyDir, exist_ok=True)
-            FmUtil.forceDelete(os.path.join(self.historyDir, "EFI"))
-            os.rename("/boot/EFI"), os.path.join(self.historyDir, "EFI")
+            robust_layer.simple_fops.move("/boot/EFI", os.path.join(self.historyDir, "EFI"))
 
         # install /boot/grub and /boot/EFI directory
         # install grub into ESP
