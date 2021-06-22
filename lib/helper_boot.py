@@ -13,7 +13,7 @@ from fm_param import FmConst
 class FkmBootDir:
 
     def __init__(self):
-        self.historyDir = os.path.join(_bootDir, "history")
+        self.historyDir = "/boot/history"
 
     def getMainOsStatus(self):
         ret = FkmBootEntry.findCurrent()
@@ -30,36 +30,36 @@ class FkmBootDir:
         buildTarget = FkmBuildTarget.newFromPostfix(postfixCurrent)
 
         kernelFileList = [
-            os.path.join(_bootDir, buildTarget.kernelFile),
+            os.path.join("/boot", buildTarget.kernelFile),
         ]
         kernelCfgFileList = [
-            os.path.join(_bootDir, buildTarget.kernelCfgFile),
-            os.path.join(_bootDir, buildTarget.kernelCfgRuleFile),
+            os.path.join("/boot", buildTarget.kernelCfgFile),
+            os.path.join("/boot", buildTarget.kernelCfgRuleFile),
         ]
         kernelMapFileList = [
-            os.path.join(_bootDir, buildTarget.kernelMapFile),
+            os.path.join("/boot", buildTarget.kernelMapFile),
         ]
         kernelSrcSignatureFileList = [
-            os.path.join(_bootDir, buildTarget.kernelSrcSignatureFile),
+            os.path.join("/boot", buildTarget.kernelSrcSignatureFile),
         ]
         initrdFileList = [
-            os.path.join(_bootDir, buildTarget.initrdFile),
-            os.path.join(_bootDir, buildTarget.initrdTarFile),
+            os.path.join("/boot", buildTarget.initrdFile),
+            os.path.join("/boot", buildTarget.initrdTarFile),
         ]
 
-        for fn in glob.glob(os.path.join(_bootDir, "kernel-*")):
+        for fn in glob.glob("/boot/kernel-*"):
             if fn not in kernelFileList:
                 os.rename(fn, os.path.join(self.historyDir, os.path.basename(fn)))
-        for fn in glob.glob(os.path.join(_bootDir, "config-*")):
+        for fn in glob.glob("/boot/config-*"):
             if fn not in kernelCfgFileList:
                 os.rename(fn, os.path.join(self.historyDir, os.path.basename(fn)))
-        for fn in glob.glob(os.path.join(_bootDir, "System.map-*")):
+        for fn in glob.glob("/boot/System.map-*"):
             if fn not in kernelMapFileList:
                 os.rename(fn, os.path.join(self.historyDir, os.path.basename(fn)))
-        for fn in glob.glob(os.path.join(_bootDir, "signature-*")):
+        for fn in glob.glob("/boot/signature-*"):
             if fn not in kernelSrcSignatureFileList:
                 os.rename(fn, os.path.join(self.historyDir, os.path.basename(fn)))
-        for fn in glob.glob(os.path.join(_bootDir, "initramfs-*")):
+        for fn in glob.glob("/boot/initramfs-*"):
             if fn not in initrdFileList:
                 os.rename(fn, os.path.join(self.historyDir, os.path.basename(fn)))
 
@@ -99,8 +99,8 @@ class FkmBootDir:
 class FkmBootLoader:
 
     def __init__(self):
-        self.rescueOsDir = os.path.join(_bootDir, "rescue")
-        self.historyDir = os.path.join(_bootDir, "history")
+        self.rescueOsDir = "/boot/rescue"
+        self.historyDir = "/boot/history"
 
     def isStable(self):
         # we use grub environment variable to store stable status, our grub needs this status either
@@ -166,7 +166,7 @@ class FkmBootLoader:
             assert False
 
     def cleanBootloader(self):
-        grubcfg = os.path.join(_bootDir, "grub", "grub.cfg")
+        grubcfg = "/boot/grub/grub.cfg"
 
         lineList = []
         with open(grubcfg) as f:
@@ -246,7 +246,7 @@ class FkmBootLoader:
         buf += self._grubGetMenuEntryList("Current", buildTarget, grubRootDev, prefix, grubKernelOpt)
 
         # write menu entry for rescue os
-        if os.path.exists(os.path.join(_bootDir, "rescue")):
+        if os.path.exists("/boot/rescue"):
             uuid = self._getBlkDevUuid(grubRootDev)
             kernelFile = os.path.join(prefix, "rescue", "x86_64", "vmlinuz")
             initrdFile = os.path.join(prefix, "rescue", "x86_64", "initcpio.img")
@@ -338,7 +338,7 @@ class FkmBootLoader:
         self._genGrubCfg("/boot/grub/grub.cfg",
                          "bios",
                          storageLayout,
-                         _bootDir,
+                         "/boot",
                          ret.buildTarget,
                          grubKernelOpt,
                          hwInfo.grubExtraWaitTime,
@@ -350,7 +350,7 @@ class FkmBootLoader:
             f.write(FmUtil.newBuffer(0, 440))
 
         # remove /boot/grub directory
-        FmUtil.forceDelete(os.path.join(_bootDir, "grub"))
+        FmUtil.forceDelete("/boot/grub")
 
     def _uefiGrubCheck(self, hwInfo, storageLayout):
         bootDev = storageLayout.getBootDev()
@@ -393,8 +393,8 @@ class FkmBootLoader:
                          FmConst.kernelInitCmd)
 
     def _uefiGrubRemove(self):
-        FmUtil.forceDelete(os.path.join(_bootDir, "EFI"))
-        FmUtil.forceDelete(os.path.join(_bootDir, "grub"))
+        FmUtil.forceDelete("/boot/EFI")
+        FmUtil.forceDelete("/boot/grub")
 
     def _getGrubRootDevCmd(self, devPath):
         if os.path.dirname(devPath) == "/dev/mapper" or devPath.startswith("/dev/dm-"):
@@ -411,8 +411,8 @@ class FkmBootLoader:
         return uuid
 
     def _getBackgroundFileInfo(self):
-        for fn in glob.glob(os.path.join(_bootDir, "background.*")):
-            fn = fn.replace(_bootDir, "")
+        for fn in glob.glob("/boot/background.*"):
+            fn = fn.replace("/boot", "")
             if fn.endswith(".png"):
                 return (fn, "png")
             elif fn.endswith(".jpg"):
@@ -428,7 +428,7 @@ class FkmMountBootDirRw:
         if self.storageLayout.getType() is None:
             pass
         elif self.storageLayout.getType() == "efi":
-            FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), _bootDir, "-o", "rw,remount")
+            FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), "/boot", "-o", "rw,remount")
         elif self.storageLayout.getType() == "bios":
             pass
         else:
@@ -441,11 +441,8 @@ class FkmMountBootDirRw:
         if self.storageLayout.getType() is None:
             pass
         elif self.storageLayout.getType() == "efi":
-            FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), _bootDir, "-o", "ro,remount")
+            FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), "/boot", "-o", "ro,remount")
         elif self.storageLayout.getType() == "bios":
             pass
         else:
             assert False
-
-
-_bootDir = "/boot"      # deprecated

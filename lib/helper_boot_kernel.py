@@ -683,31 +683,31 @@ class FkmBootEntry:
 
     @property
     def kernelFile(self):
-        return os.path.join(_bootDir, self.buildTarget.kernelFile)
+        return os.path.join("/boot", self.buildTarget.kernelFile)
 
     @property
     def kernelCfgFile(self):
-        return os.path.join(_bootDir, self.buildTarget.kernelCfgFile)
+        return os.path.join("/boot", self.buildTarget.kernelCfgFile)
 
     @property
     def kernelCfgRuleFile(self):
-        return os.path.join(_bootDir, self.buildTarget.kernelCfgRuleFile)
+        return os.path.join("/boot", self.buildTarget.kernelCfgRuleFile)
 
     @property
     def kernelSrcSignatureFile(self):
-        return os.path.join(_bootDir, self.buildTarget.kernelSrcSignatureFile)
+        return os.path.join("/boot", self.buildTarget.kernelSrcSignatureFile)
 
     @property
     def kernelMapFile(self):
-        return os.path.join(_bootDir, self.buildTarget.kernelMapFile)
+        return os.path.join("/boot", self.buildTarget.kernelMapFile)
 
     @property
     def initrdFile(self):
-        return os.path.join(_bootDir, self.buildTarget.initrdFile)
+        return os.path.join("/boot", self.buildTarget.initrdFile)
 
     @property
     def initrdTarFile(self):
-        return os.path.join(_bootDir, self.buildTarget.initrdTarFile)
+        return os.path.join("/boot", self.buildTarget.initrdTarFile)
 
     def kernelFilesExists(self):
         if not os.path.exists(self.kernelFile):
@@ -731,7 +731,7 @@ class FkmBootEntry:
 
     @staticmethod
     def findCurrent(strict=True):
-        ret = [x for x in sorted(os.listdir(_bootDir)) if x.startswith("kernel-")]
+        ret = [x for x in sorted(os.listdir("/boot")) if x.startswith("kernel-")]
         if ret == []:
             return None
 
@@ -912,16 +912,16 @@ class FkmKernelBuilder:
         self._makeMain(self.realSrcDir)
         FmUtil.cmdCall("/bin/cp", "-f",
                        "%s/arch/%s/boot/bzImage" % (self.realSrcDir, self.dstTarget.arch),
-                       os.path.join(_bootDir, self.dstTarget.kernelFile))
+                       os.path.join("/boot", self.dstTarget.kernelFile))
         FmUtil.cmdCall("/bin/cp", "-f",
                        "%s/System.map" % (self.realSrcDir),
-                       os.path.join(_bootDir, self.dstTarget.kernelMapFile))
+                       os.path.join("/boot", self.dstTarget.kernelMapFile))
         FmUtil.cmdCall("/bin/cp", "-f",
                        "%s/.config" % (self.realSrcDir),
-                       os.path.join(_bootDir, self.dstTarget.kernelCfgFile))
+                       os.path.join("/boot", self.dstTarget.kernelCfgFile))
         FmUtil.cmdCall("/bin/cp", "-f",
                        self.kcfgRulesTmpFile,
-                       os.path.join(_bootDir, self.dstTarget.kernelCfgRuleFile))
+                       os.path.join("/boot", self.dstTarget.kernelCfgRuleFile))
 
         self._makeAuxillary(self.realSrcDir, "modules_install")
 
@@ -994,7 +994,7 @@ class FkmKernelBuilder:
             FmUtil.cmdCall("python3", fullfn, cacheDir, self.kernelVer)     # FIXME, should respect shebang
 
     def buildStepClean(self):
-        with open(os.path.join(_bootDir, self.dstTarget.kernelSrcSignatureFile), "w") as f:
+        with open(os.path.join("/boot", self.dstTarget.kernelSrcSignatureFile), "w") as f:
             f.write(self.srcSignature)
         os.unlink(os.path.join(self._getModulesDir(), "source"))
         os.unlink(os.path.join(self._getModulesDir(), "build"))
@@ -1032,6 +1032,3 @@ class FkmKernelBuilder:
                     f.write("\n")
                     f.write("\n")
                     f.write("\n")
-
-
-_bootDir = "/boot"

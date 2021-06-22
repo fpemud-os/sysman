@@ -17,7 +17,7 @@ class RescueOs:
         self.filesDir = os.path.join(FmConst.dataDir, "rescue", "rescueos")
         self.pkgListFile = os.path.join(self.filesDir, "packages")
         self.pkgDir = os.path.join(FmConst.dataDir, "rescue", "pkg")
-        self.sysRescCdDir = os.path.join(_bootDir, "rescue")
+        self.sysRescCdDir = "/boot/rescue"
         self.mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
         self.rootfsFn = os.path.join(self.sysRescCdDir, "x86_64", "airootfs.sfs")
         self.rootfsMd5Fn = os.path.join(self.sysRescCdDir, "x86_64", "airootfs.sha512")
@@ -168,6 +168,3 @@ def _standardMountList(rootfsDir):
         tstr = os.path.join(rootfsDir, "tmp")
         mountList.append((tstr, "-t tmpfs -o mode=1777,strictatime,nodev,nosuid tmpfs %s" % (tstr)))
     return mountList
-
-
-_bootDir = "/boot"
