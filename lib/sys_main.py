@@ -59,6 +59,8 @@ class FmMain:
             LVM PVs: /dev/sda,bcache0 /dev/sdb,bcache16 (total: 8.2TiB)
         Swap:
             Disabled
+        Logging:
+            To harddisk (/var/log)
 
         Backend graphics devices:
             /dev/dri/card1 /dev/dri/card2 (total: 16GiB 14.3TFLOPs)
@@ -265,6 +267,10 @@ class FmMain:
                         print("    Enabled (%s)" % (FmUtil.formatSize(swapSize)))
                 else:
                     assert False
+
+        # FIXME
+        print("Logging:")
+        print("    To harddisk (/var/log)")
 
         print("")
 

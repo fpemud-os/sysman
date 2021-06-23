@@ -32,6 +32,9 @@ Basic Usage:
      * Do "emerge --depclean"
      * Optimize all logical volumes in volume group "hdd" (size, fragmentation)
 
+  sysman stablize
+     * Marks the system as stable
+
 #  sysman solder [--remove-i18n] [--remove-doc]
 #     * Delete Fpemud OS related packages
 #     * Delete build tool chain, all DEPEND package
@@ -60,6 +63,13 @@ Storage Management:
   sysman disable-swap
      * Disable all swap mount unit
      * Remove swap partitions or swap files
+
+  sysman enable-log-persistence
+     * Record logging information to harddisk (/var/log)
+
+  sysman disable-log-persistence
+     * Record logging information to memory (default)
+     * Directory /var/log should be empty
 
 
 User and Group Management:
@@ -125,16 +135,6 @@ Rescue Facility:
   sysman build-rescue-disk <devpath>
      * Build an Arch Linux based rescue disk
      * Support cd-rw, dvd-rw, usb-stick, sd-card
-
-
-Deprecated usage:
-
-  sysman log-to-harddisk [--realtime]
-     * Logging to harddisk
-
-  sysman log-to-memory
-     * Logging to memory (default)
-     * Directory /var/log should be empty
 
 
 Storage layout:

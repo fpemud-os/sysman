@@ -44,12 +44,12 @@ def getArgParser():
     parser2.set_defaults(op="update")
     parser2.add_argument("--no-sync", action="store_true")
 
-    parser2 = subparsers.add_parser("stablize", help="Stablize the system")
-    parser2.set_defaults(op="stablize")
-
     parser2 = subparsers.add_parser("clean", help="Clean the system")
     parser2.set_defaults(op="clean")
     parser2.add_argument("--pretend", action="store_true")
+
+    parser2 = subparsers.add_parser("stablize", help="Stablize the system")
+    parser2.set_defaults(op="stablize")
 
     ###########################################################################
 
@@ -68,6 +68,12 @@ def getArgParser():
 
     parser2 = subparsers.add_parser("disable-swap", help="Disable swap system-widely")
     parser2.set_defaults(op="disable-swap")
+
+    parser2 = subparsers.add_parser("enable-log-psersistence", help="Record logging information to harddisk")
+    parser2.set_defaults(op="log-to-harddisk")
+
+    parser2 = subparsers.add_parser("disable-log-psersistence", help="Record logging information to memory only")
+    parser2.set_defaults(op="log-to-memory")
 
     ###########################################################################
 
@@ -191,10 +197,10 @@ try:
                 FmMain(param).doShow()
             elif args.op == "update":
                 param.sysUpdater.update(not args.no_sync, True)
-            elif args.op == "stablize":
-                param.sysUpdater.stablize()
             elif args.op == "clean":
                 param.sysCleaner.clean(args.pretend)
+            elif args.op == "stablize":
+                param.sysUpdater.stablize()
             elif args.op == "hdd_add":
                 if param.runMode == "prepare":
                     raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
@@ -229,6 +235,10 @@ try:
                 if param.runMode == "prepare":
                     raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
                 FmMain(param).doDisableSwap()
+            elif args.op == "log-to-harddisk":
+                FmMain(param).logToDisk(True)
+            elif args.op == "log-to-memory":
+                FmMain(param).logToMemory()
             elif args.op == "install-package":
                 param.pkgManager.installPackage(args.package_name, args.test)
             elif args.op == "uninstall-package":
@@ -245,10 +255,6 @@ try:
                 if param.runMode in ["prepare", "setup"]:
                     raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
                 FmMain(param).buildRescueDisk(args.devpath)
-            elif args.op == "log-to-memory":
-                FmMain(param).logToMemory()
-            elif args.op == "log-to-harddisk":
-                FmMain(param).logToDisk(args.realtime)
             else:
                 assert False
 
