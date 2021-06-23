@@ -22,7 +22,7 @@ Basic Usage:
      * Update kernel, initramfs and bootloader
      * Update @world
      * Re-emerge all installed "-9999" packages
-     * Enlarge logical volumes in volume group "hdd" if neccessary
+     * Update cluster files
 
   sysman clean
      * Remove history files in /boot and /lib/modules
@@ -30,7 +30,6 @@ Basic Usage:
      * Do "perl-clean"
      * Clean unused USE flags, re-emerge packages if neccessary
      * Do "emerge --depclean"
-     * Optimize all logical volumes in volume group "hdd" (size, fragmentation)
 
   sysman stablize
      * Marks the system as stable
@@ -124,6 +123,12 @@ Package Management:
      * Uninstall the specified package
 
 
+Cluster Management:
+
+  sysman cluster-bootstrap
+     * Run pxe-server and tftp-server, waiting for node to bootstrap
+
+
 Rescue Facility:
 
   sysman install-rescue-os
@@ -149,6 +154,11 @@ Storage layout:
 Kernel flag:
   1. anbox
   2. tbs
+
+
+Cluster:
+  1. 
+
 
 
 Directory structure:
