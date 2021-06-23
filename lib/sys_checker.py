@@ -46,7 +46,7 @@ from sys_storage_manager import FmStorageLayoutEmpty
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
-# 2. no "printError" in doPostCheck()
+# 2. no "printError" in basicCheck()
 
 
 class FmSysChecker:
@@ -57,13 +57,17 @@ class FmSysChecker:
         self.infoPrinter = None
         self.bAutoFix = False
 
-    def doPostCheck(self):
-        # do Power On Self Test check
+    def basicCheck(self):
         self._checkPortageCfg(bFullCheck=False)
         self._checkRepositories(bFullCheck=False)
-        self._checkOverlays(bFullCheck=False)
+        self._checkOverlays(False, bFullCheck=False)
 
-    def doSysCheck(self, bAutoFix, deepHardwareCheck, deepFileSystemCheck):
+    def basicCheckWithOverlayContent(self):
+        self._checkPortageCfg(bFullCheck=False)
+        self._checkRepositories(bFullCheck=False)
+        self._checkOverlays(True, bFullCheck=False)
+
+    def fullCheck(self, bAutoFix, deepHardwareCheck, deepFileSystemCheck):
         self.bAutoFix = bAutoFix
         self.infoPrinter = self.param.infoPrinter
         try:
@@ -99,10 +103,10 @@ class FmSysChecker:
                     self._checkPortageCfg()
                     self._checkSystemServices()
                 with self.infoPrinter.printInfoAndIndent("- Check package repositories & overlays..."):
-                    self._checkRepositories()
-                    self._checkOverlays()
-                    self._checkNews()
                     self._checkPortagePkgwhCfg()
+                    self._checkRepositories()
+                    self._checkOverlays(True)
+                    self._checkNews()
                     self._checkImportantPackage()
                     self._checkRedundantRepositoryAndOverlay()
                 with self.infoPrinter.printInfoAndIndent("- Check users and groups..."):
@@ -925,13 +929,13 @@ class FmSysChecker:
                     for vi in list(v & v2):
                         self.infoPrinter.printError("Repository \"%s\" and \"%s\" has same package \"%s\"" % (k, k2, vi))
 
-    def _checkOverlays(self, bFullCheck=True):
+    def _checkOverlays(self, bCheckContent, bFullCheck=True):
         """Check overlays"""
 
         # check all overlays
         for overlayName in self.pkgwh.layman.getOverlayList():
             try:
-                self.pkgwh.layman.checkOverlay(overlayName, self.bAutoFix)
+                self.pkgwh.layman.checkOverlay(overlayName, bCheckContent, self.bAutoFix)
             except OverlayCheckError as e:
                 raise FmCheckException(e.message)
 

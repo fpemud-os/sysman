@@ -80,6 +80,8 @@ class FmMain:
             app-misc/sway                   (overlay-uly55e5)
         '''
 
+        self.param.sysChecker.basicCheckWithOverlayContent()
+
         helperBootDir = FkmBootDir()
         helperRescueOs = RescueOs()
         helperBootLoader = FkmBootLoader()
@@ -385,7 +387,31 @@ class FmMain:
             for pkg in pkgList:
                 print("    %s" % (pkg))
 
+        return 0
+
+    def doUpdate(self, bSync):
+        self.param.sysChecker.basicCheck()
+
+        self.param.sysUpdater.update(bSync, True)
+        return 0
+
+    def doClean(self, bPretend):
+        self.param.sysChecker.basicCheckWithOverlayContent()
+
+        self.param.sysCleaner.clean(bPretend)
+        return 0
+
+    def doStablize(self):
+        self.param.sysChecker.basicCheckWithOverlayContent()
+
+        self.param.sysUpdater.stablize()
+        return 0
+
     def doHddAdd(self, devpath, bMainBoot, bWithBadBlock):
+        if self.param.runMode == "prepare":
+            print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
+            return 1
+
         layout = self.param.storageManager.getStorageLayout()
 
         self.infoPrinter.printInfo(">> Adding harddisk...")
@@ -394,7 +420,13 @@ class FmMain:
 
         self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.hwInfoGetter.current(), layout)
 
+        return 0
+
     def doHddRemove(self, devpath):
+        if self.param.runMode == "prepare":
+            print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
+            return 1
+
         layout = self.param.storageManager.getStorageLayout()
 
         self.infoPrinter.printInfo(">> Move data in %s to other place..." % (devpath))
@@ -407,11 +439,68 @@ class FmMain:
 
         self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.hwInfoGetter.current(), layout)
 
+        return 0
+
+    def doEnableSwap(self):
+        if self.param.runMode == "prepare":
+            print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
+            return 1
+
+        layout = self.param.storageManager.getStorageLayout()
+        self.param.storageManager.enableSwap(layout)
+
+        if isinstance(layout, (FmStorageLayoutBiosSimple, FmStorageLayoutEfiSimple)):
+            swapSizeStr = FmUtil.formatSize(os.path.getsize(layout.swapFile))
+            print("Swap File: %s (size:%s)" % (layout.swapFile, swapSizeStr))
+        elif isinstance(layout, (FmStorageLayoutBiosLvm, FmStorageLayoutEfiLvm)):
+            uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.lvmSwapLv).get("ID_FS_UUID")
+            swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.lvmSwapLv))
+            print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.lvmSwapLv, uuid, swapSizeStr))
+        elif isinstance(layout, FmStorageLayoutEfiBcacheLvm):
+            uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.ssdSwapParti).get("ID_FS_UUID")
+            swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.ssdSwapParti))
+            print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.ssdSwapParti, uuid, swapSizeStr))
+        else:
+            assert False
+
+        return 0
+
+    def doDisableSwap(self):
+        if self.param.runMode == "prepare":
+            print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
+            return 1
+
+        layout = self.param.storageManager.getStorageLayout()
+        self.param.storageManager.disableSwap(layout)
+        return 0
+
+    def doAddUser(self, username):
+        self.param.userManager.addUser(username)
+        return 0
+
+    def doRemoveUser(self, username):
+        self.param.userManager.removeUser(username)
+        return 0
+
+    def doResetUserPassword(self, username):
+        self.param.userManager.resetUserPassword(username)
+        return 0
+
+    def doModifyUser(self, username):
+        assert False
+
+    def doFlushUser(self, username):
+        self.param.userManager.flushUser(username)
+        return 0
+
     def doAddOverlay(self, overlayName, vcsType, url):
+        self.param.sysChecker.basicCheckWithOverlayContent()
+
         layman = EbuildOverlays()
 
         if layman.isOverlayExist(overlayName):
-            raise Exception("the specified overlay has already been installed")
+            print("The specified overlay has already been installed.", file=sys.stderr)
+            return 1
 
         # update overlay database
         self.infoPrinter.printInfo(">> Updating overlay database...")
@@ -422,7 +511,8 @@ class FmMain:
         # install overlay
         if vcsType is None or url is None:
             if not cloudDb.hasOverlay(overlayName):
-                raise Exception("overlay \"%s\" is not in overlay database, --vcs-type and --url must be specified" % (overlayName))
+                print("Overlay \"%s\" is not in overlay database, --vcs-type and --url must be specified." % (overlayName), file=sys.stderr)
+                return 1
             vcsType, url = cloudDb.getOverlayVcsTypeAndUrl(overlayName)
             self.infoPrinter.printInfo(">> Installing %s overlay \"%s\" from \"%s\"..." % (vcsType, overlayName, url))
         else:
@@ -430,67 +520,75 @@ class FmMain:
         layman.addTransientOverlay(overlayName, vcsType, url)
         print("")
 
+        return 0
+
     def doRemoveOverlay(self, overlayName):
         layman = EbuildOverlays()
 
         if not layman.isOverlayExist(overlayName):
-            raise Exception("overlay \"%s\" is not installed" % (overlayName))
-        if layman.getOverlayType(overlayName) == "static":
-            raise Exception("overlay \"%s\" is a static overlay" % (overlayName))
+            print("Overlay \"%s\" is not installed." % (overlayName), file=sys.stderr)
+            return 1
+
+        overlayType = None
+        try:
+            overlayType = layman.getOverlayType(overlayName)
+        except BaseException:
+            # allow removing corrupted overlay
+            overlayType = "trusted"
+        if overlayType == "static":
+            print("Overlay \"%s\" is a static overlay." % (overlayName), file=sys.stderr)
+            return 1
 
         layman.removeOverlay(overlayName)
+        return 0
 
     def doEnableOverlayPkg(self, overlayName, pkgName):
+        self.param.sysChecker.basicCheckWithOverlayContent()
+
         layman = EbuildOverlays()
 
         if not layman.isOverlayExist(overlayName):
-            raise Exception("overlay \"%s\" is not installed" % (overlayName))
+            print("Overlay \"%s\" is not installed." % (overlayName), file=sys.stderr)
+            return 1
         if layman.getOverlayType(overlayName) != "transient":
-            raise Exception("overlay \"%s\" is not a transient overlay" % (overlayName))
+            print("Overlay \"%s\" is not a transient overlay." % (overlayName), file=sys.stderr)
+            return 1
 
         layman.enableOverlayPackage(overlayName, pkgName)
+        return 0
 
     def doDisableOverlayPkg(self, overlayName, pkgName):
+        self.param.sysChecker.basicCheckWithOverlayContent()
+
         layman = EbuildOverlays()
 
         if not layman.isOverlayExist(overlayName):
-            raise Exception("overlay \"%s\" is not installed" % (overlayName))
+            print("Overlay \"%s\" is not installed." % (overlayName), file=sys.stderr)
+            return 1
         if layman.getOverlayType(overlayName) != "transient":
-            raise Exception("overlay \"%s\" is not a transient overlay" % (overlayName))
+            print("Overlay \"%s\" is not a transient overlay." % (overlayName), file=sys.stderr)
+            return 1
 
         layman.disableOverlayPackage(overlayName, pkgName)
+        return 0
 
-    def doEnableSwap(self):
-        layout = self.param.storageManager.getStorageLayout()
+    def installPackage(self, packageName, bTest):
+        self.param.sysChecker.basicCheckWithOverlayContent()
 
-        # do work
-        self.param.storageManager.enableSwap(layout)
+        self.param.pkgManager.installPackage(packageName, bTest)
+        return 0
 
-        # show result
-        if isinstance(layout, (FmStorageLayoutBiosSimple, FmStorageLayoutEfiSimple)):
-            if layout.swapFile is not None:
-                swapSizeStr = FmUtil.formatSize(os.path.getsize(layout.swapFile))
-                print("Swap File: %s (size:%s)" % (layout.swapFile, swapSizeStr))
-        elif isinstance(layout, (FmStorageLayoutBiosLvm, FmStorageLayoutEfiLvm)):
-            if layout.lvmSwapLv is not None:
-                uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.lvmSwapLv).get("ID_FS_UUID")
-                swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.lvmSwapLv))
-                print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.lvmSwapLv, uuid, swapSizeStr))
-        elif isinstance(layout, FmStorageLayoutEfiBcacheLvm):
-            if layout.ssdSwapParti is not None:
-                uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.ssdSwapParti).get("ID_FS_UUID")
-                swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.ssdSwapParti))
-                print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.ssdSwapParti, uuid, swapSizeStr))
+    def uninstallPackage(self, packageName):
+        self.param.sysChecker.basicCheckWithOverlayContent()
 
-    def doDisableSwap(self):
-        layout = self.param.storageManager.getStorageLayout()
-        self.param.storageManager.disableSwap(layout)
-
-    def modifyUser(self, username):
-        assert False
+        self.param.pkgManager.uninstallPackage(packageName)
+        return 0
 
     def installRescueOs(self):
-        layout = self.param.storageManager.getStorageLayout()
+        if self.param.runMode in ["prepare", "setup"]:
+            print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
+            return 1
+        self.param.sysChecker.basicCheckWithOverlayContent()
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -501,6 +599,7 @@ class FmMain:
             dcm.updateParallelism(self.param.hwInfoGetter.current())
         print("")
 
+        layout = self.param.storageManager.getStorageLayout()
         with FkmMountBootDirRw(layout):
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
             mgr = RescueOs()
@@ -512,10 +611,19 @@ class FmMain:
             bootloader.updateBootloader(self.param.hwInfoGetter.current(), layout, FmConst.kernelInitCmd)
             print("")
 
+        return 0
+
     def uninstallRescueOs(self):
+        if self.param.runMode in ["prepare", "setup"]:
+            print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
+            return 1
+
+        self.param.sysChecker.baiscCheckStorage()
+
         mgr = RescueOs()
         if not mgr.isInstalled():
-            raise Exception("rescue os is not installed")
+            print("Rescue OS is not installed.", file=sys.stderr)
+            return 1
 
         layout = self.param.storageManager.getStorageLayout()
         with FkmMountBootDirRw(layout):
@@ -528,7 +636,14 @@ class FmMain:
             bootloader.updateBootloader(self.param.hwInfoGetter.current(), layout, FmConst.kernelInitCmd)
             print("")
 
+        return 0
+
     def buildRescueDisk(self, devPath):
+        if self.param.runMode in ["prepare", "setup"]:
+            print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
+            return 1
+        self.param.sysChecker.basicCheckWithOverlayContent()
+
         builder = RescueDiskBuilder()
 
         self.infoPrinter.printInfo(">> Checking...")
@@ -543,6 +658,8 @@ class FmMain:
         self.infoPrinter.printInfo(">> Installing into USB stick...")
         builder.installIntoUsbDevice(devPath)
         print("")
+
+        return 0
 
     def logToMemory(self):
         assert False

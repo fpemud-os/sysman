@@ -607,7 +607,6 @@ class EbuildOverlays:
 
     def removeOverlay(self, overlayName):
         assert self.isOverlayExist(overlayName)
-        assert self.getOverlayType(overlayName) != "static"
 
         FmUtil.forceDelete(self.getOverlayFilesDir(overlayName))
         FmUtil.forceDelete(self.getOverlayDir(overlayName))
@@ -638,7 +637,7 @@ class EbuildOverlays:
         else:
             assert False
 
-    def checkOverlay(self, overlayName, bAutoFix=False):
+    def checkOverlay(self, overlayName, bCheckContent, bAutoFix=False):
         assert self.isOverlayExist(overlayName)
 
         cfgFile = self.getOverlayCfgReposFile(overlayName)
@@ -733,11 +732,6 @@ class EbuildOverlays:
                     self._createEmptyStaticOverlayDir(overlayName, overlayDir)
                 else:
                     raise OverlayCheckError("overlay directory \"%s\" does not exist or is invalid" % (overlayDir))
-            # no symlink
-            for fbasename in FmUtil.getFileList(overlayDir, 2, "d"):
-                fulld = os.path.join(overlayDir, fbasename)
-                if os.path.islink(fulld):
-                    raise OverlayCheckError("package \"%s\" in overlay \"%s\" is a symlink" % (fbasename, overlayName))
         elif overlayType == "trusted":
             # doesn't exist or is invalid
             if not os.path.isdir(overlayDir):
@@ -762,10 +756,6 @@ class EbuildOverlays:
                         self._removeDuplicatePackage(overlayDir)
                     else:
                         raise RepositoryCheckError("overlay directory \"%s\" should have URL \"%s\"" % (overlayDir, overlayUrl))
-            # invalid layout.conf content
-            with open(os.path.join(overlayDir, "metadata", "layout.conf"), "r") as f:
-                if re.search("^\\s*masters\\s*=\\s*gentoo\\s*$", f.read(), re.M) is None:
-                    raise OverlayCheckError("overlay \"%s\" has illegal layout.conf" % (overlayName))
         elif overlayType == "transient":
             # doesn't exist or is invalid
             if not os.path.isdir(overlayDir) or os.path.islink(overlayDir):
@@ -773,29 +763,6 @@ class EbuildOverlays:
                     self._createTransientOverlayDirFromOverlayFilesDir(overlayName, overlayDir, overlayFilesDir)
                 else:
                     raise OverlayCheckError("overlay directory \"%s\" does not exist or is invalid" % (overlayDir))
-            # all packages must be the same as overlay files directory
-            for d in FmUtil.repoGetEbuildDirList(overlayDir):
-                srcEbuildDir = os.path.join(overlayFilesDir, d)
-                dstEbuildDir = os.path.join(overlayDir, d)
-                if not os.path.exists(srcEbuildDir):
-                    if bAutoFix:
-                        FmUtil.forceDelete(dstEbuildDir)
-                    else:
-                        raise OverlayCheckError("package \"%s\" in overlay \"%s\" should not exist any more" % (d, overlayName))
-                if not FmUtil.isTwoDirSame(srcEbuildDir, dstEbuildDir):
-                    if bAutoFix:
-                        FmUtil.forceDelete(dstEbuildDir)
-                        shutil.copytree(srcEbuildDir, dstEbuildDir)
-                    else:
-                        raise OverlayCheckError("package \"%s\" in overlay \"%s\" is corrupt" % (d, overlayName))
-            # no empty category directory
-            for d in FmUtil.repoGetCategoryDirList(overlayDir):
-                fulld = os.path.join(overlayDir, d)
-                if os.listdir(fulld) == []:
-                    if bAutoFix:
-                        os.rmdir(fulld)
-                    else:
-                        raise OverlayCheckError("category directory \"%s\" in overlay \"%s\" is empty" % (d, overlayName))
         else:
             assert False
 
@@ -811,6 +778,42 @@ class EbuildOverlays:
                     f.write(self._generateCfgReposFile(overlayName, overlayDir, overlayType, vcsType, overlayUrl, realRepoName))
             else:
                 raise OverlayCheckError("invalid \"repo-name\" in \"%s\"" % (cfgFile))
+
+        # check overlay directory again
+        if bCheckContent:
+            if overlayType == "static":
+                pass
+            elif overlayType == "trusted":
+                # invalid layout.conf content
+                with open(os.path.join(overlayDir, "metadata", "layout.conf"), "r") as f:
+                    if re.search("^\\s*masters\\s*=\\s*gentoo\\s*$", f.read(), re.M) is None:
+                        raise OverlayCheckError("overlay \"%s\" has illegal layout.conf" % (overlayName))
+            elif overlayType == "transient":
+                # all packages must be the same as overlay files directory
+                for d in FmUtil.repoGetEbuildDirList(overlayDir):
+                    srcEbuildDir = os.path.join(overlayFilesDir, d)
+                    dstEbuildDir = os.path.join(overlayDir, d)
+                    if not os.path.exists(srcEbuildDir):
+                        if bAutoFix:
+                            FmUtil.forceDelete(dstEbuildDir)
+                        else:
+                            raise OverlayCheckError("package \"%s\" in overlay \"%s\" should not exist any more" % (d, overlayName))
+                    if not FmUtil.isTwoDirSame(srcEbuildDir, dstEbuildDir):
+                        if bAutoFix:
+                            FmUtil.forceDelete(dstEbuildDir)
+                            shutil.copytree(srcEbuildDir, dstEbuildDir)
+                        else:
+                            raise OverlayCheckError("package \"%s\" in overlay \"%s\" is corrupt" % (d, overlayName))
+                # no empty category directory
+                for d in FmUtil.repoGetCategoryDirList(overlayDir):
+                    fulld = os.path.join(overlayDir, d)
+                    if os.listdir(fulld) == []:
+                        if bAutoFix:
+                            os.rmdir(fulld)
+                        else:
+                            raise OverlayCheckError("category directory \"%s\" in overlay \"%s\" is empty" % (d, overlayName))
+            else:
+                assert False
 
     def syncOverlay(self, overlayName):
         if not self.isOverlayExist(overlayName):

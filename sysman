@@ -190,76 +190,65 @@ try:
         param.sysCleaner = FmSysCleaner(param)
 
         if args.op == "check":
-            param.sysChecker.doSysCheck(args.auto_fix, args.more_hardware_check, args.more_filesystem_check)
+            param.sysChecker.fullCheck(args.auto_fix, args.more_hardware_check, args.more_filesystem_check)
         else:
-            param.sysChecker.doPostCheck()
             if args.op == "show":
-                FmMain(param).doShow()
+                ret = FmMain(param).doShow()
             elif args.op == "update":
-                param.sysUpdater.update(not args.no_sync, True)
+                ret = FmMain(param).doUpdate(not args.no_sync)
             elif args.op == "clean":
-                param.sysCleaner.clean(args.pretend)
+                ret = FmMain(param).doClean(args.pretend)
             elif args.op == "stablize":
-                param.sysUpdater.stablize()
+                ret = FmMain(param).doStablize()
             elif args.op == "hdd_add":
-                if param.runMode == "prepare":
-                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
-                FmMain(param).doHddAdd(args.devpath, args.mainboot, args.with_badblock)
+                ret = FmMain(param).doHddAdd(args.devpath, args.mainboot, args.with_badblock)
             elif args.op == "hdd_remove":
-                if param.runMode == "prepare":
-                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
-                FmMain(param).doHddRemove(args.devpath)
-            elif args.op == "add_user":
-                param.userManager.addUser(args.username)
-            elif args.op == "remove_user":
-                param.userManager.removeUser(args.username)
-            elif args.op == "reset_user_password":
-                param.userManager.resetUserPassword(args.username)
-            elif args.op == "modify_user":
-                FmMain(param).modifyUser(args.username)
-            elif args.op == "flush_user":
-                param.userManager.flushUser(args.username)
-            elif args.op == "install-overlay":
-                FmMain(param).doAddOverlay(args.overlay_name, args.vcs_type, args.url)
-            elif args.op == "uninstall-overlay":
-                FmMain(param).doRemoveOverlay(args.overlay_name)
-            elif args.op == "enable-overlay-package":
-                FmMain(param).doEnableOverlayPkg(args.overlay_name, args.package_name)
-            elif args.op == "disable-overlay-package":
-                FmMain(param).doDisableOverlayPkg(args.overlay_name, args.package_name)
+                ret = FmMain(param).doHddRemove(args.devpath)
             elif args.op == "enable-swap":
-                if param.runMode == "prepare":
-                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
-                FmMain(param).doEnableSwap()
+                ret = FmMain(param).doEnableSwap()
             elif args.op == "disable-swap":
-                if param.runMode == "prepare":
-                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
-                FmMain(param).doDisableSwap()
+                ret = FmMain(param).doDisableSwap()
             elif args.op == "log-to-harddisk":
+                # FIXME
                 FmMain(param).logToDisk(True)
             elif args.op == "log-to-memory":
-                FmMain(param).logToMemory()
+                # FIXME
+                ret = FmMain(param).logToMemory()
+            elif args.op == "add_user":
+                ret = FmMain(param).doAddUser(args.username)
+            elif args.op == "remove_user":
+                ret = FmMain(param).doRemoveUser(args.username)
+            elif args.op == "reset_user_password":
+                ret = FmMain(param).doResetUserPassword(args.username)
+            elif args.op == "modify_user":
+                ret = FmMain(param).doModifyUser(args.username)
+            elif args.op == "flush_user":
+                ret = FmMain(param).doFlushUser(args.username)
+            elif args.op == "install-overlay":
+                ret = FmMain(param).doAddOverlay(args.overlay_name, args.vcs_type, args.url)
+            elif args.op == "uninstall-overlay":
+                ret = FmMain(param).doRemoveOverlay(args.overlay_name)
+            elif args.op == "enable-overlay-package":
+                ret = FmMain(param).doEnableOverlayPkg(args.overlay_name, args.package_name)
+            elif args.op == "disable-overlay-package":
+                ret = FmMain(param).doDisableOverlayPkg(args.overlay_name, args.package_name)
             elif args.op == "install-package":
-                param.pkgManager.installPackage(args.package_name, args.test)
+                ret = FmMain(param).installPackage(args.package_name, args.test)
             elif args.op == "uninstall-package":
-                param.pkgManager.uninstallPackage(args.package_name)
+                ret = FmMain(param).uninstallPackage(args.package_name)
             elif args.op == "install-rescue-os":
-                if param.runMode in ["prepare", "setup"]:
-                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
-                FmMain(param).installRescueOs()
+                ret = FmMain(param).installRescueOs()
             elif args.op == "uninstall-rescue-os":
-                if param.runMode in ["prepare", "setup"]:
-                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
-                FmMain(param).uninstallRescueOs()
+                ret = FmMain(param).uninstallRescueOs()
             elif args.op == "build-rescue-disk":
-                if param.runMode in ["prepare", "setup"]:
-                    raise Exception("operation is not supported in \"%s\" mode" % (param.runMode))
-                FmMain(param).buildRescueDisk(args.devpath)
+                ret = FmMain(param).buildRescueDisk(args.devpath)
             else:
                 assert False
 
         shutil.rmtree(param.tmpDirOnHdd)
         shutil.rmtree(param.tmpDir)
+        if ret != 0:
+            sys.exit(ret)
 
 except SingletonProcess.AlreadyExistException:
     print("Another sysman instance is running.")
