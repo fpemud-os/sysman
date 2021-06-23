@@ -1019,7 +1019,6 @@ class FmUtil:
 
         verList1 = partList1[0].split(".")
         verList2 = partList2[0].split(".")
-        assert len(verList1) == 3 and len(verList2) == 3
 
         if len(verList1) == 3 and len(verList2) == 3:
             ver1 = int(verList1[0]) * 10000 + int(verList1[1]) * 100 + int(verList1[2])
