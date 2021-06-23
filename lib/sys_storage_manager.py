@@ -1145,9 +1145,9 @@ class FmStorageManager:
         return ret
 
     def _createSwapFile(self, path):
-        FmUtil.cmdCall("/bin/dd", "if=/dev/zero", "of=%s" % (path), "bs=%d" % (1024 * 1024 * 1024), "count=%d" % (self.swapSizeInGb))
-        FmUtil.cmdCall("/sbin/mkswap", "-f", path)
+        FmUtil.cmdCall("/bin/dd", "if=/dev/zero", "of=%s" % (path), "bs=%d" % (1024 * 1024), "count=%d" % (self.swapSizeInGb * 1024))
         FmUtil.cmdCall("/bin/chmod", "600", path)
+        FmUtil.cmdCall("/sbin/mkswap", "-f", path)
 
     def _createSwapService(self, path, serviceName):
         fullf = os.path.join("/etc/systemd/system", serviceName)
