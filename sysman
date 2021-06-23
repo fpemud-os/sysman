@@ -91,26 +91,6 @@ def getArgParser():
     parser2.set_defaults(op="flush_user")
     parser2.add_argument("username")
 
-    parser2 = subparsers.add_parser("enable-user")
-    parser2.set_defaults(op="enable_user")
-    parser2.add_argument("username")
-
-    parser2 = subparsers.add_parser("disable-user")
-    parser2.set_defaults(op="disable_user")
-    parser2.add_argument("username")
-
-    parser2 = subparsers.add_parser("add-group")
-    parser2.set_defaults(op="add_group")
-    parser2.add_argument("groupname")
-
-    parser2 = subparsers.add_parser("remove-group")
-    parser2.set_defaults(op="remove_group")
-    parser2.add_argument("groupname")
-
-    parser2 = subparsers.add_parser("modify-group")
-    parser2.set_defaults(op="modify_group")
-    parser2.add_argument("groupname")
-
     ###########################################################################
 
     parser2 = subparsers.add_parser("install-package", help="Install a package")
@@ -233,16 +213,6 @@ try:
                 FmMain(param).modifyUser(args.username)
             elif args.op == "flush_user":
                 param.userManager.flushUser(args.username)
-            elif args.op == "enable_user":
-                FmMain(param).enableUser(args.username)
-            elif args.op == "disable_user":
-                FmMain(param).disableUser(args.username)
-            elif args.op == "add_group":
-                FmMain(param).addGroup()
-            elif args.op == "remove_group":
-                FmMain(param).removeGroup()
-            elif args.op == "modify_group":
-                FmMain(param).modifyGroup()
             elif args.op == "install-overlay":
                 FmMain(param).doAddOverlay(args.overlay_name, args.vcs_type, args.url)
             elif args.op == "uninstall-overlay":

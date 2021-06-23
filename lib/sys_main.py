@@ -482,21 +482,6 @@ class FmMain:
     def modifyUser(self, username):
         assert False
 
-    def enableUser(self, username):
-        assert False
-
-    def disableUser(self, username):
-        assert False
-
-    def addGroup(self):
-        assert False
-
-    def removeGroup(self):
-        assert False
-
-    def modifyGroup(self):
-        assert False
-
     def installRescueOs(self):
         layout = self.param.storageManager.getStorageLayout()
 

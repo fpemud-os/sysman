@@ -75,6 +75,7 @@ User and Group Management:
      * User is in enabled state after addition
 
   sysman remove-user
+     * Kickout if the user is online (Unimplemented yet)
      * Remove user from the places above
 
   sysman reset-user-password
@@ -86,22 +87,6 @@ User and Group Management:
 
   sysman flush-user
      * Flush user to all the places above.
-
-  sysman enable-user
-     * Enable user                   (Unimplemented yet)
-
-  sysman disable-user
-     * Kickout if the user is online (Unimplemented yet)
-     * Disable user                  (Unimplemented yet)
-
-  sysman add-group
-     * (Unimplemented yet)
-
-  sysman remove-group
-     * (Unimplemented yet)
-
-  sysman modify-group
-     * (Unimplemented yet)
 
 
 Package Management:
