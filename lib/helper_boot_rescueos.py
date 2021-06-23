@@ -5,6 +5,7 @@ import os
 import glob
 import shutil
 import pathlib
+import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_util import ArchLinuxBasedOsBuilder
@@ -53,7 +54,7 @@ class RescueOs:
             raise
 
     def uninstall(self):
-        FmUtil.forceDelete(self.sysRescCdDir)
+        robust_layer.simple_fops.rm(self.sysRescCdDir)
 
 
 class RescueDiskBuilder:

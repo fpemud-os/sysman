@@ -105,8 +105,7 @@ class FkmKCache:
                 print("File already downloaded.")
                 return
             else:
-                FmUtil.forceDelete(myKernelFile)
-                FmUtil.forceDelete(mySignFile)
+                os.remove(myKernelFile)
 
         # get mirror
         mr, retlist = FmUtil.portageGetLinuxKernelMirror(FmConst.portageCfgMakeConf,
@@ -132,8 +131,7 @@ class FkmKCache:
                 print("File already downloaded.")
                 return
             else:
-                FmUtil.forceDelete(myFirmwareFile)
-                FmUtil.forceDelete(mySignFile)
+                os.remove(myFirmwareFile)
 
         # get mirror
         mr, retlist = FmUtil.portageGetLinuxFirmwareMirror(FmConst.portageCfgMakeConf,

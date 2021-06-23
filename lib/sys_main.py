@@ -270,7 +270,8 @@ class FmMain:
 
         # FIXME
         print("Logging:")
-        print("    To harddisk (/var/log)")
+        if True:
+            print("    To harddisk (/var/log)")
 
         print("")
 

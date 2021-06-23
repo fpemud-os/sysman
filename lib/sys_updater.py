@@ -365,10 +365,10 @@ class FmSysUpdater:
         while True:
             if kernelBuilt:
                 break
-            if not os.path.exists(os.path.join(FmConst.bootDir, buildTarget.initrdFile)):
+            if not os.path.exists(os.path.join("/boot", buildTarget.initrdFile)):
                 break
 
-            buf = FmUtil.getFileContentFromInitrd(os.path.join(FmConst.bootDir, buildTarget.initrdFile), "startup.rc")
+            buf = FmUtil.getFileContentFromInitrd(os.path.join("/boot", buildTarget.initrdFile), "startup.rc")
             lineList = buf.split("\n")
             if ("# uuid(root)=%s" % (FmUtil.getBlkDevUuid(storageLayout.getRootDev()))) not in lineList:
                 break
