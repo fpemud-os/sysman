@@ -16,6 +16,7 @@ import robust_layer.simple_git
 import robust_layer.subversion
 import robust_layer.simple_subversion
 import robust_layer.rsync
+import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_param import FmConst
 
@@ -1177,6 +1178,7 @@ class CloudOverlayDb:
                     break
                 except lxml.etree.XMLSyntaxError as e:
                     print("Failed to parse %s, %s" % (fullfn, e))
+                    robust_layer.simple_fops.rm(fullfn)
                     time.sleep(1.0)
                 except BaseException as e:
                     print("Failed to acces %s, %s" % (val[1], e))
