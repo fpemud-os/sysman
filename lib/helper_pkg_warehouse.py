@@ -1173,11 +1173,14 @@ class CloudOverlayDb:
             while True:
                 try:
                     tm = FmUtil.downloadIfNewer(val[1], fullfn)
+                    val[2] = self.__parse(fullfn)
                     break
+                except lxml.etree.XMLSyntaxError as e:
+                    print("Failed to parse %s, %s" % (fullfn, e))
+                    time.sleep(1.0)
                 except BaseException as e:
                     print("Failed to acces %s, %s" % (val[1], e))
                     time.sleep(1.0)
-            val[2] = self.__parse(fullfn)
             print("%s: %s" % (val[0], tm.strftime("%Y%m%d%H%M%S")))
 
     def isUpdateComplete(self):
