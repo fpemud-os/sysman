@@ -34,14 +34,6 @@ Basic Usage:
   sysman stablize
      * Marks the system as stable
 
-#  sysman solder [--remove-i18n] [--remove-doc]
-#     * Delete Fpemud OS related packages
-#     * Delete build tool chain, all DEPEND package
-#     * Delete portage
-#     * Delete all trace of Gentoo, including reporistories, overlays, configurations
-#     * Optionally delete I18N, document files
-#     * The result will be a general, minimal, static(soldered) Linux system
-
 
 Storage Management:
 
@@ -127,6 +119,10 @@ Cluster Management:
 
   sysman cluster-bootstrap
      * Run pxe-server and tftp-server, waiting for node to bootstrap
+
+  sysman build-cluster-disk <devpath>
+     * Build a disk than can be used by cluster node
+     * Support harddisk, usb-stick, sd-card
 
 
 Rescue Facility:
