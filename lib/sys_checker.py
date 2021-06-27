@@ -42,7 +42,6 @@ from sys_storage_manager import FmStorageLayoutEmpty
 # *. hardware check: monitor config by ddcci
 # *. install and uninstall all in_focus packages
 # *. don't enable non-critical INTEL and AMD cpu kernel option (it's a general TODO item, not related to sysman-check)
-# *. grub installation
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
@@ -72,7 +71,7 @@ class FmSysChecker:
         self.infoPrinter = self.param.infoPrinter
         try:
             with self.infoPrinter.printInfoAndIndent(">> Check hardware..."):
-                self._checkHardware(deepHardwareCheck)
+                self._checkHarddisks(deepHardwareCheck)
 
             with self.infoPrinter.printInfoAndIndent(">> Check storage layout..."):
                 self._checkStorageLayout()
@@ -90,11 +89,11 @@ class FmSysChecker:
 
             with self.infoPrinter.printInfoAndIndent(">> Check operating system..."):
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):
+                    self._checkCpuFreqDriver()              # config in /sys
                     # self._checkMachineInfo()
-                    self._checkHostsFile()
-                    self._checkNsswitchFile()
-                    self._checkSystemLocale()
-                    self._checkSystemTime()
+                    self._checkHostsFile()                  # config in /etc
+                    self._checkNsswitchFile()               # config in /etc
+                    self._checkSystemLocale()               # config in /etc
                     # self._checkPamCfgFiles()
                     self._checkEtcModprobeCfgFiles()
                     self._checkEtcLmSensorsCfgFiles()
@@ -102,6 +101,7 @@ class FmSysChecker:
                     self._checkServiceFiles()
                     self._checkPortageCfg()
                     self._checkSystemServices()
+                    self._checkSystemTime()                 # dynamic system status
                 with self.infoPrinter.printInfoAndIndent("- Check package repositories & overlays..."):
                     self._checkPortagePkgwhCfg()
                     self._checkRepositories()
@@ -126,7 +126,7 @@ class FmSysChecker:
             self.infoPrinter = None
             self.bAutoFix = False
 
-    def _checkHardware(self, deepCheck):
+    def _checkHarddisks(self, deepCheck):
         tlist = FmUtil.getDevPathListForFixedHdd()
         if len(tlist) == 0:
             self.infoPrinter.printError("No hard disk?!")
@@ -376,6 +376,29 @@ class FmSysChecker:
             raise FmCheckException("no CHASSIS in \"%s\"" % (FmConst.machineInfoFile))
         if ret["CHASSIS"] not in ["desktop", "laptop", "server", "tablet", "handset"]:
             raise FmCheckException("invalid CHASSIS in \"%s\"" % (FmConst.machineInfoFile))
+
+    def _checkCpuFreqDriver(self):
+        # hwInfo = self.param.hwInfoGetter.current()
+
+        # drv = None
+        # if hwInfo.hwDict["cpu"]["vendor"] == "Intel":
+        #     drv = "intel_p_state"
+        # elif hwInfo.hwDict["cpu"]["vendor"] == "AMD":
+        #     drv = "acpi_freq"
+        # else:
+        #     self.infoPrinter.printError("CPU vendor is %s, can not check cpu-freq driver.")
+        #     return
+
+        # flist = FmUtil.shellCall("/usr/bin/find /sys/devices/system/cpu/cpufreq -name scaling_driver").split("\n")
+        # flist = [x for x in flist if x != ""]
+        # if len(flist) != hwInfo.hwDict["cpu"]["cores"]:
+        #     self.infoPrinter.printError("Incorrent number of scaling_driver files (%d/%d) found in sysfs." % (hwInfo.hwDict["cpu"]["cores"], len(flist)))
+
+        # for fullfn in flist:
+        #     if pathlib.Path(fullfn).read_text() != drv + "\n":
+        #         self.infoPrinter.printError("Invalid content in file \"%s\"." % (fullfn))
+
+        pass
 
     def _checkHostsFile(self):
         """Check /etc/hosts"""

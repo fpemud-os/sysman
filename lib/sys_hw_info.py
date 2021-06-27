@@ -73,7 +73,8 @@ class _UtilHwDict:
             ret = dict()
 
         ret["cpu"] = {
-            "model": _UtilHwDict._getCpuModel(),
+            "vendor": _UtilHwDict._getCpuVendor(),
+            "model": _UtilHwDict._getCpuModelName(),
             "cores": _UtilHwDict._getCpuCoreNumber(),
         }
         ret["memory"] = {
@@ -83,7 +84,36 @@ class _UtilHwDict:
         return ret
 
     @staticmethod
-    def _getCpuModel():
+    def _getCpuVendor():
+        vendor = ""
+        with open("/proc/cpuinfo") as f:
+            m = re.search(r'vendor_id\s*:\s*(\S+)', f.read(), re.M)
+            if m is not None:
+                vendor = m.group(1)
+
+        if vendor == "GenuineIntel":
+            return "Intel"
+        elif vendor == "AuthenticAMD":
+            return "AMD"
+        else:
+            return "Unknown"
+
+    @staticmethod
+    def _getCpuModelName():
+        model = ""
+        with open("/proc/cpuinfo") as f:
+            m = re.search(r'model name\s*:\s*(.*)', f.read(), re.M)
+            if m is not None:
+                model = m.group(1)
+
+        # intel models
+        if "i7-4600U" in model:
+            return "i7-4600U"
+
+        # amd models
+        if "Ryzen Threadripper 1920X" in model:
+            return "1920X"
+
         return "Unknown"
 
     @staticmethod
@@ -146,7 +176,13 @@ class _UtilPcHp:
         if self.model == "HP EliteBook 820 G3":
             return ret
         if self.model == "HP EliteBook 840 G1":
-            return ret
+            ret.update({
+                "cpu": {
+                    "vendor": "Intel",
+                    "model": "i7-4600U",
+                    "cores": 4,
+                }
+            })
         if self.model == "HP EliteBook 840 G3":
             return ret
         if self.model == "HP EliteBook 850 G1":
