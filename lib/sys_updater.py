@@ -266,10 +266,7 @@ class FmSysUpdater:
                 else:
                     if kernelBuilt or initramfsBuilt:
                         helperBootDir.updateBootEntry(postfix)
-                    if kernelBuilt or initramfsBuilt:
-                        helperBootLoader.updateBootloader(self.param.hwInfoGetter.current(), layout, FmConst.kernelInitCmd)
-                    if not kernelBuilt and not initramfsBuilt:
-                        print("No operation needed.")
+                    helperBootLoader.updateBootloader(self.param.hwInfoGetter.current(), layout, FmConst.kernelInitCmd)
                 print("")
 
             # synchronize boot partitions
