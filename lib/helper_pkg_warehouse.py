@@ -130,7 +130,7 @@ class PkgWarehouse:
                 if os.path.exists(usefn):
                     raise Exception("\"%s\" should not exist" % (usefn))
             else:
-                FmUtil.forceDelete(usefn)
+                robust_layer.simple_fops.rm(usefn)
         else:
             ret, mainPackage = checkMainPackageOfTargetUseFlag(defaultUse)
             if not ret:
@@ -412,7 +412,7 @@ class EbuildRepositories:
         # check repository directory validity
         if not os.path.isdir(repoDir):
             if bAutoFix:
-                FmUtil.forceDelete(repoDir)
+                robust_layer.simple_fops.rm(repoDir)
                 self.createRepository(repoName)
             else:
                 raise RepositoryCheckError("repository directory \"%s\" is invalid" % (repoDir))
@@ -420,7 +420,7 @@ class EbuildRepositories:
         # check repository source url
         if repoName in self._repoGitUrlDict and FmUtil.gitGetUrl(repoDir) != self._repoGitUrlDict[repoName]:
             if bAutoFix:
-                FmUtil.forceDelete(repoDir)
+                robust_layer.simple_fops.rm(repoDir)
                 self.createRepository(repoName)
             else:
                 raise RepositoryCheckError("repository directory \"%s\" should have URL \"%s\"" % (repoDir, self._repoGitUrlDict[repoName]))
@@ -608,9 +608,9 @@ class EbuildOverlays:
     def removeOverlay(self, overlayName):
         assert self.isOverlayExist(overlayName)
 
-        FmUtil.forceDelete(self.getOverlayFilesDir(overlayName))
-        FmUtil.forceDelete(self.getOverlayDir(overlayName))
-        FmUtil.forceDelete(self.getOverlayCfgReposFile(overlayName))
+        robust_layer.simple_fops.rm(self.getOverlayFilesDir(overlayName))
+        robust_layer.simple_fops.rm(self.getOverlayDir(overlayName))
+        robust_layer.simple_fops.rm(self.getOverlayCfgReposFile(overlayName))
 
     def modifyOverlayVcsTypeAndUrl(self, overlayName, overlayVcsType, overlayUrl):
         assert self.isOverlayExist(overlayName)
@@ -623,13 +623,13 @@ class EbuildOverlays:
         if overlayType == "static":
             assert False
         elif overlayType == "trusted":
-            FmUtil.forceDelete(overlayDir)
+            robust_layer.simple_fops.rm(overlayDir)
             self._createOverlaySourceDir(overlayName, overlayDir, overlayVcsType, overlayUrl)
             self._removeDuplicatePackage(overlayDir)
             with open(cfgFile, "w") as f:
                 f.write(self._generateCfgReposFile(overlayName, overlayDir, "trusted", overlayVcsType, overlayUrl, FmUtil.repoGetRepoName(overlayDir)))
         elif overlayType == "transient":
-            FmUtil.forceDelete(overlayFilesDir)
+            robust_layer.simple_fops.rm(overlayFilesDir)
             self._createOverlaySourceDir(overlayName, overlayFilesDir, overlayVcsType, overlayUrl)
             self._refreshTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
             with open(cfgFile, "w") as f:
@@ -695,7 +695,7 @@ class EbuildOverlays:
             # overlay files directory should not exist
             if os.path.exists(overlayFilesDir):
                 if bAutoFix:
-                    FmUtil.forceDelete(overlayFilesDir)
+                    robust_layer.simple_fops.rm(overlayFilesDir)
                 else:
                     raise OverlayCheckError("\"%s\" should not have overlay files directory \"%s\"" % (overlayName, overlayFilesDir))
         elif overlayType == "transient":
@@ -716,7 +716,7 @@ class EbuildOverlays:
                     assert False
                 if realUrl != overlayUrl:
                     if bAutoFix:
-                        FmUtil.forceDelete(overlayFilesDir)
+                        robust_layer.simple_fops.rm(overlayFilesDir)
                         self._createOverlaySourceDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                         self._refreshTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
                     else:
@@ -736,7 +736,7 @@ class EbuildOverlays:
             # doesn't exist or is invalid
             if not os.path.isdir(overlayDir):
                 if bAutoFix:
-                    FmUtil.forceDelete(overlayDir)
+                    robust_layer.simple_fops.rm(overlayDir)
                     self._createOverlaySourceDir(overlayName, overlayDir, vcsType, overlayUrl)
                     self._removeDuplicatePackage(overlayDir)
                 else:
@@ -751,7 +751,7 @@ class EbuildOverlays:
                     assert False
                 if realUrl != overlayUrl:
                     if bAutoFix:
-                        FmUtil.forceDelete(overlayDir)
+                        robust_layer.simple_fops.rm(overlayDir)
                         self._createOverlaySourceDir(overlayName, overlayDir, vcsType, overlayUrl)
                         self._removeDuplicatePackage(overlayDir)
                     else:
@@ -795,12 +795,12 @@ class EbuildOverlays:
                     dstEbuildDir = os.path.join(overlayDir, d)
                     if not os.path.exists(srcEbuildDir):
                         if bAutoFix:
-                            FmUtil.forceDelete(dstEbuildDir)
+                            robust_layer.simple_fops.rm(dstEbuildDir)
                         else:
                             raise OverlayCheckError("package \"%s\" in overlay \"%s\" should not exist any more" % (d, overlayName))
                     if not FmUtil.isTwoDirSame(srcEbuildDir, dstEbuildDir):
                         if bAutoFix:
-                            FmUtil.forceDelete(dstEbuildDir)
+                            robust_layer.simple_fops.rm(dstEbuildDir)
                             shutil.copytree(srcEbuildDir, dstEbuildDir)
                         else:
                             raise OverlayCheckError("package \"%s\" in overlay \"%s\" is corrupt" % (d, overlayName))
@@ -884,7 +884,7 @@ class EbuildOverlays:
         if not os.path.isdir(os.path.join(overlayDir, pkgName)):
             raise Exception("package \"%s\" is not enabled" % (pkgName))
 
-        FmUtil.forceDelete(os.path.join(overlayDir, pkgName))
+        robust_layer.simple_fops.rm(os.path.join(overlayDir, pkgName))
         FmUtil.removeEmptyDir(os.path.join(overlayDir, pkgName.split("/")[0]))
 
     def _createOverlaySourceDir(self, overlayName, overlayFilesDir, vcsType, url):
@@ -955,7 +955,7 @@ class EbuildOverlays:
             print("Duplicate package \"%s\" is automatically removed." % (item))
 
     def _createEmptyStaticOverlayDir(self, overlayName, overlayDir):
-        FmUtil.forceDelete(overlayDir)
+        robust_layer.simple_fops.rm(overlayDir)
         os.mkdir(overlayDir)
 
         os.mkdir(os.path.join(overlayDir, "profiles"))
@@ -968,7 +968,7 @@ class EbuildOverlays:
             f.write("thin-manifests = true\n")
 
     def _createTransientOverlayDirFromOverlayFilesDir(self, overlayName, overlayDir, overlayFilesDir):
-        FmUtil.forceDelete(overlayDir)
+        robust_layer.simple_fops.rm(overlayDir)
         os.mkdir(overlayDir)
 
         # create profile directory
@@ -976,7 +976,7 @@ class EbuildOverlays:
         profileDir = os.path.join(overlayDir, "profiles")
         if os.path.exists(srcProfileDir):
             FmUtil.cmdCall("/bin/cp", "-r", srcProfileDir, profileDir)
-            FmUtil.forceDelete(os.path.join(profileDir, "profiles.desc"))
+            robust_layer.simple_fops.rm(os.path.join(profileDir, "profiles.desc"))
         else:
             os.mkdir(profileDir)
             layoutFn = os.path.join(overlayFilesDir, "metadata", "layout.conf")
@@ -1008,13 +1008,13 @@ class EbuildOverlays:
 
     def _refreshTransientOverlayDir(self, overlayName, overlayDir, overlayFilesDir):
         profileDir = os.path.join(overlayDir, "profiles")
-        FmUtil.forceDelete(profileDir)
+        robust_layer.simple_fops.rm(profileDir)
 
         # refresh profile directory
         srcProfileDir = os.path.join(overlayFilesDir, "profiles")
         if os.path.exists(srcProfileDir):
             FmUtil.cmdCall("/bin/cp", "-r", srcProfileDir, profileDir)
-            FmUtil.forceDelete(os.path.join(profileDir, "profiles.desc"))
+            robust_layer.simple_fops.rm(os.path.join(profileDir, "profiles.desc"))
         else:
             os.mkdir(profileDir)
             layoutFn = os.path.join(overlayFilesDir, "metadata", "layout.conf")
@@ -1030,23 +1030,23 @@ class EbuildOverlays:
         srcMetaDataDir = os.path.join(overlayFilesDir, "metadata")
         metaDataDir = os.path.join(overlayDir, "metadata")
         if os.path.exists(srcMetaDataDir):
-            FmUtil.forceDelete(metaDataDir)
+            robust_layer.simple_fops.rm(metaDataDir)
             shutil.copytree(srcMetaDataDir, metaDataDir)
 
         # refresh eclass directory
         srcEclassDir = os.path.join(overlayFilesDir, "eclass")
         dstEclassDir = os.path.join(overlayDir, "eclass")
         if os.path.exists(srcEclassDir):
-            FmUtil.forceDelete(dstEclassDir)
+            robust_layer.simple_fops.rm(dstEclassDir)
             shutil.copytree(srcEclassDir, dstEclassDir)
         else:
-            FmUtil.forceDelete(dstEclassDir)
+            robust_layer.simple_fops.rm(dstEclassDir)
 
         # refresh ebuild directories
         for d in FmUtil.repoGetEbuildDirList(overlayDir):
             srcEbuildDir = os.path.join(overlayFilesDir, d)
             dstEbuildDir = os.path.join(overlayDir, d)
-            FmUtil.forceDelete(dstEbuildDir)
+            robust_layer.simple_fops.rm(dstEbuildDir)
             if os.path.exists(srcEbuildDir):
                 shutil.copytree(srcEbuildDir, dstEbuildDir)
 
