@@ -7,6 +7,7 @@ import glob
 import shutil
 import tarfile
 import pylkcutil
+import robust_layer.simple_fops
 from collections import OrderedDict
 from multiprocessing import Process
 from fm_util import FmUtil
@@ -68,7 +69,8 @@ class FkmInitramfsBuilder:
         assert "/" not in targetInitrdFile
         assert "/" not in targetTarFile and targetTarFile.endswith(".tar.bz2")
 
-        FmUtil.mkDirAndClear(self.initramfsTmpDir)
+        robust_layer.simple_fops.rm(self.initramfsTmpDir)
+        os.mkdir(self.initramfsTmpDir)
 
         # variables
         targetInitrdFile = os.path.join(self.bootDir, targetInitrdFile)

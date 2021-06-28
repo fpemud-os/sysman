@@ -8,6 +8,7 @@ import gzip
 import shutil
 import pathlib
 import subprocess
+import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_param import FmConst
 
@@ -73,7 +74,7 @@ class PkgMerger:
                                 f.write("=%s %s" % (info[0], info[1]))
                             self.smartEmergePkg(pretendCmd, realCmd, cfgProtect=cfgProtect, pkgName=pkgName)
                         finally:
-                            FmUtil.forceDelete(smartEmergeUseFile)
+                            robust_layer.simple_fops.rm(smartEmergeUseFile)
                         self.smartEmergePkg(pretendCmd, realCmd, cfgProtect=cfgProtect, pkgName=pkgName)
             elif "Multiple package instances within a single package slot" in out:
                 # use (strict one-by-one) mode when slot conflict occured
@@ -125,7 +126,7 @@ class PkgMerger:
                                     f.write("=%s" % (pkgAtom))
                                 rc2, out2 = FmUtil.cmdCallWithRetCode(pretendCmd2)
                             finally:
-                                FmUtil.forceDelete(tempMaskFile)
+                                robust_layer.simple_fops.rm(tempMaskFile)
 
                             if rc2 != 0:
                                 # we need this specific package version

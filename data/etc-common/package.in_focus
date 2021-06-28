@@ -119,6 +119,10 @@ sys-process/lsof
 sys-process/numactl
 x11-misc/qt5ct
 
+## utility: cli shells #############################################
+app-shells/bash
+app-shells/pwsh-bin
+
 ## utility: terminals ##############################################
 
 

@@ -3,6 +3,7 @@
 
 import re
 import requests
+import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import AvahiServiceBrowser
 from fm_param import FmConst
@@ -120,7 +121,7 @@ class DynCfgModifier:
                 for name, mlist in localPortageMirrorDict.items():
                     f.write(name + "\t" + " ".join(mlist) + "\n")
         else:
-            FmUtil.forceDelete(FmConst.portageMirrorsFile)
+            robust_layer.simple_fops.rm(FmConst.portageMirrorsFile)
 
     def updateDownloadCommand(self):
         fetchCmd = "/usr/libexec/robust_layer/wget -q --show-progress -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""

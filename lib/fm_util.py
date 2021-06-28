@@ -42,6 +42,7 @@ import lxml.html
 import passlib.hosts
 import robust_layer
 import robust_layer.wget
+import robust_layer.simple_fops
 from datetime import datetime
 from OpenSSL import crypto
 from gi.repository import Gio
@@ -1052,22 +1053,10 @@ class FmUtil:
         return 0
 
     @staticmethod
-    def mkDirAndClear(dirname):
-        FmUtil.forceDelete(dirname)
-        os.mkdir(dirname)
-
-    @staticmethod
-    def forceDelete(path):
-        if os.path.islink(path):
-            os.remove(path)
-        elif os.path.isfile(path):
-            os.remove(path)
-        elif os.path.isdir(path):
-            shutil.rmtree(path)
-        elif os.path.exists(path):      # FIXME: device node, how to check it?
-            os.remove(path)
-        else:
-            pass                        # path not exists, do nothing
+    def removeDirContentExclude(dirPath, excludeList):
+        for fn in os.listdir(dirPath):
+            if fn not in excludeList:
+                robust_layer.simple_fops.rm(os.path.join(dirPath, fn))
 
     @staticmethod
     def removeEmptyDir(dirname):
@@ -2186,9 +2175,9 @@ class FmUtil:
                 FmUtil._portagePatchRepositoryExecScript(repoName, patchTypeName, patchDir, srcDir, dstDir)
                 if len(glob.glob(os.path.join(dstDir, "*.ebuild"))) == 0:
                     # all ebuild files are deleted, it means this package is removed
-                    FmUtil.forceDelete(dstDir)
+                    robust_layer.simple_fops.rm(dstDir)
                     if len(os.listdir(fullCategoryDir)) == 0:
-                        FmUtil.forceDelete(fullCategoryDir)
+                        robust_layer.simple_fops.rm(fullCategoryDir)
                     continue
                 pendingDstDirList.append(dstDir)
 
@@ -2955,11 +2944,13 @@ class ArchLinuxBasedOsBuilder:
     def bootstrapExtract(self):
         os.makedirs(self.tmpDir, exist_ok=True)
         FmUtil.cmdCall("/bin/tar", "-xzf", os.path.join(self.cacheDir, self.dataFile), "-C", self.tmpDir)
-        FmUtil.forceDelete(self.bootstrapDir)
+        robust_layer.simple_fops.rm(self.bootstrapDir)
         os.rename(os.path.join(self.tmpDir, "root.x86_64"), self.bootstrapDir)
 
     def createRootfs(self, initcpioHooksDir=None, pkgList=[], localPkgFileList=[], fileList=[], cmdList=[]):
-        FmUtil.mkDirAndClear(self.rootfsDir)
+        robust_layer.simple_fops.rm(self.rootfsDir)
+        os.mkdir(self.rootfsDir)
+
         os.makedirs(self.pkgCacheDir, exist_ok=True)
 
         # copy resolv.conf
@@ -3061,8 +3052,8 @@ class ArchLinuxBasedOsBuilder:
             FmUtil.shellExec("/usr/bin/sha512sum \"%s\" > \"%s\"" % (os.path.basename(rootfsDataFile), rootfsMd5File))
 
     def clean(self):
-        FmUtil.forceDelete(self.rootfsDir)
-        FmUtil.forceDelete(self.bootstrapDir)
+        robust_layer.simple_fops.rm(self.rootfsDir)
+        robust_layer.simple_fops.rm(self.bootstrapDir)
         del self.rootfsDir
         del self.bootstrapDir
         del self.signFile

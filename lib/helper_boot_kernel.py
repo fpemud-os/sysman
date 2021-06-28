@@ -12,6 +12,7 @@ import configparser
 import robust_layer
 import robust_layer.simple_git
 import robust_layer.simple_subversion
+import robust_layer.simple_fops
 import lxml.html
 import urllib.request
 import urllib.error
@@ -176,10 +177,7 @@ class FkmKCache:
                 print("File already downloaded.")
                 return
             FmUtil.wgetDownload(remoteFullFn, localFullFn)
-            for fn in os.listdir(cacheDir):
-                fullfn = os.path.join(cacheDir, fn)
-                if fullfn != localFullFn:
-                    FmUtil.forceDelete(fullfn)
+            FmUtil.removeDirContentExclude(cacheDir, fnList[-1])
             return
 
         # source type "exec"
@@ -782,7 +780,8 @@ class FkmKernelBuilder:
         self.trickDebug = False
 
     def buildStepExtract(self):
-        FmUtil.forceDelete(self.tmpDir)         # FIXME
+        # remove old data if neccessary
+        robust_layer.simple_fops.rm(self.tmpDir)
 
         # extract kernel source
         os.makedirs(self.ksrcTmpDir)

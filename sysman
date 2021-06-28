@@ -5,13 +5,13 @@ import os
 import sys
 import shutil
 import argparse
+import robust_layer.simple_fops
 
 if os.getuid() != 0:
     print("You must run this command as root!")
     sys.exit(1)
 
 sys.path.append("/usr/lib64/fpemud-os-sysman")
-from fm_util import FmUtil
 from fm_util import InfoPrinter
 from fm_util import SingletonProcess
 from fm_param import FmParam
@@ -176,7 +176,7 @@ else:
 
 try:
     with SingletonProcess(param.singletonFile):
-        FmUtil.mkDirAndClear(param.tmpDir)
+        robust_layer.simple_fops.rm(param.tmpDir)
         os.makedirs(param.tmpDirOnHdd, exist_ok=True)
 
         param.infoPrinter = InfoPrinter()
