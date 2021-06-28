@@ -1,0 +1,5 @@
+don't enable non-critical INTEL and AMD cpu kernel option
+
+select governor for cpu
+set cpufreq driver (with overclock) for cpu
+
