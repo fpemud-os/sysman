@@ -16,6 +16,7 @@ rm -f "${D}/etc/sysctl.conf"
 
 # move /etc/modprobe.d to /usr/lib/modprobe.d
 mv "${D}/etc/modprobe.d" "${D}/usr/lib"
+mkdir "${D}/etc/modprobe.d"
 ## end ####"""
     buf2 = buf2.replace("\n", "\n\t")
     buf2 += "\n"
