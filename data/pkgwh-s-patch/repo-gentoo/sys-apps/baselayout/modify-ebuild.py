@@ -13,6 +13,9 @@ rm -f "${D}/etc/fstab"
 
 # INSTALL_MASK has no effect, so we do this, strange.
 rm -f "${D}/etc/sysctl.conf"
+
+# move /etc/modprobe.d to /usr/lib/modprobe.d
+mv "${D}/etc/modprobe.d" "${D}/usr/lib"
 ## end ####"""
     buf2 = buf2.replace("\n", "\n\t")
     buf2 += "\n"

@@ -7,7 +7,6 @@ for fn in glob.glob("*.ebuild"):
     with open(fn, "a") as f:
         f.write("""
 pkg_extra_files() {
-        echo "/etc/fstab"
         echo "/etc/machine-id"
         echo "/etc/machine-info"
 
