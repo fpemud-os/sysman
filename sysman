@@ -180,7 +180,7 @@ try:
         os.makedirs(param.tmpDirOnHdd, exist_ok=True)
 
         param.infoPrinter = InfoPrinter()
-        param.machineInfoGetter = FmMachineInfoGetter()
+        param.machineInfoGetter = FmMachineInfoGetter(param)
         param.storageManager = FmStorageManager(param)
         param.pkgManager = FmPkgman(param)
         param.logManager = FmLoggingManager(param)
