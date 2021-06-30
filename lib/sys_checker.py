@@ -96,7 +96,7 @@ class FmSysChecker:
                     self._checkNsswitchFile()               # config in /etc
                     self._checkSystemLocale()               # config in /etc
                     # self._checkPamCfgFiles()
-                    self._checkEtcModprobeCfgFiles()
+                    self._checkEtcOnlyUserCreatedFiles()
                     self._checkEtcLmSensorsCfgFiles()
                     self._checkEtcUdevRuleFiles()
                     self._checkServiceFiles()
@@ -458,11 +458,20 @@ class FmSysChecker:
                         self.infoPrinter.printError("Inappropriate \"optional\" control flag order in PAM config file \"%s\"." % (fullfn))
                     ctrlFlagCur = ctrlFlag
 
-    def _checkEtcModprobeCfgFiles(self):
-        fileSet = None
+    def _checkEtcOnlyUserCreatedFiles(self):
+        # the following directories have /usr/lib/* counterpart for package wish files, so only user created files are allowed in them
+        dirList = [
+            "/etc/binfmt.d",
+            "/etc/environment.d",
+            "/etc/modprobe.d",
+            "/etc/modules-load.d",
+            "/etc/tmpfiles.d",
+        ]
 
-        dn = "/etc/modprobe.d"
-        if os.path.exists(dn):
+        fileSet = None
+        for dn in dirList:
+            if not os.path.exists(dn):
+                continue
             for fullfn in glob.glob(os.path.join(dn, "*")):
                 if fileSet is None:
                     fileSet = FmUtil.portageGetInstalledFileSet()
