@@ -370,16 +370,17 @@ class FmSysChecker:
     def _checkMachineInfo(self):
         """Check /etc/machine-info"""
 
-        if not os.path.exists(FmConst.machineInfoFile):
-            raise FmCheckException("\"%s\" does not exist" % (FmConst.machineInfoFile))
         ret = FmUtil.getMachineInfo(FmConst.machineInfoFile)
-        if "CHASSIS" not in ret:
-            raise FmCheckException("no CHASSIS in \"%s\"" % (FmConst.machineInfoFile))
-        if ret["CHASSIS"] not in ["desktop", "laptop", "server", "tablet", "handset"]:
-            raise FmCheckException("invalid CHASSIS in \"%s\"" % (FmConst.machineInfoFile))
+
+        # check CHASSIS
+        if "CHASSIS" in ret:
+            if ret["CHASSIS"] in ["computer", "laptop", "tablet", "handset", "headless"]:
+                pass
+            else:
+                raise FmCheckException("invalid CHASSIS in \"%s\"" % (FmConst.machineInfoFile))
 
     def _checkCpuFreqDriver(self):
-        # hwInfo = self.param.hwInfoGetter.current()
+        # hwInfo = self.param.machineInfoGetter.hwInfo()
 
         # drv = None
         # if hwInfo.hwDict["cpu"]["vendor"] == "Intel":
@@ -1096,10 +1097,10 @@ class FmSysChecker:
         # /etc/portage/package.use/90-python-targets
         # /etc/portage/package.use/91-ruby-targets
         if self.bAutoFix:
-            self.pkgwh.refreshHardwareUseFlags(self.param.hwInfoGetter.current())
+            self.pkgwh.refreshHardwareUseFlags(self.param.machineInfoGetter.hwInfo())
             self.pkgwh.refreshTargetUseFlags()
         else:
-            self.pkgwh.checkHardwareUseFlags(self.param.hwInfoGetter.current())
+            self.pkgwh.checkHardwareUseFlags(self.param.machineInfoGetter.hwInfo())
             self.pkgwh.checkTargetUseFlags()
 
         # /etc/portage/package.use/97-linguas

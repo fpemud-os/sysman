@@ -101,9 +101,9 @@ class FmMain:
         print("")
 
         print("Hardware:")
-        if isinstance(self.param.hwInfoGetter.current(), HwInfoPcBranded):
-            print("    %s" % (self.param.hwInfoGetter.current().name))
-        elif isinstance(self.param.hwInfoGetter.current(), HwInfoPcAssembled):
+        if isinstance(self.param.machineInfoGetter.hwInfo(), HwInfoPcBranded):
+            print("    %s" % (self.param.machineInfoGetter.hwInfo().name))
+        elif isinstance(self.param.machineInfoGetter.hwInfo(), HwInfoPcAssembled):
             print("    DIY PC")
         else:
             assert False
@@ -418,7 +418,7 @@ class FmMain:
         self.param.storageManager.addHdd(layout, devpath, bMainBoot, bWithBadBlock)
         print("")
 
-        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.hwInfoGetter.current(), layout)
+        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), layout)
 
         return 0
 
@@ -437,7 +437,7 @@ class FmMain:
         self.param.storageManager.removeHdd(layout, devpath)
         print("")
 
-        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.hwInfoGetter.current(), layout)
+        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), layout)
 
         return 0
 
@@ -596,7 +596,7 @@ class FmMain:
             dcm = DynCfgModifier()
             dcm.updateMirrors()
             dcm.updateDownloadCommand()
-            dcm.updateParallelism(self.param.hwInfoGetter.current())
+            dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
         layout = self.param.storageManager.getStorageLayout()
@@ -608,7 +608,7 @@ class FmMain:
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
             bootloader = FkmBootLoader()
-            bootloader.updateBootloader(self.param.hwInfoGetter.current(), layout, FmConst.kernelInitCmd)
+            bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
             print("")
 
         return 0
@@ -633,7 +633,7 @@ class FmMain:
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
             bootloader = FkmBootLoader()
-            bootloader.updateBootloader(self.param.hwInfoGetter.current(), layout, FmConst.kernelInitCmd)
+            bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
             print("")
 
         return 0

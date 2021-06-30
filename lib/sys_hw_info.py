@@ -13,8 +13,15 @@ from fm_param import FmConst
 
 class HwInfo:
 
+    CHASSIS_TYPE_COMPUTER = 1
+    CHASSIS_TYPE_LAPTOP = 2
+    CHASSIS_TYPE_TABLET = 3
+    CHASSIS_TYPE_HANDSET = 4
+    CHASSIS_TYPE_HEADLESS = 5
+
     def __init__(self):
         self.arch = None                      # str
+        self.chassisType = None               # str
         self.hwDict = None                    # dict
         self.kernelCfgRules = None            # ordered-dict(section-name,section-content)
         self.useFlags = None                  # ordered-dict(section-name,section-content)
@@ -41,26 +48,42 @@ class HwInfoPcAssembled(HwInfo):
         self.lastUpdateTime = None
 
 
-class FmHwInfoGetter:
+class FmMachineInfoGetter:
 
-    def current(self):
-        ret = _UtilPcHp().info()
-        if ret is not None:
+    def __init__(self, param):
+        self._param = param
+        self._obj = None
+
+    def hwInfo(self):
+        ret = None
+
+        if ret is None:
+            ret = _UtilPcHp().info()
+        if ret is None:
+            ret = _UtilPcAsus().info()
+        if ret is None:
+            ret = _UtilPcAliyun().info()
+        if ret is None:
+            ret = _UtilPcDiy().info()
+        if ret is None:
             return ret
 
-        ret = _UtilPcAsus().info()
-        if ret is not None:
-            return ret
+        r = FmUtil.getMachineInfo(FmConst.machineInfoFile)
+        if "CHASSIS" in r:
+            if r["CHASSIS"] == "computer":
+                ret.chassisType = HwInfo.CHASSIS_TYPE_COMPUTER
+            elif r["CHASSIS"] == "laptop":
+                ret.chassisType = HwInfo.CHASSIS_TYPE_LAPTOP
+            elif r["CHASSIS"] == "tablet":
+                ret.chassisType = HwInfo.CHASSIS_TYPE_TABLET
+            elif r["CHASSIS"] == "handset":
+                ret.chassisType = HwInfo.CHASSIS_TYPE_HANDSET
+            elif r["CHASSIS"] == "headless":
+                ret.chassisType = HwInfo.CHASSIS_TYPE_HEADLESS
+            else:
+                assert False
 
-        ret = _UtilPcAliyun().info()
-        if ret is not None:
-            return ret
-
-        ret = _UtilPcDiy().info()
-        if ret is not None:
-            return ret
-
-        return None
+        return ret
 
 
 class _UtilHwDict:
@@ -129,18 +152,19 @@ class _UtilHwDict:
 class _UtilPcHp:
 
     def info(self):
-        self.manu = _Util.dmiDecodeWithCache("system-manufacturer")
+        self.manu = FmUtil.dmiDecodeWithCache("system-manufacturer")
         if self.manu not in ["Hewlett-Packard", "HP"]:
             return None
 
-        self.model = _Util.dmiDecodeWithCache("system-product-name")
-        self.sn = _Util.dmiDecodeWithCache("system-serial-number")
+        self.model = FmUtil.dmiDecodeWithCache("system-product-name")
+        self.sn = FmUtil.dmiDecodeWithCache("system-serial-number")
 
         ret = HwInfoPcBranded()
         ret.name = self._name()
         ret.hwSpec = self._hwSpec()
         ret.serialNumber = self.sn
         ret.arch = "amd64"
+        ret.chassisType = self._chassisType()
         ret.hwDict = _UtilHwDict.get(ret.hwSpec)
         ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
         ret.kernelCfgRules = self._kernelCfgRules()
@@ -189,6 +213,19 @@ class _UtilPcHp:
             return ret
         assert False
 
+    def _chassisType(self):
+        if self.model == "HP EliteBook 820 G1":
+            return HwInfo.CHASSIS_TYPE_LAPTOP
+        if self.model == "HP EliteBook 820 G3":
+            return HwInfo.CHASSIS_TYPE_LAPTOP
+        if self.model == "HP EliteBook 840 G1":
+            return HwInfo.CHASSIS_TYPE_LAPTOP
+        if self.model == "HP EliteBook 840 G3":
+            return HwInfo.CHASSIS_TYPE_LAPTOP
+        if self.model == "HP EliteBook 850 G1":
+            return HwInfo.CHASSIS_TYPE_LAPTOP
+        assert False
+
     def _changeList(self, origHwDict, hwDict):
         return []
 
@@ -224,18 +261,19 @@ class _UtilPcAsus:
             "ASUSTeK COMPUTER INC.",
         ]
 
-        self.manu = _Util.dmiDecodeWithCache("system-manufacturer")
+        self.manu = FmUtil.dmiDecodeWithCache("system-manufacturer")
         if self.manu not in manuStrList:
             return None
 
-        self.model = _Util.dmiDecodeWithCache("system-product-name")
-        self.sn = _Util.dmiDecodeWithCache("system-serial-number")
+        self.model = FmUtil.dmiDecodeWithCache("system-product-name")
+        self.sn = FmUtil.dmiDecodeWithCache("system-serial-number")
 
         ret = HwInfoPcBranded()
         ret.name = "ASUS " + self.model
         ret.hwSpec = self._hwSpec()
         ret.serialNumber = self.sn
         ret.arch = "amd64"
+        ret.chassisType = self._chassisType()
         ret.hwDict = _UtilHwDict.get(ret.hwSpec)
         ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
         ret.kernelCfgRules = self._kernelCfgRules()
@@ -249,6 +287,11 @@ class _UtilPcAsus:
 
         if self.model == "T300CHI":
             return ret
+        assert False
+
+    def _chassisType(self):
+        if self.model == "T300CHI":
+            return HwInfo.CHASSIS_TYPE_TABLET
         assert False
 
     def _changeList(self, origHwDict, hwDict):
@@ -269,24 +312,27 @@ class _UtilPcAsus:
 
 class _UtilPcAliyun:
 
+    MODELS = [
+        "ecs.t1.small",
+    ]
+
     def info(self):
-        self.manu = _Util.dmiDecodeWithCache("system-manufacturer")
+        self.manu = FmUtil.dmiDecodeWithCache("system-manufacturer")
         if self.manu != "Alibaba Cloud":
             return None
-        assert _Util.dmiDecodeWithCache("system-product-name") == "Alibaba Cloud ECS"
+        assert FmUtil.dmiDecodeWithCache("system-product-name") == "Alibaba Cloud ECS"
 
-        self.sn = _Util.dmiDecodeWithCache("system-serial-number")
+        self.sn = FmUtil.dmiDecodeWithCache("system-serial-number")
 
         self.model = FmUtil.getMachineInfo(FmConst.machineInfoFile)["ALIYUN-HWNAME"]
-        assert self.model in [
-            "ecs.t1.small",
-        ]
+        assert self.model in self.MODELS
 
         ret = HwInfoPcBranded()
         ret.name = "ALIYUN " + self.model
         ret.hwSpec = self._hwSpec()
         ret.serialNumber = self.sn
         ret.arch = "amd64"
+        ret.chassisType = HwInfo.CHASSIS_TYPE_COMPUTER
         ret.hwDict = _UtilHwDict.get(ret.hwSpec)
         ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
         ret.kernelCfgRules = self._kernelCfgRules()
@@ -333,6 +379,7 @@ class _UtilPcDiy:
         ret = HwInfoPcAssembled()
         ret.arch = "amd64"
         ret.hwDict = _UtilHwDict.get(_tmpHwSpec)
+        ret.chassisType = HwInfo.CHASSIS_TYPE_COMPUTER              # FIXME
         ret.kernelCfgRules = _Util.kernelCfgRules()
         ret.useFlags = self._useFlags()
         ret.grubExtraWaitTime = 0
@@ -467,17 +514,6 @@ class _Util:
             buf += "*/* VIDEO_CARDS: -* vesa\n"
             ret["graphics"] = buf
 
-        return ret
-
-    _dmiDecodeCache = dict()
-
-    @staticmethod
-    def dmiDecodeWithCache(key):
-        if key in _Util._dmiDecodeCache:
-            return _Util._dmiDecodeCache[key]
-
-        ret = FmUtil.cmdCall("/usr/sbin/dmidecode", "-s", key)
-        _Util._dmiDecodeCache[key] = ret
         return ret
 
 

@@ -51,7 +51,7 @@ class FmSysUpdater:
             dcm = DynCfgModifier()
             dcm.updateMirrors()
             dcm.updateDownloadCommand()
-            dcm.updateParallelism(self.param.hwInfoGetter.current())
+            dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
         # get build server
@@ -168,7 +168,7 @@ class FmSysUpdater:
         # do fetch and build
         if True:
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
-            kernelCfgRules = base64.b64encode(pickle.dumps(self.param.hwInfoGetter.current().kernelCfgRules)).decode("ascii")
+            kernelCfgRules = base64.b64encode(pickle.dumps(self.param.machineInfoGetter.hwInfo().kernelCfgRules)).decode("ascii")
 
             with ParallelRunSequencialPrint() as prspObj:
                 if buildServer is not None:
@@ -266,7 +266,7 @@ class FmSysUpdater:
                 else:
                     if kernelBuilt or initramfsBuilt:
                         helperBootDir.updateBootEntry(postfix)
-                    helperBootLoader.updateBootloader(self.param.hwInfoGetter.current(), layout, FmConst.kernelInitCmd)
+                    helperBootLoader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
                 print("")
 
             # synchronize boot partitions

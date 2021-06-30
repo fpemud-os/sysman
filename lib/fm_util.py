@@ -77,6 +77,17 @@ class FmUtil:
 
         return ", ".join(("%%.%df" % (digits)) % x for x in avg)
 
+    _dmiDecodeCache = dict()
+
+    @staticmethod
+    def dmiDecodeWithCache(key):
+        if key in FmUtil._dmiDecodeCache:
+            return FmUtil._dmiDecodeCache[key]
+
+        ret = FmUtil.cmdCall("/usr/sbin/dmidecode", "-s", key)
+        FmUtil._dmiDecodeCache[key] = ret
+        return ret
+
     @staticmethod
     def pmdbGetMirrors(name, typeName, countryCode, protocolList, count=None):
         buf = FmUtil.githubGetFileContent("mirrorshq", "public-mirror-db", os.path.join(name, typeName + ".json"))
@@ -2442,6 +2453,10 @@ class FmUtil:
     @staticmethod
     def getMachineInfo(filename):
         ret = dict()
+
+        if not os.path.exists(filename):
+            return
+
         with open(filename, "r") as f:
             for line in f.read().split("\n"):
                 if line.startswith("#"):
@@ -2450,6 +2465,7 @@ class FmUtil:
                 if m is None:
                     continue
                 ret[m.group(1)] = m.group(2).strip("\"")
+
         return ret
 
     @staticmethod

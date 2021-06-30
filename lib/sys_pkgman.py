@@ -20,7 +20,7 @@ class FmPkgman:
             dcm = DynCfgModifier()
             dcm.updateMirrors()
             dcm.updateDownloadCommand()
-            dcm.updateParallelism(self.param.hwInfoGetter.current())
+            dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
         # get build server

@@ -29,7 +29,7 @@ class FmSysCleaner:
             dcm = DynCfgModifier()
             dcm.updateMirrors()
             dcm.updateDownloadCommand()
-            dcm.updateParallelism(self.param.hwInfoGetter.current())
+            dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
         # get build server
@@ -72,7 +72,7 @@ class FmSysCleaner:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                     else:
-                        FkmBootLoader().updateBootloader(self.param.hwInfoGetter.current(), layout, FmConst.kernelInitCmd)
+                        FkmBootLoader().updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
                     print("")
 
             if bFileRemoved and self.param.storageManager.needSyncBootPartition(layout):
