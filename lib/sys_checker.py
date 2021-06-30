@@ -42,6 +42,7 @@ from sys_storage_manager import FmStorageLayoutEmpty
 # *. hardware check: monitor config by ddcci
 # *. install and uninstall all in_focus packages
 # *. don't enable non-critical INTEL and AMD cpu kernel option (it's a general TODO item, not related to sysman-check)
+# *. check sensors names, they must comply some rules
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
