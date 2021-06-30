@@ -113,6 +113,8 @@ net-misc/nyx
 sys-apps/dmidecode
 sys-apps/ethtool
 sys-apps/hwloc
+sys-apps/pciutils
+sys-apps/usbutils
 sys-libs/libhugetlbfs               # it is not only a library
 sys-process/bpytop
 sys-process/lsof
