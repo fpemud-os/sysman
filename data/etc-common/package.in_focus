@@ -155,11 +155,13 @@ net-im/slack
 net-im/zoom
 
 ## utility: coding tools ###########################################
-app-editors/visual-studio-code-bin
+app-editors/vscode
+app-editors/vscodium
 app-text/sloccount
 dev-python/autopep8
 dev-python/pyflakes
 dev-python/pycodestyle
+dev-util/idea-community
 #dbdesigner
 
 ## utility: designing tools ########################################
