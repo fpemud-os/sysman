@@ -141,6 +141,8 @@ app-emulation/anbox
 app-emulation/darling
 games-emulation/dosbox-staging
 virtual/wine
+app-emulation/wine-vanilla
+app-emulation/wine-staging
 
 ## utility: virtual machine ########################################
 app-emulation/virtualbox

@@ -1143,11 +1143,6 @@ class FmSysChecker:
             if pkg not in allPkgList:
                 self.infoPrinter.printError("Important package \"%s\" does not exist in any repository or overlay." % (pkg))
 
-        # check against world file
-        for pkg in FmUtil.portageReadWorldFile(FmConst.worldFile):
-            if pkg not in importantPkgList:
-                self.infoPrinter.printError("Unimportant package \"%s\" is in @world." % (pkg))
-
     def _checkUsersAndGroups(self):
         # make sure passwd/group/shadow are tidy
         if self.bAutoFix:
