@@ -954,10 +954,9 @@ class FkmKernelBuilder:
                     fullfn, bOverWrite = self.kcache.getExtraFirmwareFileMapping(firmwareName, fn)
                     if fullfn is None:
                         continue
-                    if os.path.exists(dstFn) and not bOverWrite:
-                        continue
-                    os.makedirs(os.path.dirname(dstFn), exist_ok=True)
-                    shutil.copy(fullfn, dstFn)
+                    if not os.path.exists(dstFn) or bOverWrite:
+                        os.makedirs(os.path.dirname(dstFn), exist_ok=True)
+                        shutil.copy(fullfn, dstFn)
                     usedExtraNames.add(firmwareName)
             for firmwareName in set(self.kcache.getExtraFirmwareList()) - usedExtraNames:
                 print("WARNING: Extra firmware \"%s\" is outdated." % (firmwareName))
