@@ -38,6 +38,7 @@ sys-cluster/minikube
 sci-misc/boinc
 
 ## database ########################################################
+dev-db/mysql
 dev-db/mariadb
 
 ## business server #################################################

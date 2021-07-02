@@ -16,7 +16,7 @@ sys-power/cpufrequtils
 sys-power/ncpufreqd
 
 # dev-db/mariadb deprecates dev-db/mysql
-dev-db/mysql
+#dev-db/mysql
 
 # app-cdr/mirage2iso deprecates the following packages
 app-cdr/bchunk
