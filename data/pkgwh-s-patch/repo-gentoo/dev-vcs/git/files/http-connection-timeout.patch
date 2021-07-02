@@ -1,8 +1,7 @@
-diff --git a/http.c b/http.c
-index 938b9e55af..c46737e48d 100644
---- a/http.c
-+++ b/http.c
-@@ -83,6 +83,7 @@ static const char *ssl_pinnedkey;
+diff -u -r /var/tmp/portage/dev-vcs/git-2.32.0/work/git-2.32.0/http.c ./http.c
+--- /var/tmp/portage/dev-vcs/git-2.32.0/work/git-2.32.0/http.c	2021-07-02 15:45:10.416264259 +0800
++++ ./http.c	2021-07-02 15:53:51.730857595 +0800
+@@ -83,6 +83,7 @@
  static const char *ssl_cainfo;
  static long curl_low_speed_limit = -1;
  static long curl_low_speed_time = -1;
@@ -10,44 +9,45 @@ index 938b9e55af..c46737e48d 100644
  static int curl_ftp_no_epsv;
  static const char *curl_http_proxy;
  static const char *http_proxy_authmethod;
-@@ -354,6 +355,10 @@ static int http_options(const char *var, const char *value, void *cb)
-        curl_low_speed_time = (long)git_config_int(var, value);
-        return 0;
-    }
-+   if (!strcmp("http.connecttimeout", var)) { // overriden by env var GIT_HTTP_CONNECT_TIMEOUT
-+       curl_connecttimeout = (long)git_config_int(var, value);
-+       return 0;
-+   }
-
-    if (!strcmp("http.noepsv", var)) {
-        curl_ftp_no_epsv = git_config_bool(var, value);
-@@ -935,6 +940,11 @@ static CURL *get_curl_handle(void)
-        curl_easy_setopt(result, CURLOPT_LOW_SPEED_TIME,
-                 curl_low_speed_time);
-    }
-+   if (curl_connecttimeout >= 0) {
-+       //-1 or any negative means don't set a timeout which means (for me, depending on sysctl settings, no doubt) 2min10sec eg. 130sec and quits like: fatal: unable to access 'https://git.xfce.org/xfce/xfce4-panel/': Failed to connect to git.xfce.org port 443: Connection timed out
-+       //0 means set timeout to 0 which practically doesn't set a timeout and is the same as using a negative value! aka 2min10sec and quits like for -1 (see above)
-+       curl_easy_setopt(result, CURLOPT_CONNECTTIMEOUT, curl_connecttimeout); //10L = timeout in 10 seconds instead of 2min10s eg. `git fetch` when: fatal: unable to access 'https://git.xfce.org/xfce/xfce4-panel/': Failed to connect to git.xfce.org port 443: Connection timed out   --- real  2m10.809s  --- because git.xfce.org is down/not responding to ping! see $ man 3 CURLOPT_CONNECTTIMEOUT Setting a timeout quits like: fatal: unable to access 'https://git.xfce.org/xfce/xfce4-panel/': Failed to connect to git.xfce.org port 443: Connection timed out
-+   }
-
-    curl_easy_setopt(result, CURLOPT_MAXREDIRS, 20);
+@@ -361,6 +362,10 @@
+ 		curl_low_speed_time = (long)git_config_int(var, value);
+ 		return 0;
+ 	}
++	if (!strcmp("http.connecttimeout", var)) { // overriden by env var GIT_HTTP_CONNECT_TIMEOUT
++		curl_connecttimeout = (long)git_config_int(var, value);
++		return 0;
++	}
+ 
+ 	if (!strcmp("http.noepsv", var)) {
+ 		curl_ftp_no_epsv = git_config_bool(var, value);
+@@ -973,6 +978,11 @@
+ 		curl_easy_setopt(result, CURLOPT_LOW_SPEED_TIME,
+ 				 curl_low_speed_time);
+ 	}
++	if (curl_connecttimeout >= 0) {
++		//-1 or any negative means don't set a timeout which means (for me, depending on sysctl settings, no doubt) 2min10sec eg. 130sec and quits like: fatal: unable to access 'https:>
++		//0 means set timeout to 0 which practically doesn't set a timeout and is the same as using a negative value! aka 2min10sec and quits like for -1 (see above)
++		curl_easy_setopt(result, CURLOPT_CONNECTTIMEOUT, curl_connecttimeout); //10L = timeout in 10 seconds instead of 2min10s eg. `git fetch` when: fatal: unable to access 'https://g>
++	}
+ 
+ 	curl_easy_setopt(result, CURLOPT_MAXREDIRS, 20);
  #if LIBCURL_VERSION_NUM >= 0x071301
-@@ -1061,6 +1071,7 @@ void http_init(struct remote *remote, const char *url, int proactive_auth)
+@@ -1105,6 +1115,7 @@
  {
-    char *low_speed_limit;
-    char *low_speed_time;
-+   char *connecttimeout;
-    char *normalized_url;
-    struct urlmatch_config config = { STRING_LIST_INIT_DUP };
-
-@@ -1151,6 +1162,9 @@ void http_init(struct remote *remote, const char *url, int proactive_auth)
-    low_speed_time = getenv("GIT_HTTP_LOW_SPEED_TIME");
-    if (low_speed_time != NULL)
-        curl_low_speed_time = strtol(low_speed_time, NULL, 10);
-+   connecttimeout = getenv("GIT_HTTP_CONNECT_TIMEOUT"); // man 3 CURLOPT_CONNECTTIMEOUT ; can also be set in ~/.gitconfig as http.connecttimeout aka [http]\n\tconnecttimeout=10
-+   if (connecttimeout != NULL)
-+       curl_connecttimeout = strtol(connecttimeout, NULL, 10); //10 is base
-
-    if (curl_ssl_verify == -1)
-        curl_ssl_verify = 1;
+ 	char *low_speed_limit;
+ 	char *low_speed_time;
++	char *connecttimeout;
+ 	char *normalized_url;
+ 	struct urlmatch_config config = { STRING_LIST_INIT_DUP };
+ 
+@@ -1197,6 +1208,10 @@
+ 	if (low_speed_time != NULL)
+ 		curl_low_speed_time = strtol(low_speed_time, NULL, 10);
+ 
++	connecttimeout = getenv("GIT_HTTP_CONNECT_TIMEOUT"); // man 3 CURLOPT_CONNECTTIMEOUT ; can also be set in ~/.gitconfig as http.connecttimeout aka [http]\n\tconnecttimeout=10
++	if (connecttimeout != NULL)
++		curl_connecttimeout = strtol(connecttimeout, NULL, 10); //10 is base
++
+ 	if (curl_ssl_verify == -1)
+ 		curl_ssl_verify = 1;
+ 
