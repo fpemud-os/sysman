@@ -88,6 +88,25 @@ class FmUtil:
         FmUtil._dmiDecodeCache[key] = ret
         return ret
 
+    _getMachineInfoCache = dict()
+
+    @staticmethod
+    def getMachineInfoWithCache(key):
+        if FmUtil._getMachineInfoCache is not None:
+            return FmUtil._getMachineInfoCache.get(key, None)
+
+        FmUtil._getMachineInfoCache = dict()
+        if os.path.exists("/etc/machine-info"):
+            with open("/etc/machine-info", "r") as f:
+                for line in f.read().split("\n"):
+                    if line.startswith("#"):
+                        continue
+                    m = re.fullmatch("(.*?)=(.*)", line)
+                    if m is None:
+                        continue
+                    FmUtil._getMachineInfoCache[m.group(1)] = m.group(2).strip("\"")
+        return FmUtil._getMachineInfoCache.get(key, None)
+
     @staticmethod
     def pmdbGetMirrors(name, typeName, countryCode, protocolList, count=None):
         buf = FmUtil.githubGetFileContent("mirrorshq", "public-mirror-db", os.path.join(name, typeName + ".json"))
@@ -2449,24 +2468,6 @@ class FmUtil:
         ret = FmUtil.cmdCall("/usr/bin/svn", "info", dirName)
         m = re.search("^URL: (.*)$", ret, re.M)
         return m.group(1)
-
-    @staticmethod
-    def getMachineInfo(filename):
-        ret = dict()
-
-        if not os.path.exists(filename):
-            return
-
-        with open(filename, "r") as f:
-            for line in f.read().split("\n"):
-                if line.startswith("#"):
-                    continue
-                m = re.fullmatch("(.*?)=(.*)", line)
-                if m is None:
-                    continue
-                ret[m.group(1)] = m.group(2).strip("\"")
-
-        return ret
 
     @staticmethod
     def encodePath(src_path):

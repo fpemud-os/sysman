@@ -13,6 +13,29 @@ from fm_util import FmUtil
 from fm_param import FmConst
 
 
+class ChassisType:
+
+    COMPUTER = 1
+    LAPTOP = 2
+    TABLET = 3
+    HANDSET = 4
+    HEADLESS = 5
+
+
+class MachineUsage:
+
+    OFFICE = 1
+    DEVELOPMENT = 2
+    ROUTER = 3
+    GAMING = 4
+
+    MINING_BITCOIN = 5
+    MINING_ETH = 6
+    MINING_XMR = 7
+    DATABASE_SERVICE_MARIADB = 8
+    DATABASE_SERVICE_MONGODB = 9
+
+
 class HwInfo:
 
     def __init__(self):
@@ -45,29 +68,6 @@ class HwInfoPcAssembled(HwInfo):
         self.lastUpdateTime = None
 
 
-class ChassisType:
-
-    COMPUTER = 1
-    LAPTOP = 2
-    TABLET = 3
-    HANDSET = 4
-    HEADLESS = 5
-
-
-class MachineUsage:
-
-    OFFICE = 1
-    DEVELOPMENT = 2
-    ROUTER = 3
-    GAMING = 4
-
-    MINING_BITCOIN = 5
-    MINING_ETH = 6
-    MINING_XMR = 7
-    DATABASE_SERVICE_MARIADB = 8
-    DATABASE_SERVICE_MONGODB = 9
-
-
 class FmMachineInfoGetter:
 
     def __init__(self, param):
@@ -88,17 +88,17 @@ class FmMachineInfoGetter:
         if ret is None:
             return ret
 
-        r = FmUtil.getMachineInfo(FmConst.machineInfoFile)
-        if "CHASSIS" in r:
-            if r["CHASSIS"] == "computer":
+        r = FmUtil.getMachineInfoWithCache("CHASSIS")
+        if r is not None:
+            if r == "computer":
                 ret.chassis_type = ChassisType.COMPUTER
-            elif r["CHASSIS"] == "laptop":
+            elif r == "laptop":
                 ret.chassis_type = ChassisType.LAPTOP
-            elif r["CHASSIS"] == "tablet":
+            elif r == "tablet":
                 ret.chassis_type = ChassisType.TABLET
-            elif r["CHASSIS"] == "handset":
+            elif r == "handset":
                 ret.chassis_type = ChassisType.HANDSET
-            elif r["CHASSIS"] == "headless":
+            elif r == "headless":
                 ret.chassis_type = ChassisType.HEADLESS
             else:
                 assert False
@@ -123,7 +123,7 @@ class _PcAliyun:
 
         self.sn = FmUtil.dmiDecodeWithCache("system-serial-number")
 
-        self.model = FmUtil.getMachineInfo(FmConst.machineInfoFile)["ALIYUN-HWNAME"]
+        self.model = FmUtil.getMachineInfoWithCache("ALIYUN-HWNAME")
         assert self.model in self._MODELS
 
         ret = HwInfoPcBranded()

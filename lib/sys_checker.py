@@ -370,14 +370,14 @@ class FmSysChecker:
     def _checkMachineInfo(self):
         """Check /etc/machine-info"""
 
-        ret = FmUtil.getMachineInfo(FmConst.machineInfoFile)
+        ret = FmUtil.getMachineInfoWithCache("CHASSIS")
 
         # check CHASSIS
-        if "CHASSIS" in ret:
-            if ret["CHASSIS"] in ["computer", "laptop", "tablet", "handset", "headless"]:
+        if ret is not None:
+            if ret in ["computer", "laptop", "tablet", "handset", "headless"]:
                 pass
             else:
-                raise FmCheckException("invalid CHASSIS in \"%s\"" % (FmConst.machineInfoFile))
+                raise FmCheckException("invalid CHASSIS in \"/etc/machine-info\"")
 
     def _checkCpuFreqDriver(self):
         # hwInfo = self.param.machineInfoGetter.hwInfo()
