@@ -13,15 +13,9 @@ from fm_param import FmConst
 
 class HwInfo:
 
-    CHASSIS_TYPE_COMPUTER = 1
-    CHASSIS_TYPE_LAPTOP = 2
-    CHASSIS_TYPE_TABLET = 3
-    CHASSIS_TYPE_HANDSET = 4
-    CHASSIS_TYPE_HEADLESS = 5
-
     def __init__(self):
         self.arch = None                      # str
-        self.chassisType = None               # str
+        self.chassisType = None               # ChassisType
         self.hwDict = None                    # dict
         self.kernelCfgRules = None            # ordered-dict(section-name,section-content)
         self.useFlags = None                  # ordered-dict(section-name,section-content)
@@ -48,6 +42,29 @@ class HwInfoPcAssembled(HwInfo):
         self.lastUpdateTime = None
 
 
+class ChassisType:
+
+    COMPUTER = 1
+    LAPTOP = 2
+    TABLET = 3
+    HANDSET = 4
+    HEADLESS = 5
+
+
+class MachineUsage:
+
+    OFFICE = 1
+    DEVELOPMENT = 2
+    ROUTER = 3
+    GAMING = 4
+
+    MINING_BITCOIN = 5
+    MINING_ETH = 6
+    MINING_XMR = 7
+    DATABASE_SERVICE_MARIADB = 8
+    DATABASE_SERVICE_MONGODB = 9
+
+
 class FmMachineInfoGetter:
 
     def __init__(self, param):
@@ -71,19 +88,23 @@ class FmMachineInfoGetter:
         r = FmUtil.getMachineInfo(FmConst.machineInfoFile)
         if "CHASSIS" in r:
             if r["CHASSIS"] == "computer":
-                ret.chassisType = HwInfo.CHASSIS_TYPE_COMPUTER
+                ret.chassisType = ChassisType.COMPUTER
             elif r["CHASSIS"] == "laptop":
-                ret.chassisType = HwInfo.CHASSIS_TYPE_LAPTOP
+                ret.chassisType = ChassisType.LAPTOP
             elif r["CHASSIS"] == "tablet":
-                ret.chassisType = HwInfo.CHASSIS_TYPE_TABLET
+                ret.chassisType = ChassisType.TABLET
             elif r["CHASSIS"] == "handset":
-                ret.chassisType = HwInfo.CHASSIS_TYPE_HANDSET
+                ret.chassisType = ChassisType.HANDSET
             elif r["CHASSIS"] == "headless":
-                ret.chassisType = HwInfo.CHASSIS_TYPE_HEADLESS
+                ret.chassisType = ChassisType.HEADLESS
             else:
                 assert False
 
         return ret
+
+    def machineUsage(self):
+        pass
+
 
 
 class _UtilHwDict:
@@ -215,15 +236,15 @@ class _UtilPcHp:
 
     def _chassisType(self):
         if self.model == "HP EliteBook 820 G1":
-            return HwInfo.CHASSIS_TYPE_LAPTOP
+            return ChassisType.LAPTOP
         if self.model == "HP EliteBook 820 G3":
-            return HwInfo.CHASSIS_TYPE_LAPTOP
+            return ChassisType.LAPTOP
         if self.model == "HP EliteBook 840 G1":
-            return HwInfo.CHASSIS_TYPE_LAPTOP
+            return ChassisType.LAPTOP
         if self.model == "HP EliteBook 840 G3":
-            return HwInfo.CHASSIS_TYPE_LAPTOP
+            return ChassisType.LAPTOP
         if self.model == "HP EliteBook 850 G1":
-            return HwInfo.CHASSIS_TYPE_LAPTOP
+            return ChassisType.LAPTOP
         assert False
 
     def _changeList(self, origHwDict, hwDict):
@@ -291,7 +312,7 @@ class _UtilPcAsus:
 
     def _chassisType(self):
         if self.model == "T300CHI":
-            return HwInfo.CHASSIS_TYPE_TABLET
+            return ChassisType.TABLET
         assert False
 
     def _changeList(self, origHwDict, hwDict):
@@ -332,7 +353,7 @@ class _UtilPcAliyun:
         ret.hwSpec = self._hwSpec()
         ret.serialNumber = self.sn
         ret.arch = "amd64"
-        ret.chassisType = HwInfo.CHASSIS_TYPE_COMPUTER
+        ret.chassisType = ChassisType.COMPUTER
         ret.hwDict = _UtilHwDict.get(ret.hwSpec)
         ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
         ret.kernelCfgRules = self._kernelCfgRules()
@@ -379,7 +400,7 @@ class _UtilPcDiy:
         ret = HwInfoPcAssembled()
         ret.arch = "amd64"
         ret.hwDict = _UtilHwDict.get(_tmpHwSpec)
-        ret.chassisType = HwInfo.CHASSIS_TYPE_COMPUTER              # FIXME
+        ret.chassisType = ChassisType.COMPUTER              # FIXME
         ret.kernelCfgRules = _Util.kernelCfgRules()
         ret.useFlags = self._useFlags()
         ret.grubExtraWaitTime = 0

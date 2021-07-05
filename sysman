@@ -15,7 +15,7 @@ sys.path.append("/usr/lib64/fpemud-os-sysman")
 from fm_util import InfoPrinter
 from fm_util import SingletonProcess
 from fm_param import FmParam
-from sys_hw_info import FmMachineInfoGetter
+from sys_machine_info import FmMachineInfoGetter
 from sys_pkgman import FmPkgman
 from sys_logging_manager import FmLoggingManager
 from sys_user_manager import FmUserManager

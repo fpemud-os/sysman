@@ -16,9 +16,9 @@ from helper_boot_rescueos import RescueDiskBuilder
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
 from helper_pkg_warehouse import CloudOverlayDb
-from sys_hw_info import HwInfoPcBranded
-from sys_hw_info import HwInfoPcAssembled
-from sys_hw_info import DevHwInfoDb
+from sys_machine_info import HwInfoPcBranded
+from sys_machine_info import HwInfoPcAssembled
+from sys_machine_info import DevHwInfoDb
 from sys_storage_manager import FmStorageLayoutBiosSimple
 from sys_storage_manager import FmStorageLayoutBiosLvm
 from sys_storage_manager import FmStorageLayoutEfiSimple
