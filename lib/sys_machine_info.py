@@ -27,9 +27,10 @@ class HwInfoPcBranded(HwInfo):
     def __init__(self):
         super().__init__()
 
-        self.name = None
-        self.hwSpec = None                    # dict
+        self.vendor = None
+        self.model = None
         self.serialNumber = None
+        self.hwSpec = None                    # dict
         self.changeList = []
 
 
@@ -75,13 +76,13 @@ class FmMachineInfoGetter:
         ret = None
 
         if ret is None:
-            ret = _UtilPcHp().info()
+            ret = _PcHp().info()
         if ret is None:
-            ret = _UtilPcAsus().info()
+            ret = _PcAsus().info()
         if ret is None:
-            ret = _UtilPcAliyun().info()
+            ret = _PcAliyun().info()
         if ret is None:
-            ret = _UtilPcDiy().info()
+            ret = _PcDiy().info()
         if ret is None:
             return ret
 
@@ -106,71 +107,119 @@ class FmMachineInfoGetter:
         pass
 
 
+class _PcAliyun:
 
-class _UtilHwDict:
+    _MODELS = [
+        "ecs.t1.small",
+    ]
 
-    @staticmethod
-    def get(hwSpec):
-        if hwSpec is not None:
-            ret = copy.deepcopy(hwSpec)
-        else:
-            ret = dict()
+    def info(self):
+        self.manu = FmUtil.dmiDecodeWithCache("system-manufacturer")
+        if self.manu != "Alibaba Cloud":
+            return None
+        assert FmUtil.dmiDecodeWithCache("system-product-name") == "Alibaba Cloud ECS"
 
-        ret["cpu"] = {
-            "vendor": _UtilHwDict._getCpuVendor(),
-            "model": _UtilHwDict._getCpuModelName(),
-            "cores": _UtilHwDict._getCpuCoreNumber(),
-        }
-        ret["memory"] = {
-            "size": _UtilHwDict._getPhysicalMemoryTotalSize(),
-        }
+        self.sn = FmUtil.dmiDecodeWithCache("system-serial-number")
 
+        self.model = FmUtil.getMachineInfo(FmConst.machineInfoFile)["ALIYUN-HWNAME"]
+        assert self.model in self._MODELS
+
+        ret = HwInfoPcBranded()
+        ret.vendor = "ALIYUN"
+        ret.model = self.model
+        ret.hwSpec = self._hwSpec()
+        ret.serialNumber = self.sn
+        ret.arch = "amd64"
+        ret.chassisType = ChassisType.COMPUTER
+        ret.hwDict = _UtilHwDict.get(ret.hwSpec)
+        ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
+        ret.kernelCfgRules = self._kernelCfgRules()
+        ret.useFlags = self._useFlags()
+        ret.grubExtraWaitTime = 20
         return ret
 
-    @staticmethod
-    def _getCpuVendor():
-        vendor = ""
-        with open("/proc/cpuinfo") as f:
-            m = re.search(r'vendor_id\s*:\s*(\S+)', f.read(), re.M)
-            if m is not None:
-                vendor = m.group(1)
+    def _hwSpec(self):
+        ret = {
+        }
 
-        if vendor == "GenuineIntel":
-            return "Intel"
-        elif vendor == "AuthenticAMD":
-            return "AMD"
-        else:
-            return "Unknown"
+        if self.model == "ecs.t1.small":
+            return ret
+        assert False
 
-    @staticmethod
-    def _getCpuModelName():
-        model = ""
-        with open("/proc/cpuinfo") as f:
-            m = re.search(r'model name\s*:\s*(.*)', f.read(), re.M)
-            if m is not None:
-                model = m.group(1)
+    def _changeList(self, origHwDict, hwDict):
+        return []
 
-        # intel models
-        if "i7-4600U" in model:
-            return "i7-4600U"
+    def _kernelCfgRules(self):
+        ret = _Util.kernelCfgRules()
+        ret = _Util.kernelCfgRulesNoPowerSave(ret)
+        if self.model == "ecs.t1.small":
+            return ret
+        assert False
 
-        # amd models
-        if "Ryzen Threadripper 1920X" in model:
-            return "1920X"
-
-        return "Unknown"
-
-    @staticmethod
-    def _getCpuCoreNumber():
-        return multiprocessing.cpu_count()
-
-    @staticmethod
-    def _getPhysicalMemoryTotalSize():
-        # memory size in GiB
-        return FmUtil.getPhysicalMemorySize()
+    def _useFlags(self):
+        ret = _Util.getUseFlags("amd64")
+        ret.update(_Util.getUseFlags3())
+        return ret
 
 
-class _UtilPcHp:
+class _PcAsus:
+
+    def info(self):
+        manuStrList = [
+            "ASUSTeK COMPUTER INC.",
+        ]
+
+        self.manu = FmUtil.dmiDecodeWithCache("system-manufacturer")
+        if self.manu not in manuStrList:
+            return None
+
+        self.model = FmUtil.dmiDecodeWithCache("system-product-name")
+        self.sn = FmUtil.dmiDecodeWithCache("system-serial-number")
+
+        ret = HwInfoPcBranded()
+        ret.vendor = "ASUS"
+        ret.model = self.model
+        ret.hwSpec = self._hwSpec()
+        ret.serialNumber = self.sn
+        ret.arch = "amd64"
+        ret.chassisType = self._chassisType()
+        ret.hwDict = _UtilHwDict.get(ret.hwSpec)
+        ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
+        ret.kernelCfgRules = self._kernelCfgRules()
+        ret.useFlags = self._useFlags()
+        ret.grubExtraWaitTime = 0
+        return ret
+
+    def _hwSpec(self):
+        ret = {
+        }
+
+        if self.model == "T300CHI":
+            return ret
+        assert False
+
+    def _chassisType(self):
+        if self.model == "T300CHI":
+            return ChassisType.TABLET
+        assert False
+
+    def _changeList(self, origHwDict, hwDict):
+        return []
+
+    def _kernelCfgRules(self):
+        ret = _Util.kernelCfgRules()
+        if self.model == "T300CHI":
+            ret = _Util.kernelCfgRulesForOnlyNewestIntelCpu(ret)
+            return ret
+        assert False
+
+    def _useFlags(self):
+        ret = _Util.getUseFlags("amd64")
+        ret.update(_Util.getUseFlags2())
+        return ret
+
+
+class _PcHp:
 
     def info(self):
         self.manu = FmUtil.dmiDecodeWithCache("system-manufacturer")
@@ -181,7 +230,8 @@ class _UtilPcHp:
         self.sn = FmUtil.dmiDecodeWithCache("system-serial-number")
 
         ret = HwInfoPcBranded()
-        ret.name = self._name()
+        ret.vendor = "HP"
+        ret.model = self._name()
         ret.hwSpec = self._hwSpec()
         ret.serialNumber = self.sn
         ret.arch = "amd64"
@@ -275,117 +325,7 @@ class _UtilPcHp:
         return ret
 
 
-class _UtilPcAsus:
-
-    def info(self):
-        manuStrList = [
-            "ASUSTeK COMPUTER INC.",
-        ]
-
-        self.manu = FmUtil.dmiDecodeWithCache("system-manufacturer")
-        if self.manu not in manuStrList:
-            return None
-
-        self.model = FmUtil.dmiDecodeWithCache("system-product-name")
-        self.sn = FmUtil.dmiDecodeWithCache("system-serial-number")
-
-        ret = HwInfoPcBranded()
-        ret.name = "ASUS " + self.model
-        ret.hwSpec = self._hwSpec()
-        ret.serialNumber = self.sn
-        ret.arch = "amd64"
-        ret.chassisType = self._chassisType()
-        ret.hwDict = _UtilHwDict.get(ret.hwSpec)
-        ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
-        ret.kernelCfgRules = self._kernelCfgRules()
-        ret.useFlags = self._useFlags()
-        ret.grubExtraWaitTime = 0
-        return ret
-
-    def _hwSpec(self):
-        ret = {
-        }
-
-        if self.model == "T300CHI":
-            return ret
-        assert False
-
-    def _chassisType(self):
-        if self.model == "T300CHI":
-            return ChassisType.TABLET
-        assert False
-
-    def _changeList(self, origHwDict, hwDict):
-        return []
-
-    def _kernelCfgRules(self):
-        ret = _Util.kernelCfgRules()
-        if self.model == "T300CHI":
-            ret = _Util.kernelCfgRulesForOnlyNewestIntelCpu(ret)
-            return ret
-        assert False
-
-    def _useFlags(self):
-        ret = _Util.getUseFlags("amd64")
-        ret.update(_Util.getUseFlags2())
-        return ret
-
-
-class _UtilPcAliyun:
-
-    MODELS = [
-        "ecs.t1.small",
-    ]
-
-    def info(self):
-        self.manu = FmUtil.dmiDecodeWithCache("system-manufacturer")
-        if self.manu != "Alibaba Cloud":
-            return None
-        assert FmUtil.dmiDecodeWithCache("system-product-name") == "Alibaba Cloud ECS"
-
-        self.sn = FmUtil.dmiDecodeWithCache("system-serial-number")
-
-        self.model = FmUtil.getMachineInfo(FmConst.machineInfoFile)["ALIYUN-HWNAME"]
-        assert self.model in self.MODELS
-
-        ret = HwInfoPcBranded()
-        ret.name = "ALIYUN " + self.model
-        ret.hwSpec = self._hwSpec()
-        ret.serialNumber = self.sn
-        ret.arch = "amd64"
-        ret.chassisType = ChassisType.COMPUTER
-        ret.hwDict = _UtilHwDict.get(ret.hwSpec)
-        ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
-        ret.kernelCfgRules = self._kernelCfgRules()
-        ret.useFlags = self._useFlags()
-        ret.grubExtraWaitTime = 20
-        return ret
-
-    def _hwSpec(self):
-        ret = {
-        }
-
-        if self.model == "ecs.t1.small":
-            return ret
-        assert False
-
-    def _changeList(self, origHwDict, hwDict):
-        return []
-
-    def _kernelCfgRules(self):
-        ret = _Util.kernelCfgRules()
-        ret = _Util.kernelCfgRulesNoPowerSave(ret)
-        if self.model == "ecs.t1.small":
-            return ret
-        assert False
-
-    def _useFlags(self):
-        ret = _Util.getUseFlags("amd64")
-        ret.update(_Util.getUseFlags3())
-        return ret
-
-
-class _UtilPcDiy:
+class _PcDiy:
 
     def info(self):
         _tmpHwSpec = {
@@ -417,7 +357,7 @@ class _UtilPcDiy:
     def getPower(self, lastUpdateTimeToBeUpdated):
         return _Util.readHwInfoFile("POWER", lastUpdateTimeToBeUpdated)
 
-    def getMainBoard(self, lastUpdateTimeToBeUpdated):
+    def getMobo(self, lastUpdateTimeToBeUpdated):
         return None
 
     def getCpu(self, lastUpdateTimeToBeUpdated):
@@ -434,10 +374,9 @@ class _Util:
 
     @staticmethod
     def readHwInfoFile(fn, lastUpdateTimeToBeUpdated):
-        fn = os.path.join(self.param.hwInfoDir, fn)
-        if os.path.exists(fn):
+        if os.path.exists(FmConst.machineInfoFile):
             with open(fn, "r") as f:
-                ret = f.read().split("\n")[0]
+                return f.read().split("\n")[0]
         return None
 
     @staticmethod
@@ -536,6 +475,69 @@ class _Util:
             ret["graphics"] = buf
 
         return ret
+
+
+class _UtilHwDict:
+
+    @staticmethod
+    def get(hwSpec):
+        if hwSpec is not None:
+            ret = copy.deepcopy(hwSpec)
+        else:
+            ret = dict()
+
+        ret["cpu"] = {
+            "vendor": _UtilHwDict._getCpuVendor(),
+            "model": _UtilHwDict._getCpuModelName(),
+            "cores": _UtilHwDict._getCpuCoreNumber(),
+        }
+        ret["memory"] = {
+            "size": _UtilHwDict._getPhysicalMemoryTotalSize(),
+        }
+
+        return ret
+
+    @staticmethod
+    def _getCpuVendor():
+        vendor = ""
+        with open("/proc/cpuinfo") as f:
+            m = re.search(r'vendor_id\s*:\s*(\S+)', f.read(), re.M)
+            if m is not None:
+                vendor = m.group(1)
+
+        if vendor == "GenuineIntel":
+            return "Intel"
+        elif vendor == "AuthenticAMD":
+            return "AMD"
+        else:
+            return "Unknown"
+
+    @staticmethod
+    def _getCpuModelName():
+        model = ""
+        with open("/proc/cpuinfo") as f:
+            m = re.search(r'model name\s*:\s*(.*)', f.read(), re.M)
+            if m is not None:
+                model = m.group(1)
+
+        # intel models
+        if "i7-4600U" in model:
+            return "i7-4600U"
+
+        # amd models
+        if "Ryzen Threadripper 1920X" in model:
+            return "1920X"
+
+        return "Unknown"
+
+    @staticmethod
+    def _getCpuCoreNumber():
+        return multiprocessing.cpu_count()
+
+    @staticmethod
+    def _getPhysicalMemoryTotalSize():
+        # memory size in GiB
+        return FmUtil.getPhysicalMemorySize()
 
 
 class DevHwInfoDb:
