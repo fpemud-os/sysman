@@ -17,7 +17,7 @@ class HwInfo:
 
     def __init__(self):
         self.arch = None                      # str
-        self.chassisType = None               # ChassisType
+        self.chassis_type = None              # ChassisType
         self.hwDict = None                    # dict
         self.kernelCfgRules = None            # ordered-dict(section-name,section-content)
         self.useFlags = None                  # ordered-dict(section-name,section-content)
@@ -91,15 +91,15 @@ class FmMachineInfoGetter:
         r = FmUtil.getMachineInfo(FmConst.machineInfoFile)
         if "CHASSIS" in r:
             if r["CHASSIS"] == "computer":
-                ret.chassisType = ChassisType.COMPUTER
+                ret.chassis_type = ChassisType.COMPUTER
             elif r["CHASSIS"] == "laptop":
-                ret.chassisType = ChassisType.LAPTOP
+                ret.chassis_type = ChassisType.LAPTOP
             elif r["CHASSIS"] == "tablet":
-                ret.chassisType = ChassisType.TABLET
+                ret.chassis_type = ChassisType.TABLET
             elif r["CHASSIS"] == "handset":
-                ret.chassisType = ChassisType.HANDSET
+                ret.chassis_type = ChassisType.HANDSET
             elif r["CHASSIS"] == "headless":
-                ret.chassisType = ChassisType.HEADLESS
+                ret.chassis_type = ChassisType.HEADLESS
             else:
                 assert False
 
@@ -132,7 +132,7 @@ class _PcAliyun:
         ret.hwSpec = self._hwSpec()
         ret.serialNumber = self.sn
         ret.arch = "amd64"
-        ret.chassisType = ChassisType.COMPUTER
+        ret.chassis_type = ChassisType.COMPUTER
         ret.hwDict = self._hwDict(ret.hwSpec)
         ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
         ret.kernelCfgRules = self._kernelCfgRules()
@@ -191,7 +191,7 @@ class _PcAsus:
         ret.hwSpec = self._hwSpec()
         ret.serialNumber = self.sn
         ret.arch = "amd64"
-        ret.chassisType = self._chassisType()
+        ret.chassis_type = self._chassisType()
         ret.hwDict = _UtilHwDict.get(ret.hwSpec)
         ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
         ret.kernelCfgRules = self._kernelCfgRules()
@@ -244,7 +244,7 @@ class _PcHp:
         ret.hwSpec = self._hwSpec()
         ret.serialNumber = self.sn
         ret.arch = "amd64"
-        ret.chassisType = self._chassisType()
+        ret.chassis_type = self._chassisType()
         ret.hwDict = _UtilHwDict.get(ret.hwSpec)
         ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
         ret.kernelCfgRules = self._kernelCfgRules()
@@ -349,7 +349,7 @@ class _PcDiy:
         ret = HwInfoPcAssembled()
         ret.arch = "amd64"
         ret.hwDict = _UtilHwDict.get(_tmpHwSpec)
-        ret.chassisType = ChassisType.COMPUTER              # FIXME
+        ret.chassis_type = ChassisType.COMPUTER              # FIXME
         ret.kernelCfgRules = _Util.kernelCfgRules()
         ret.useFlags = self._useFlags()
         ret.grubExtraWaitTime = 0
