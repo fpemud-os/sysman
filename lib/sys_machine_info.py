@@ -5,6 +5,8 @@ import os
 import re
 import glob
 import copy
+import pathlib
+import sensors
 import multiprocessing
 from collections import OrderedDict
 from fm_util import FmUtil
@@ -131,7 +133,7 @@ class _PcAliyun:
         ret.serialNumber = self.sn
         ret.arch = "amd64"
         ret.chassisType = ChassisType.COMPUTER
-        ret.hwDict = _UtilHwDict.get(ret.hwSpec)
+        ret.hwDict = self._hwDict(ret.hwSpec)
         ret.changeList = self._changeList(ret.hwSpec, ret.hwDict)
         ret.kernelCfgRules = self._kernelCfgRules()
         ret.useFlags = self._useFlags()
@@ -145,6 +147,13 @@ class _PcAliyun:
         if self.model == "ecs.t1.small":
             return ret
         assert False
+
+    def _hwDict(self, hwSpec):
+        ret = _UtilHwDict.get(hwSpec)
+        if "sensors" in ret:
+            del ret["sensors"]
+
+        return ret
 
     def _changeList(self, origHwDict, hwDict):
         return []
@@ -486,58 +495,63 @@ class _UtilHwDict:
         else:
             ret = dict()
 
-        ret["cpu"] = {
-            "vendor": _UtilHwDict._getCpuVendor(),
-            "model": _UtilHwDict._getCpuModelName(),
-            "cores": _UtilHwDict._getCpuCoreNumber(),
-        }
-        ret["memory"] = {
-            "size": _UtilHwDict._getPhysicalMemoryTotalSize(),
-        }
-
+        _UtilHwDict._getCpuInfo(ret)
+        _UtilHwDict._getMemInfo(ret)
+        _UtilHwDict._getSensorInfo(ret)
         return ret
 
     @staticmethod
-    def _getCpuVendor():
-        vendor = ""
-        with open("/proc/cpuinfo") as f:
-            m = re.search(r'vendor_id\s*:\s*(\S+)', f.read(), re.M)
+    def _getCpuInfo(ret):
+        buf = pathlib.Path("/proc/cpuinfo").read_text()
+
+        ret["cpu"] = dict()
+
+        ret["cpu"]["vendor"] = "Unknown"
+        if True:
+            m = re.search(r'vendor_id\s*:\s*(\S+)', buf, re.M)
             if m is not None:
-                vendor = m.group(1)
+                if m.group(1) == "GenuineIntel":
+                    ret["cpu"]["vendor"] = "Intel"
+                if m.group(1) == "AuthenticAMD":
+                    ret["cpu"]["vendor"] = "AMD"
 
-        if vendor == "GenuineIntel":
-            return "Intel"
-        elif vendor == "AuthenticAMD":
-            return "AMD"
-        else:
-            return "Unknown"
-
-    @staticmethod
-    def _getCpuModelName():
-        model = ""
-        with open("/proc/cpuinfo") as f:
-            m = re.search(r'model name\s*:\s*(.*)', f.read(), re.M)
+        ret["cpu"]["model"] = "Unknown"
+        if True:
+            m = re.search(r'model name\s*:\s*(.*)', buf, re.M)
             if m is not None:
-                model = m.group(1)
+                # intel models
+                if "i7-4600U" in m.group(1):
+                    ret["cpu"]["model"] = "i7-4600U"
 
-        # intel models
-        if "i7-4600U" in model:
-            return "i7-4600U"
+                # amd models
+                if "Ryzen Threadripper 1920X" in m.group(1):
+                    ret["cpu"]["model"] = "1920X"
 
-        # amd models
-        if "Ryzen Threadripper 1920X" in model:
-            return "1920X"
-
-        return "Unknown"
+        ret["cpu"]["cores"] = multiprocessing.cpu_count()
 
     @staticmethod
-    def _getCpuCoreNumber():
-        return multiprocessing.cpu_count()
+    def _getMemInfo(ret):
+        ret["memory"] = {
+            "size": FmUtil.getPhysicalMemorySize(),         # memory size in GiB
+        }
 
     @staticmethod
-    def _getPhysicalMemoryTotalSize():
-        # memory size in GiB
-        return FmUtil.getPhysicalMemorySize()
+    def _getSensorInfo(ret):
+        ret["sensor"] = dict()
+
+        sensors.init()
+        try:
+            # cpu temperature sensor
+            for chip in sensors.iter_detected_chips():
+                for feature in chip:
+                    if ret["cpu"]["vendor"] == "Intel" and feature.label.startswith("Package"):
+                        assert "cpu" not in ret["sensor"]
+                        ret["sensor"]["cpu"] = (str(chip), feature.name)
+                    if ret["cpu"]["vendor"] == "Intel" and feature.label.startswith("Tdie"):
+                        assert "cpu" not in ret["sensor"]
+                        ret["sensor"]["cpu"] = (str(chip), feature.name)
+        finally:
+            sensors.cleanup()
 
 
 class DevHwInfoDb:
