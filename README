@@ -7,16 +7,6 @@ Basic Usage:
   sysman show
      * Show system information
 
-  sysman check [--deep] [--auto-fix]
-     * Check hardware (takes very long time if --deep is specified)
-     * Check partition table for all the harddisks
-     * Check storage layout
-     * Check operating system
-     * Check package warehouse
-     * Check users and groups
-     * Do other package specific checking
-     * Find cruft in system files
-
   sysman update [--no-sync]
      * Synchronize repoisotries and overlays
      * Update kernel, initramfs and bootloader
@@ -30,6 +20,23 @@ Basic Usage:
      * Do "perl-clean"
      * Clean unused USE flags, re-emerge packages if neccessary
      * Do "emerge --depclean"
+
+  sysman check [--deep] [--auto-fix]
+     * Check hardware (takes very long time if --deep is specified)
+     * Check partition table for all the harddisks
+     * Check storage layout
+     * Check operating system
+     * Check package warehouse
+     * Check users and groups
+     * Do other package specific checking
+     * Find cruft in system files
+
+  sysman benchmark
+     * Check if the hardware is true
+     * Generate and run stress test job for the current hardware
+     * Check temperature when the system is under heavy load
+     * Show benchmark point, and compare result on the internet
+     * Must be run with all other job stopped
 
   sysman stablize
      * Marks the system as stable
