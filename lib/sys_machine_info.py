@@ -6,7 +6,6 @@ import re
 import glob
 import copy
 import pathlib
-import sensors
 import multiprocessing
 from collections import OrderedDict
 from fm_util import FmUtil
@@ -538,20 +537,6 @@ class _UtilHwDict:
     @staticmethod
     def _getSensorInfo(ret):
         ret["sensor"] = dict()
-
-        sensors.init()
-        try:
-            # cpu temperature sensor
-            for chip in sensors.iter_detected_chips():
-                for feature in chip:
-                    if ret["cpu"]["vendor"] == "Intel" and feature.label.startswith("Package"):
-                        assert "cpu" not in ret["sensor"]
-                        ret["sensor"]["cpu"] = (str(chip), feature.name)
-                    if ret["cpu"]["vendor"] == "Intel" and feature.label.startswith("Tdie"):
-                        assert "cpu" not in ret["sensor"]
-                        ret["sensor"]["cpu"] = (str(chip), feature.name)
-        finally:
-            sensors.cleanup()
 
 
 class DevHwInfoDb:

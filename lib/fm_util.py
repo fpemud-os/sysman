@@ -3350,3 +3350,49 @@ class ParallelRunSequencialPrint:
                 sys.stdout.flush()
             if self.postFuncList[i] is not None:
                 self.postFuncList[i]()
+
+
+class SysfsHwMon:
+
+    SENSOR_TYPE_TEMP = "temp"
+
+    def get_sensors(self, hwmon_name_pattern, sensor_label_pattern, sensor_type=None):
+       # return [(hwmon_name, sensor_label, sensor_type, sysfs_path_prefix)]
+
+        assert sensor_type is None or sensor_type in [self.SENSOR_TYPE_TEMP]
+
+        ret = []
+        if not os.path.exists("/sys/class/hwmon"):
+            return ret
+
+        for dn in os.listdir("/sys/class/hwmon"):
+            fulldn = os.path.join("/sys/class/hwmon", dn)
+
+            namefn = os.path.join(fulldn, "name")
+            chipName = pathlib.Path(namefn).read_text()
+            if not fnmatch.fnmatch(chipName, hwmon_name_pattern):
+                continue
+
+            if sensor_type is None:
+                pat = os.path.join("/sys/class/hwmon", fulldn, "*_label")
+            else:
+                pat = os.path.join("/sys/class/hwmon", fulldn, "%s*_label" % (sensor_type))
+            for fullfn in glob.glob(pat):
+                label = pathlib.Path(namefn).read_text()
+                if not fnmatch.fnmatch(label, sensor_label_pattern):
+                    continue
+                m = re.fullmatch(r'((.*)[0-9]+)_label', os.path.basename(fullfn))
+                ret.append((chipName, label, m.group(1), os.path.join(fulldn, m.group(2))))
+
+        return ret
+
+    def get_sensor(self, hwmon_name, sensor_label, sensor_type=None):
+       # return (hwmon_name, sensor_label, sensor_type, sysfs_path_prefix)
+
+        ret = self.get_sensors(hwmon_name, sensor_label, sensor_type)
+        if len(ret) == 1:
+            return ret[0]
+        elif len(ret) == 0:
+            return None
+        else:
+            assert False
