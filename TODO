@@ -1,5 +1,8 @@
+kernel-rules:
+1. 
 don't enable non-critical INTEL and AMD cpu kernel option
-
+2.
 select governor for cpu
 set cpufreq driver (with overclock) for cpu
-
+3.
+enable serial driver, specify serial port count
