@@ -323,7 +323,7 @@ class FkmBootLoader:
         if ret is None:
             raise Exception("Invalid current boot item, strange?!")
 
-        grubKernelOpt = ""
+        grubKernelOpt = "console=ttynull"       # only use console when debug boot process
 
         # backup old directory
         if os.path.exists("/boot/grub"):
@@ -365,7 +365,7 @@ class FkmBootLoader:
         if ret is None:
             raise Exception("invalid current boot item, strange?!")
 
-        grubKernelOpt = ""
+        grubKernelOpt = "console=ttynull"       # only use console when debug boot process
 
         # backup old directory
         if os.path.exists("/boot/grub"):
