@@ -42,7 +42,6 @@ from sys_storage_manager import FmStorageLayoutEmpty
 # *. hardware check: monitor config by ddcci
 # *. install and uninstall all in_focus packages
 # *. don't enable non-critical INTEL and AMD cpu kernel option (it's a general TODO item, not related to sysman-check)
-# *. check temperature event, too high, cpu throttle, gpu throttle... (_checkCooling)
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
@@ -189,7 +188,8 @@ class FmSysChecker:
                         FmUtil.cmdCallIgnoreResult("/usr/sbin/smartctl", "-X", hdd)
 
     def _checkCooling(self):
-        with self.infoPrinter.printInfoAndIndent("- Check system cooling..."):
+        with self.infoPrinter.printInfoAndIndent("- Check cooling system..."):
+            # FIXME: check temperature event, too high, cpu throttle, gpu throttle... (_checkCooling)
             pass
 
     def _checkStorageLayout(self):
