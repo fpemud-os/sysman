@@ -42,7 +42,7 @@ from sys_storage_manager import FmStorageLayoutEmpty
 # *. hardware check: monitor config by ddcci
 # *. install and uninstall all in_focus packages
 # *. don't enable non-critical INTEL and AMD cpu kernel option (it's a general TODO item, not related to sysman-check)
-# *. check sensors names, they must comply some rules
+# *. check temperature event, too high, cpu throttle, gpu throttle... (_checkCooling)
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
@@ -73,6 +73,7 @@ class FmSysChecker:
         try:
             with self.infoPrinter.printInfoAndIndent(">> Check hardware..."):
                 self._checkHarddisks(deepHardwareCheck)
+                self._checkCooling()
 
             with self.infoPrinter.printInfoAndIndent(">> Check storage layout..."):
                 self._checkStorageLayout()
@@ -136,62 +137,60 @@ class FmSysChecker:
         # hardware check
         if not deepCheck:
             for hdd in tlist:
-                self.infoPrinter.printInfo("- Doing basic hardware check for %s(%s)" % (hdd, FmUtil.getBlkDevModel(hdd)))
-                self.infoPrinter.incIndent()
-                rc, out = FmUtil.cmdCallWithRetCode("/usr/sbin/smartctl", "-H", hdd)
-                if re.search("failure", out, re.I) is not None:
-                    self.infoPrinter.printError("HDD health check failed! Run \"smartctl -H %s\" to do future inspection!" % (hdd))
-                self.infoPrinter.decIndent()
+                with self.infoPrinter.printInfoAndIndent("- Doing basic hardware check for %s(%s)" % (hdd, FmUtil.getBlkDevModel(hdd))):
+                    rc, out = FmUtil.cmdCallWithRetCode("/usr/sbin/smartctl", "-H", hdd)
+                    if re.search("failure", out, re.I) is not None:
+                        self.infoPrinter.printError("HDD health check failed! Run \"smartctl -H %s\" to do future inspection!" % (hdd))
         else:
-            self.infoPrinter.printInfo("- Starting extensive hardware test for %s(%s)" % (hdd, FmUtil.getBlkDevModel(hdd)))
-            self.infoPrinter.incIndent()
-            tlist2 = list(tlist)
-            for hdd in tlist:
-                try:
-                    rc, out = FmUtil.cmdCallWithRetCode("/usr/sbin/smartctl", "-t", "long", hdd)
-                    if rc == 0:
-                        m = re.search("Please wait ([0-9]+) minutes for test to complete\\.", out, re.M)
-                        if m is None:
+            with self.infoPrinter.printInfoAndIndent("- Starting extensive hardware test for %s(%s)" % (hdd, FmUtil.getBlkDevModel(hdd))):
+                tlist2 = list(tlist)
+                for hdd in tlist:
+                    try:
+                        rc, out = FmUtil.cmdCallWithRetCode("/usr/sbin/smartctl", "-t", "long", hdd)
+                        if rc == 0:
+                            m = re.search("Please wait ([0-9]+) minutes for test to complete\\.", out, re.M)
+                            if m is None:
+                                raise Exception("")
+                            self.infoPrinter.printInfo("Test on %s(%s) started, %s minutes needed." % (hdd, FmUtil.getBlkDevModel(hdd), m.group(1)))
+                        elif rc == 4:
+                            self.infoPrinter.printInfo("Test on %s(%s) started. Why it is already in progress?" % (hdd, FmUtil.getBlkDevModel(hdd)))
+                        else:
                             raise Exception("")
-                        self.infoPrinter.printInfo("Test on %s(%s) started, %s minutes needed." % (hdd, FmUtil.getBlkDevModel(hdd), m.group(1)))
-                    elif rc == 4:
-                        self.infoPrinter.printInfo("Test on %s(%s) started. Why it is already in progress?" % (hdd, FmUtil.getBlkDevModel(hdd)))
-                    else:
-                        raise Exception("")
-                except:
-                    self.infoPrinter.printError("Failed to start test on %s(%s)!" % (hdd, FmUtil.getBlkDevModel(hdd)))
-                    FmUtil.cmdCallIgnoreResult("/usr/sbin/smartctl", "-X", hdd)
-                    tlist2.remove(hdd)
-            self.infoPrinter.decIndent()
+                    except:
+                        self.infoPrinter.printError("Failed to start test on %s(%s)!" % (hdd, FmUtil.getBlkDevModel(hdd)))
+                        FmUtil.cmdCallIgnoreResult("/usr/sbin/smartctl", "-X", hdd)
+                        tlist2.remove(hdd)
 
-            try:
-                self.infoPrinter.printInfo("- Waiting...")
-                self.infoPrinter.incIndent()
-                last_progress = 0
-                while tlist2 != []:
-                    time.sleep(60 * 5)
-                    min_progress = None
-                    for hdd in list(tlist2):
-                        out = FmUtil.cmdCall("/usr/sbin/smartctl", "-l", "selftest", hdd)
-                        if re.search("# 1\\s+Extended offline\\s+Completed without error\\s+.*", out, re.M) is not None:
-                            self.infoPrinter.printInfo("Test on %s finished." % (hdd))
-                            tlist2.remove(hdd)
-                            continue
-                        m = re.search("# 1\\s+Extended offline\\s+Self-test routine in progress\\s+([0-9]+)%.*", out, re.M)
-                        if m is None:
-                            self.infoPrinter.printInfo("Test on %s failed. Run \"smartctl -l selftest %s\" to do future inspection." % (hdd, hdd))
-                            tlist2.remove(hdd)
-                            continue
-                        if min_progress is None:
-                            min_progress = 100
-                        min_progress = min(min_progress, 100 - int(m.group(1)))
-                    if min_progress is not None and min_progress > last_progress:
-                        self.infoPrinter.printInfo("Test progress: %d%%" % (min_progress))
-                        last_progress = min_progress
-                self.infoPrinter.decIndent()
-            finally:
-                for hdd in tlist2:
-                    FmUtil.cmdCallIgnoreResult("/usr/sbin/smartctl", "-X", hdd)
+            with self.infoPrinter.printInfoAndIndent("- Waiting..."):
+                try:
+                    last_progress = 0
+                    while tlist2 != []:
+                        time.sleep(60 * 5)
+                        min_progress = None
+                        for hdd in list(tlist2):
+                            out = FmUtil.cmdCall("/usr/sbin/smartctl", "-l", "selftest", hdd)
+                            if re.search("# 1\\s+Extended offline\\s+Completed without error\\s+.*", out, re.M) is not None:
+                                self.infoPrinter.printInfo("Test on %s finished." % (hdd))
+                                tlist2.remove(hdd)
+                                continue
+                            m = re.search("# 1\\s+Extended offline\\s+Self-test routine in progress\\s+([0-9]+)%.*", out, re.M)
+                            if m is None:
+                                self.infoPrinter.printInfo("Test on %s failed. Run \"smartctl -l selftest %s\" to do future inspection." % (hdd, hdd))
+                                tlist2.remove(hdd)
+                                continue
+                            if min_progress is None:
+                                min_progress = 100
+                            min_progress = min(min_progress, 100 - int(m.group(1)))
+                        if min_progress is not None and min_progress > last_progress:
+                            self.infoPrinter.printInfo("Test progress: %d%%" % (min_progress))
+                            last_progress = min_progress
+                finally:
+                    for hdd in tlist2:
+                        FmUtil.cmdCallIgnoreResult("/usr/sbin/smartctl", "-X", hdd)
+
+    def _checkCooling(self):
+        with self.infoPrinter.printInfoAndIndent("- Check system cooling..."):
+            pass
 
     def _checkStorageLayout(self):
         tlist = FmUtil.getDevPathListForFixedHdd()
