@@ -458,13 +458,17 @@ class FmSysChecker:
                     ctrlFlagCur = ctrlFlag
 
     def _checkEtcOnlyUserCreatedFiles(self):
-        # the following directories have /usr/lib/* counterpart for package wish files, so only user created files are allowed in them
+        # the following directories have /usr/lib/* counterpart, so only user created files are allowed in them
         dirList = [
             "/etc/binfmt.d",
             "/etc/environment.d",
             "/etc/modprobe.d",
             "/etc/modules-load.d",
+            "/etc/systemd/system",
+            "/etc/systemd/user",
             "/etc/tmpfiles.d",
+            "/etc/udev/hwdb.d",
+            "/etc/udev/rules.d",
         ]
 
         fileSet = None
