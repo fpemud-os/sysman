@@ -190,7 +190,7 @@ class FmSysChecker:
     def _checkCooling(self):
         # FIXME: check temperature event, too high, cpu throttle, gpu throttle... (_checkCooling)
 
-        with self.infoPrinter.printInfoAndIndent("- Check cooling system..."):
+        with self.infoPrinter.printInfoAndIndent("- Checking cooling system..."):
             # check cpu thermal throttle history
             for fullfn in glob.glob("/sys/devices/system/cpu/cpu*/thermal_throttle/*_throttle_count"):
                 count = int(pathlib.Path(fullfn).read_text().rstrip("\n"))
