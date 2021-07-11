@@ -3357,7 +3357,7 @@ class SysfsHwMon:
     SENSOR_TYPE_TEMP = "temp"
 
     def get_sensors(self, hwmon_name_pattern, sensor_label_pattern, sensor_type=None):
-       # return [(hwmon_name, sensor_label, sensor_type, sysfs_path_prefix)]
+        # return [(hwmon_name, sensor_label, sensor_type, sysfs_path_prefix)]
 
         assert sensor_type is None or sensor_type in [self.SENSOR_TYPE_TEMP]
 
@@ -3387,7 +3387,7 @@ class SysfsHwMon:
         return ret
 
     def get_sensor(self, hwmon_name, sensor_label, sensor_type=None):
-       # return (hwmon_name, sensor_label, sensor_type, sysfs_path_prefix)
+        # return (hwmon_name, sensor_label, sensor_type, sysfs_path_prefix)
 
         ret = self.get_sensors(hwmon_name, sensor_label, sensor_type)
         if len(ret) == 1:

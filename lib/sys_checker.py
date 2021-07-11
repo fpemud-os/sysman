@@ -188,9 +188,14 @@ class FmSysChecker:
                         FmUtil.cmdCallIgnoreResult("/usr/sbin/smartctl", "-X", hdd)
 
     def _checkCooling(self):
+        # FIXME: check temperature event, too high, cpu throttle, gpu throttle... (_checkCooling)
+
         with self.infoPrinter.printInfoAndIndent("- Check cooling system..."):
-            # FIXME: check temperature event, too high, cpu throttle, gpu throttle... (_checkCooling)
-            pass
+            # check cpu thermal throttle history
+            for fullfn in glob.glob("/sys/devices/system/cpu/cpu*/thermal_throttle/*_throttle_count"):
+                count = int(pathlib.Path(fullfn).read_text().rstrip("\n"))
+                if count != 0:
+                    self.infoPrinter.printError("\"%s\" is not 0." % (fullfn))
 
     def _checkStorageLayout(self):
         tlist = FmUtil.getDevPathListForFixedHdd()
