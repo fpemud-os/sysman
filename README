@@ -39,6 +39,8 @@ Basic Usage:
      * Must be run with all other job stopped
 
   sysman stablize
+     * Ensures the current system is clean
+     * Ensures the software part of the current system has no check errors
      * Marks the system as stable
 
 
