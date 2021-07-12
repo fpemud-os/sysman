@@ -37,6 +37,39 @@ class MachineUsage:
 
 class HwInfo:
 
+    """
+    self.hwDict example:
+    {
+        "mobo": {
+            "vendor": "Asrock",
+            "model": "X399 Fatality Professional Gaming",
+        },
+        "cpu": {
+            "vendor": "Intel",
+            "model": "i7-4600U",
+            "cores": 4,
+        },
+        "memory: {
+            "size": 16,             # in GiB
+        },
+        "gpu": {
+
+
+        },
+        "worker-gpu": {
+
+
+        },
+        "fan": {
+            "only-fan": {
+                "model": "Embedded",
+                "power": "weak",
+            },
+        }
+
+    }
+    """
+
     def __init__(self):
         self.arch = None                      # str
         self.chassis_type = None              # ChassisType
@@ -149,8 +182,8 @@ class _PcAliyun:
 
     def _hwDict(self, hwSpec):
         ret = _UtilHwDict.get(hwSpec)
-        if "sensors" in ret:
-            del ret["sensors"]
+        if "sensor" in ret:
+            del ret["sensor"]
 
         return ret
 
