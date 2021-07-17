@@ -8,8 +8,6 @@ TELCLOCK=n                                                          # unfamiliar
 XILLYBUS=n                                                          # unfamiliar
 NOZOMI=n                                                            # not support PCMCIA hardware
 MWAVE=n                                                             # unfamiliar
-TRACE_ROUTER=n                                                      # unfamiliar
-TRACE_SINK=n                                                        # unfamiliar
 
 # tty support
 TTY=y
