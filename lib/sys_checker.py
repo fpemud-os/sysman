@@ -545,8 +545,12 @@ class FmSysChecker:
             return
 
     def _checkFirmware(self):
-        processedList = []
         entry = FkmBootEntry.findCurrent()
+        if entry is None:
+            self.infoPrinter.printError("Invalid current boot item, again. ;)")     # already checked in self._checkBootDir()
+            return
+
+        processedList = []
         verDir = os.path.join("/lib/modules", entry.buildTarget.verstr)
         for fullfn in glob.glob(os.path.join(verDir, "**", "*.ko"), recursive=True):
             # python-kmod bug: can only recognize the last firmware in modinfo
