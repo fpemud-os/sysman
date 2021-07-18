@@ -68,6 +68,9 @@ dev-db/mysql               -~x86 -~amd64
 dev-db/mariadb             -~x86 -~amd64
 dev-db/postgresql          -~x86 -~amd64
 
+# virtuals
+virtual/libcrypt           -~x86 -~amd64
+
 # ???
 net-fs/samba               -~x86 -~amd64
 
