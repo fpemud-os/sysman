@@ -922,6 +922,15 @@ class FkmKernelBuilder:
 
         self._makeAuxillary(self.realSrcDir, "modules_install")
 
+    def buildStepBuildAndInstallExtraDriver(self, driverName):
+        cacheDir = self.kcache.getExtraDriverSourceDir(driverName)
+        fullfn = self.kcache.getExtraDriverExecFile(driverName)
+        buildTmpDir = os.path.join(self.tmpDir, driverName)
+        os.mkdir(buildTmpDir)
+        with TempChdir(buildTmpDir):
+            assert fullfn.endswith(".py")
+            FmUtil.cmdCall("python3", fullfn, cacheDir, self.kernelVer)     # FIXME, should respect shebang
+
     def buildStepInstallFirmware(self):
         # get add all *used* firmware file
         # FIXME:
@@ -961,6 +970,12 @@ class FkmKernelBuilder:
             for firmwareName in set(self.kcache.getExtraFirmwareList()) - usedExtraNames:
                 print("WARNING: Extra firmware \"%s\" is outdated." % (firmwareName))
 
+        # linshi
+        for fn, kn in firmwareList:
+            dstFn = os.path.join("/lib/firmware", fn)
+            if not os.path.exists(dstFn):
+                print("%s has no firmware %s" % (kn, fn))
+
         # copy wireless-regdb
         if True:
             ret = glob.glob(os.path.join(self.wirelessRegDbTmpDir, "**", "regulatory.db"), recursive=True)
@@ -979,15 +994,6 @@ class FkmKernelBuilder:
         with open("/lib/firmware/.ctime", "w") as f:
             f.write(self.firmwareVer + "\n")
             f.write(self.wirelessRegDbVer + "\n")
-
-    def buildStepBuildAndInstallExtraDriver(self, driverName):
-        cacheDir = self.kcache.getExtraDriverSourceDir(driverName)
-        fullfn = self.kcache.getExtraDriverExecFile(driverName)
-        buildTmpDir = os.path.join(self.tmpDir, driverName)
-        os.mkdir(buildTmpDir)
-        with TempChdir(buildTmpDir):
-            assert fullfn.endswith(".py")
-            FmUtil.cmdCall("python3", fullfn, cacheDir, self.kernelVer)     # FIXME, should respect shebang
 
     def buildStepClean(self):
         with open(os.path.join("/boot", self.dstTarget.kernelSrcSignatureFile), "w") as f:

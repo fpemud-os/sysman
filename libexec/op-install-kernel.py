@@ -49,22 +49,16 @@ if not kernelBuildNeeded:
     if not FmUtil.dotCfgFileCompare(os.path.join("/boot", bootEntry.kernelCfgFile), kernelBuilder.dotCfgFile):
         kernelBuildNeeded = True
 
-print("        - Building...")
-if kernelBuildNeeded:
-    if True:
-        with PrintLoadAvgThread("                - Installing kernel and modules..."):
-            kernelBuilder.buildStepMakeInstall()
-    if True:
-        print("                - Installing firmware and wireless-regdb...")
-        kernelBuilder.buildStepInstallFirmware()
-    for name in kcache.getExtraDriverList():
-        with PrintLoadAvgThread("                - Installing kernel driver \"%s\"..." % (name)):
+with PrintLoadAvgThread("        - Installing kernel and modules..."):
+    if kernelBuildNeeded:
+        kernelBuilder.buildStepMakeInstall()
+        for name in kcache.getExtraDriverList():
             kernelBuilder.buildStepBuildAndInstallExtraDriver(name)
-    if True:
-        print("                - Cleaning...")
-        kernelBuilder.buildStepClean()
-else:
-    print("No operation needed.")
+
+print("        - Installing firmware and wireless-regdb...")
+kernelBuilder.buildStepInstallFirmware()
+
+kernelBuilder.buildStepClean()
 
 os.makedirs(os.path.dirname(resultFile), exist_ok=True)
 with open(resultFile, "w", encoding="iso8859-1") as f:
