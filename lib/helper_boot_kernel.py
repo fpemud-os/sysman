@@ -970,12 +970,6 @@ class FkmKernelBuilder:
             for firmwareName in set(self.kcache.getExtraFirmwareList()) - usedExtraNames:
                 print("WARNING: Extra firmware \"%s\" is outdated." % (firmwareName))
 
-        # linshi
-        for fn, kn in firmwareList:
-            dstFn = os.path.join("/lib/firmware", fn)
-            if not os.path.exists(dstFn):
-                print("%s has no firmware %s" % (kn, fn))
-
         # copy wireless-regdb
         if True:
             ret = glob.glob(os.path.join(self.wirelessRegDbTmpDir, "**", "regulatory.db"), recursive=True)
