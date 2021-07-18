@@ -468,7 +468,7 @@ class _Util:
         if True:
             buf = ""
             buf += "# support all the common video cards\n"
-            buf += "*/* VIDEO_CARDS: -* intel iris nouveau radeon radeonsi\n"
+            buf += "*/* VIDEO_CARDS: -* amdgpu intel iris nouveau radeon radeonsi\n"
             ret["graphics"] = buf
 
         return ret
