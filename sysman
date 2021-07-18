@@ -245,8 +245,8 @@ try:
             else:
                 assert False
 
-        shutil.rmtree(param.tmpDirOnHdd)
-        shutil.rmtree(param.tmpDir)
+        robust_layer.simple_fops.rm(param.tmpDirOnHdd)
+        robust_layer.simple_fops.rm(param.tmpDir)
         if ret != 0:
             sys.exit(ret)
 
