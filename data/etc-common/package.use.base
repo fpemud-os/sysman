@@ -223,6 +223,7 @@ dev-lang/php                                                        gd          
 media-gfx/imagemagick                                               -openmp         # bug 547922
 media-video/pipewire                                                extra pipewire-alsa
 app-misc/ddcutil                                                    X               # drm needs X?
+sys-auth/pambase                                                    -passwdqc
 
 # 
 x11-base/xorg-server                        -elogind                        # why it enables by default?
