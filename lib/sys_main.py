@@ -101,9 +101,10 @@ class FmMain:
         print("")
 
         print("Hardware:")
-        if isinstance(self.param.machineInfoGetter.hwInfo(), HwInfoPcBranded):
-            print("    %s" % (self.param.machineInfoGetter.hwInfo().name))
-        elif isinstance(self.param.machineInfoGetter.hwInfo(), HwInfoPcAssembled):
+        hwInfo = self.param.machineInfoGetter.hwInfo()
+        if isinstance(hwInfo, HwInfoPcBranded):
+            print("    %s %s" % (hwInfo.vendor, hwInfo.model))
+        elif isinstance(hwInfo, HwInfoPcAssembled):
             print("    DIY PC")
         else:
             assert False
