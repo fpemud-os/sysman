@@ -48,7 +48,7 @@ find "${D}" -name "*bootctl*" | xargs rm -rf
 find "${D}" -name "*/systemd-boot.7.bz2" | xargs rm -rf
 find "${D}" -name "*systemd-boot-system-token*" | xargs rm -rf
 find "${D}" -name "*kernel-install*" | xargs rm -rf
-find "${D}" -name "/usr/lib/kernel" | xargs rm -rf
+find "${D}" -path "/usr/lib/kernel*" | xargs rm -rf
 
 # don't use systemd boot checking functionality
 find "${D}" -name "*bless-boot*" | xargs rm -rf
@@ -69,7 +69,7 @@ find "${D}" -name "*hostnamectl*" | xargs rm -rf
 
 # don't use systemd-networkd
 find "${D}" -name "*network*" | xargs rm -rf
-find "${D}" -name "/lib/systemd/network" | xargs rm -rf
+find "${D}" -path "/lib/systemd/network*" | xargs rm -rf
 find "${D}" -name "/etc/systemd/network" | xargs rm -rf
 
 # don't use systemd-resolvd
@@ -87,13 +87,16 @@ find "${D}" -name "/lib/systemd/portable" | xargs rm -rf
 # don't use systemd-timesyncd, chrony is better
 find "${D}" -name "*timesync*" | xargs rm -rf
 find "${D}" -name "*ntp*" | xargs rm -rf
-find "${D}" -name "/lib/systemd/ntp-units.d" | xargs rm -rf
+find "${D}" -path "/lib/systemd/ntp-units.d*" | xargs rm -rf
 
 # systemd-firstboot should only be executed manually
 find "${D}" -name "*systemd-firstboot.service*" | xargs rm -rf
 
 # sysvinit compliance is not needed
 find "${D}" -name "*runlevel*" | xargs rm -rf
+
+# install.d is not needed
+find "${D}" -path "/usr/lib/kernel/install.d*" | xargs rm -rf
 
 # don't use kexec functionality
 find "${D}" -name "*kexec*" | xargs rm -rf
