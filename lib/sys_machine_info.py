@@ -253,15 +253,15 @@ class _PcHp:
 
     def _name(self):
         if self.model == "HP EliteBook 820 G1":
-            return self.model
+            return self.model.replace("HP ", "")
         if self.model == "HP EliteBook 820 G3":
-            return self.model
+            return self.model.replace("HP ", "")
         if self.model == "HP EliteBook 840 G1":
-            return self.model
+            return self.model.replace("HP ", "")
         if self.model == "HP EliteBook 840 G3":
-            return self.model
+            return self.model.replace("HP ", "")
         if self.model == "HP EliteBook 850 G1":
-            return self.model
+            return self.model.replace("HP ", "")
         assert False
 
     def _hwSpec(self):
