@@ -191,6 +191,9 @@ app-editors/vscode                                                              
 net-libs/nodejs                                                                                            system-icu
 net-im/zoom                                                                                                -bundled-qt
 
+# framebuffer device is deprecated by DRM
+*/*                                                                                                        -fbdev
+
 # for /usr merge
 */*                                                                                                        -split-usr
 
@@ -224,6 +227,7 @@ media-gfx/imagemagick                                               -openmp     
 media-video/pipewire                                                extra pipewire-alsa
 app-misc/ddcutil                                                    X               # drm needs X?
 sys-auth/pambase                                                    -passwdqc
+
 
 # 
 x11-base/xorg-server                        -elogind                        # why it enables by default?
