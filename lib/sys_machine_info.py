@@ -286,6 +286,7 @@ class _PcHp:
                     "cores": 4,
                 }
             })
+            return ret
         if self.model == "HP EliteBook 840 G3":
             return ret
         if self.model == "HP EliteBook 850 G1":
