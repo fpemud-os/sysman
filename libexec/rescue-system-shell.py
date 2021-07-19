@@ -6,18 +6,15 @@ import re
 import sys
 import gzip
 import time
-import json
 import glob
 import shutil
-import ctypes
 import subprocess
+import strict_hdds
 
 
 class Main:
 
     def main(self):
-        selfDir = os.path.dirname(os.path.realpath(__file__))
-
         if os.getuid() != 0:
             print("You must run this command as root!")
             sys.exit(1)
@@ -34,42 +31,25 @@ class Main:
             sys.exit(1)
 
         # get storage layout for target system
-        out = _Util.shellCall("%s %s" % (os.path.join(selfDir, "rescue-storage-manager.py"), "_to_json"))
-        layoutName = out.split("\n")[0]
-        layoutData = json.loads(out.split("\n")[1])
-
-        # get rootDev and bootDev
-        if layoutName == "empty":
-            print("Error: Empty storage layout.")
+        layout = strict_hdds.get_storage_layout()
+        if layout is None:
+            print("Error: Invalid storage layout.")
             sys.exit(1)
-        elif layoutName == "bios-simple":
-            rootDev = layoutData["hddRootParti"]
+
+        if layout.name in ["bios-simple", "bios-lvm"]:
             bootDev = None
-        elif layoutName == "bios-lvm":
-            rootDev = os.path.join("/dev/mapper", "%s-%s" % (layoutData["lvmVg"], layoutData["lvmRootLv"]))
-            bootDev = None
-        elif layoutName == "efi-simple":
-            rootDev = layoutData["hddRootParti"]
-            bootDev = layoutData["hddEspParti"]
-        elif layoutName == "efi-lvm":
-            rootDev = os.path.join("/dev/mapper", "%s-%s" % (layoutData["lvmVg"], layoutData["lvmRootLv"]))
-            bootDev = layoutData["bootHdd"] + "1"
-        elif layoutName == "efi-bcache-lvm":
-            rootDev = os.path.join("/dev/mapper", "%s-%s" % (layoutData["lvmVg"], layoutData["lvmRootLv"]))
-            if layoutData["ssd"] is not None:
-                bootDev = layoutData["ssdEspParti"]
-            else:
-                bootDev = layoutData["bootHdd"] + "1"
+        elif layout.name in ["efi-simple", "efi-lvm", "efi-bcache-lvm"]:
+            bootDev = layout.get_esp()
         else:
             assert False
 
         # mount directories (layer 1)
         mountList = [
-            ("/mnt/gentoo", "%s /mnt/gentoo" % (rootDev)),
+            ("/mnt/gentoo", "%s /mnt/gentoo" % (layout.get_rootdev())),
         ]
         with _DirListMount(mountList):
             if not _Util.isGentooRootDir("/mnt/gentoo"):
-                print("Error: Invalid content in root device %s" % (rootDev))
+                print("Error: Invalid content in root device %s" % (layout.get_rootdev()))
                 sys.exit(1)
 
             # mount directories (layer 2)
@@ -209,52 +189,12 @@ class _CopyResolvConf:
             os.unlink(self.dstf)
 
 
-class _InterProcessCounter:
-
-    def __init__(self, name):
-        self.name = name
-        self.librt = ctypes.CDLL("librt.so", use_errno=True)
-
-        # # https://github.com/erikhvatum/py_interprocess_shared_memory_blob
-        # self.shm_open_argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_unit32]
-
-        # self.pthread_rwlockattr_t = ctypes.c_byte * 8
-        # self.pthread_rwlockattr_t_p = ctypes.POINTER(self.pthread_rwlockattr_t)
-
-        # self.pthread_rwlock_t = ctypes.c_byte * 56
-        # self.pthread_rwlock_t_p = ctypes.POINTER(self.pthread_rwlock_t)
-
-        # API = [
-        #     ('pthread_rwlock_destroy', [pthread_rwlock_t_p], 'pthread'),
-        #     ('pthread_rwlock_init', [pthread_rwlock_t_p, pthread_rwlockattr_t_p], 'pthread'),
-        #     ('pthread_rwlock_unlock', [pthread_rwlock_t_p], 'pthread'),
-        #     ('pthread_rwlock_wrlock', [pthread_rwlock_t_p], 'pthread'),
-        #     ('pthread_rwlockattr_destroy', [pthread_rwlockattr_t_p], 'pthread'),
-        #     ('pthread_rwlockattr_init', [pthread_rwlockattr_t_p], 'pthread'),
-        #     ('pthread_rwlockattr_setpshared', [pthread_rwlockattr_t_p, ctypes.c_int], 'pthread'),
-        #     ('shm_open', shm_open_argtypes, 'os'),
-        #     ('shm_unlink', [ctypes.c_char_p], 'os')
-        # ]
-
-    def incr(self):
-        pass
-
-    def decr(self):
-        pass
-
-
 class _Util:
 
     @staticmethod
     def isGentooRootDir(dirname):
         dirset = set(["bin", "dev", "etc", "lib", "proc", "sbin", "sys", "tmp", "usr", "var"])
         return dirset <= set(os.listdir(dirname))
-
-    @staticmethod
-    def touchFile(filename):
-        assert not os.path.exists(filename)
-        f = open(filename, 'w')
-        f.close()
 
     @staticmethod
     def getMountDeviceForPath(pathname):
@@ -291,15 +231,6 @@ class _Util:
             print(ret.stdout)
             ret.check_returncode()
         return ret.stdout.rstrip()
-
-    @staticmethod
-    def cmdCallWithRetCode(cmd, *kargs):
-        ret = subprocess.run([cmd] + list(kargs),
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                             universal_newlines=True)
-        if ret.returncode > 128:
-            time.sleep(1.0)
-        return (ret.returncode, ret.stdout.rstrip())
 
     @staticmethod
     def cmdCallIgnoreResult(cmd, *kargs):

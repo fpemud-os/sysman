@@ -90,3 +90,41 @@
             raise ProcessStuckError(ptyProc.args, TIMEOUT)
         if ptyProc.exitstatus:
             raise subprocess.CalledProcessError(ptyProc.exitstatus, ptyProc.argv, sStdout, "")
+
+
+
+
+
+
+class _InterProcessCounter:
+
+    def __init__(self, name):
+        self.name = name
+        self.librt = ctypes.CDLL("librt.so", use_errno=True)
+
+        # # https://github.com/erikhvatum/py_interprocess_shared_memory_blob
+        # self.shm_open_argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_unit32]
+
+        # self.pthread_rwlockattr_t = ctypes.c_byte * 8
+        # self.pthread_rwlockattr_t_p = ctypes.POINTER(self.pthread_rwlockattr_t)
+
+        # self.pthread_rwlock_t = ctypes.c_byte * 56
+        # self.pthread_rwlock_t_p = ctypes.POINTER(self.pthread_rwlock_t)
+
+        # API = [
+        #     ('pthread_rwlock_destroy', [pthread_rwlock_t_p], 'pthread'),
+        #     ('pthread_rwlock_init', [pthread_rwlock_t_p, pthread_rwlockattr_t_p], 'pthread'),
+        #     ('pthread_rwlock_unlock', [pthread_rwlock_t_p], 'pthread'),
+        #     ('pthread_rwlock_wrlock', [pthread_rwlock_t_p], 'pthread'),
+        #     ('pthread_rwlockattr_destroy', [pthread_rwlockattr_t_p], 'pthread'),
+        #     ('pthread_rwlockattr_init', [pthread_rwlockattr_t_p], 'pthread'),
+        #     ('pthread_rwlockattr_setpshared', [pthread_rwlockattr_t_p, ctypes.c_int], 'pthread'),
+        #     ('shm_open', shm_open_argtypes, 'os'),
+        #     ('shm_unlink', [ctypes.c_char_p], 'os')
+        # ]
+
+    def incr(self):
+        pass
+
+    def decr(self):
+        pass
