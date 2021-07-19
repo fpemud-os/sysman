@@ -19,7 +19,7 @@ class Main:
 
         self.args = self._getArgParser().parse_args()
 
-        if self.args.op == "show":
+        if not hasattr(self.args, "op") or self.args.op == "show":
             return self._cmdShow()
 
         if self.args.op == "create":
