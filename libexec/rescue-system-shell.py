@@ -17,7 +17,7 @@ class Main:
     def main(self):
         if os.getuid() != 0:
             print("You must run this command as root!")
-            sys.exit(1)
+            return 1
 
         # another instance is running?
         pass
@@ -25,16 +25,16 @@ class Main:
         # /mnt/gentoo or /mnt/gentoo/boot is mounted
         if _Util.isMountPoint("/mnt/gentoo"):
             print("Error: /mnt/gentoo should not be mounted")
-            sys.exit(1)
+            return 1
         if _Util.isMountPoint("/mnt/gentoo/boot"):
             print("Error: /mnt/gentoo/boot should not be mounted")
-            sys.exit(1)
+            return 1
 
         # get storage layout for target system
         layout = strict_hdds.get_storage_layout()
         if layout is None:
             print("Error: Invalid storage layout.")
-            sys.exit(1)
+            return 1
 
         if layout.name in ["bios-simple", "bios-lvm"]:
             bootDev = None
@@ -50,7 +50,7 @@ class Main:
         with _DirListMount(mountList):
             if not _Util.isGentooRootDir("/mnt/gentoo"):
                 print("Error: Invalid content in root device %s" % (layout.get_rootdev()))
-                sys.exit(1)
+                return 1
 
             # mount directories (layer 2)
             mountList = [
@@ -81,6 +81,7 @@ class Main:
                         with _CopyResolvConf("/etc/resolv.conf", "/mnt/gentoo"):
                             subprocess.run("FPEMUD_REFSYSTEM_SETUP=1 /usr/bin/chroot /mnt/gentoo /bin/sh", shell=True)
 
+        return 0
 
 class _DirListMount:
 
@@ -260,4 +261,5 @@ class _Util:
 
 
 if __name__ == "__main__":
-    Main().main()
+    ret = Main().main()
+    sys.exit(ret)
