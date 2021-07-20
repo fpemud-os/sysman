@@ -424,9 +424,9 @@ class FkmMountBootDirRw:
     def __init__(self, storageLayout):
         self.storageLayout = storageLayout
 
-        if self.storageLayout.boot_mode == strict_hdds.StorageLayout.BIOS_MODE_EFI:
+        if self.storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
             FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), "/boot", "-o", "rw,remount")
-        elif self.storageLayout.boot_mode == strict_hdds.StorageLayout.BIOS_MODE_BIOS:
+        elif self.storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
             pass
         else:
             assert False
@@ -435,9 +435,9 @@ class FkmMountBootDirRw:
         return self
 
     def __exit__(self, type, value, traceback):
-        if self.storageLayout.boot_mode == strict_hdds.StorageLayout.BIOS_MODE_EFI:
+        if self.storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
             FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), "/boot", "-o", "ro,remount")
-        elif self.storageLayout.boot_mode == strict_hdds.StorageLayout.BIOS_MODE_BIOS:
+        elif self.storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
             pass
         else:
             assert False
