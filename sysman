@@ -16,8 +16,8 @@ from fm_util import SingletonProcess
 from fm_param import FmParam
 from sys_machine_info import FmMachineInfoGetter
 from sys_pkgman import FmPkgman
-from sys_swap import FmSwapManager
-from sys_logging_manager import FmLoggingManager
+from sys_misc import FmSwapManager
+from sys_misc import FmLoggingManager
 from sys_user_manager import FmUserManager
 from sys_checker import FmSysChecker
 from sys_updater import FmSysUpdater
