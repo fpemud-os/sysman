@@ -216,9 +216,9 @@ class FmSysChecker:
         # storage layout check
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
             # check root device
-            if layout.get_rootdev() is not None:
-                if FmUtil.getMountDeviceForPath("/") != layout.get_rootdev():
-                    self.infoPrinter.printError("Directory / should be mounted to root device %s." % (layout.get_rootdev()))
+            if layout.dev_rootfs is not None:
+                if FmUtil.getMountDeviceForPath("/") != layout.dev_rootfs:
+                    self.infoPrinter.printError("Directory / should be mounted to root device %s." % (layout.dev_rootfs))
 
             # check boot device
             if layout.name in ["bios-simple", "bios-lvm"]:
@@ -273,7 +273,7 @@ class FmSysChecker:
 
         with self.infoPrinter.printInfoAndIndent("- Checking swap"):
             dirname = "/etc/systemd/system"
-            swapFileOrDev = layout.get_swap()
+            swapFileOrDev = layout.dev_swap
 
             # swap service should only exist in /etc
             for td in ["/usr/lib/systemd/system", "/lib/systemd/system"]:
@@ -328,7 +328,7 @@ class FmSysChecker:
 
     def _checkPreMountRootfsLayout(self):
         layout = strict_hdds.parse_storage_layout()
-        with TmpMount(layout.get_rootdev()) as mp:
+        with TmpMount(layout.dev_rootfs) as mp:
             if layout.is_ready() and layout.bios_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
                 bMountBoot = True
             else:

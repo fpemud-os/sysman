@@ -45,11 +45,11 @@ class Main:
 
         # mount directories (layer 1)
         mountList = [
-            ("/mnt/gentoo", "%s /mnt/gentoo" % (layout.get_rootdev())),
+            ("/mnt/gentoo", "%s /mnt/gentoo" % (layout.dev_rootfs)),
         ]
         with _DirListMount(mountList):
             if not _Util.isGentooRootDir("/mnt/gentoo"):
-                print("Error: Invalid content in root device %s" % (layout.get_rootdev()))
+                print("Error: Invalid content in root device %s" % (layout.dev_rootfs))
                 return 1
 
             # mount directories (layer 2)

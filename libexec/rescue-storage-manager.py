@@ -122,7 +122,7 @@ class Main:
 
         layout = strict_hdds.create_storage_layout(self.args.layout_name)
         if self.args.layout_name == "bios-simple":
-            print("Root device: %s" % (layout.get_rootdev()))
+            print("Root device: %s" % (layout.dev_rootfs))
             print("Swap file: None")
         elif self.args.layout_name == "bios-lvm":
             print("Root device: %s" % (layout.get_root_dev()))
