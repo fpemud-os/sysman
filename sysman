@@ -3,7 +3,6 @@
 
 import os
 import sys
-import shutil
 import argparse
 import robust_layer.simple_fops
 
@@ -17,9 +16,9 @@ from fm_util import SingletonProcess
 from fm_param import FmParam
 from sys_machine_info import FmMachineInfoGetter
 from sys_pkgman import FmPkgman
+from sys_swap import FmSwapManager
 from sys_logging_manager import FmLoggingManager
 from sys_user_manager import FmUserManager
-from sys_storage_manager import FmStorageManager
 from sys_checker import FmSysChecker
 from sys_updater import FmSysUpdater
 from sys_cleaner import FmSysCleaner
@@ -181,8 +180,8 @@ try:
 
         param.infoPrinter = InfoPrinter()
         param.machineInfoGetter = FmMachineInfoGetter(param)
-        param.storageManager = FmStorageManager(param)
         param.pkgManager = FmPkgman(param)
+        param.swapManager = FmSwapManager(param)
         param.logManager = FmLoggingManager(param)
         param.userManager = FmUserManager(param)
         param.sysChecker = FmSysChecker(param)

@@ -2,6 +2,7 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 import os
+import strict_hdds
 from fm_util import FmUtil
 from fm_param import FmConst
 from helper_boot import FkmBootLoader
@@ -21,7 +22,7 @@ class FmSysCleaner:
         self.opCleanKcache = os.path.join(FmConst.libexecDir, "op-clean-kcache.py")
 
     def clean(self, bPretend):
-        layout = self.param.storageManager.getStorageLayout()
+        layout = strict_hdds.parse_storage_layout()
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -52,7 +53,7 @@ class FmSysCleaner:
         if True:
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             bFileRemoved = False
-            with FkmMountBootDirRw(self.param.storageManager.getStorageLayout()):
+            with FkmMountBootDirRw(layout):
                 self._exec(buildServer, self.opCleanKernel, resultFile)
                 if buildServer is None:
                     with open(resultFile, "r", encoding="iso8859-1") as f:
@@ -75,10 +76,14 @@ class FmSysCleaner:
                         FkmBootLoader().updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
                     print("")
 
-            if bFileRemoved and self.param.storageManager.needSyncBootPartition(layout):
-                self.infoPrinter.printInfo(">> Synchronizing boot partitions...")
-                self.param.storageManager.syncBootPartition(layout)
-                print("")
+            if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
+                src, dstList = layout.get_esp_sync_info()
+                if bFileRemoved and len(dstList) > 0:
+                    with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
+                        for dst in dstList:
+                            self.infoPrinter.printInfo("        - %s to %s..." % (src, dst))
+                            layout.sync_esp(src, dst)
+                    print("")
 
         # clean kcache
         self.infoPrinter.printInfo(">> Cleaning %s..." % (FmConst.kcacheDir))

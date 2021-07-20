@@ -5,6 +5,7 @@ import os
 import sys
 import pyudev
 import strict_pgs
+import strict_hdds
 from fm_util import FmUtil
 from fm_param import FmConst
 from helper_boot import FkmBootDir
@@ -19,13 +20,6 @@ from helper_pkg_warehouse import CloudOverlayDb
 from sys_machine_info import HwInfoPcBranded
 from sys_machine_info import HwInfoPcAssembled
 from sys_machine_info import DevHwInfoDb
-from sys_storage_manager import FmStorageLayoutBiosSimple
-from sys_storage_manager import FmStorageLayoutBiosLvm
-from sys_storage_manager import FmStorageLayoutEfiSimple
-from sys_storage_manager import FmStorageLayoutEfiLvm
-from sys_storage_manager import FmStorageLayoutEfiBcacheLvm
-from sys_storage_manager import FmStorageLayoutNonStandard
-from sys_storage_manager import FmStorageLayoutEmpty
 
 
 class FmMain:
@@ -143,6 +137,7 @@ class FmMain:
         print("")
 
         print("Storage layout:")
+        layout = strict_hdds.parse_storage_layout()
         if True:
             def partSize(devpath):
                 sz = FmUtil.getBlkDevSize(devpath)
@@ -152,104 +147,90 @@ class FmMain:
                 sz = sum(FmUtil.getBlkDevSize(x + partiNum) for x in hddDevList)
                 return FmUtil.formatSize(sz)
 
-            layout = self.param.storageManager.getStorageLayout()
-            print("    Name: %s" % (layout.name))
-            if isinstance(layout, FmStorageLayoutBiosSimple):
-                print("    State: ready")
-                if layout.hddRootParti is not None:
-                    print("    Root partititon: %s (%s)" % (layout.hddRootParti, partSize(layout.hddRootParti)))
-                else:
-                    print("    Root partititon: None")
-            elif isinstance(layout, FmStorageLayoutBiosLvm):
-                print("    State: ready")
-                if layout.bootHdd is not None:
-                    print("    Boot disk: %s" % (layout.bootHdd))
-                else:
-                    print("    Boot disk: None")
-                if layout.lvmPvHddList != []:
-                    print("    LVM PVs: %s (total: %s)" % (" ".join(layout.lvmPvHddList), totalSize(layout.lvmPvHddList, "1")))
-                else:
-                    print("    LVM PVs: None")
-            elif isinstance(layout, FmStorageLayoutEfiSimple):
-                print("    State: ready")
-                if layout.hddRootParti is not None:
-                    print("    Root partititon: %s (%s)" % (layout.hddRootParti, partSize(layout.hddRootParti)))
-                else:
-                    print("    Root partititon: None")
-            elif isinstance(layout, FmStorageLayoutEfiLvm):
-                print("    State: ready")
-                if layout.bootHdd is not None:
-                    print("    Boot disk: %s" % (layout.bootHdd))
-                else:
-                    print("    Boot disk: None")
-                if layout.lvmPvHddList != []:
-                    print("    LVM PVs: %s (total: %s)" % (" ".join(layout.lvmPvHddList), totalSize(layout.lvmPvHddList, "2")))
-                else:
-                    print("    LVM PVs: None")
-            elif isinstance(layout, FmStorageLayoutEfiBcacheLvm):
-                print("    State: ready")
-                if layout.ssd is not None:
-                    print("    SSD: %s" % (layout.ssd))
-                    if layout.ssdSwapParti is not None:
-                        print("    Swap partition: %s (%s)" % (layout.ssdSwapParti, partSize(layout.ssdSwapParti)))
-                    else:
-                        print("    Swap partition: None")
-                    print("    Cache partition: %s (%s)" % (layout.ssdCacheParti, partSize(layout.ssdCacheParti)))
-                else:
-                    print("    SSD: None")
-                    print("    Boot disk: %s" % (layout.bootHdd))
-                totalSize = 0
-                pvStrList = []
-                for hddDev, bcacheDev in layout.lvmPvHddDict.items():
-                    pvStrList.append("%s,%s" % (hddDev, bcacheDev.replace("/dev/", "")))
-                    totalSize += FmUtil.getBlkDevSize(bcacheDev)
-                if pvStrList != []:
-                    print("    LVM PVs: %s (total: %s)" % (" ".join(pvStrList), FmUtil.formatSize(totalSize)))
-                else:
-                    print("    LVM PVs: None")
-            elif isinstance(layout, FmStorageLayoutNonStandard):
-                print("    State: %s" % ("ready" if layout.isReady() else "unusable"))
-                print("    similar to %s, but %s." % (layout.closestLayoutName, layout.message))
-            elif isinstance(layout, FmStorageLayoutEmpty):
+            if layout is None:
                 print("    State: unusable")
             else:
-                assert False
+                assert layout.is_ready()
+                print("    Name: %s" % (layout.name))
+                if layout.name == "bios-simple":
+                    print("    State: ready")
+                    print("    Root partititon: %s (%s)" % (layout.get_rootdev(), partSize(layout.get_rootdev())))
+                elif layout.name == "bios-lvm":
+                    print("    State: ready")
+                    print("    Boot disk: %s" % (layout.get_boot_disk()))
+                    if layout.lvmPvHddList != []:
+                        print("    LVM PVs: %s (total: %s)" % (" ".join(layout.lvmPvHddList), totalSize(layout.lvmPvHddList, "1")))
+                    else:
+                        print("    LVM PVs: None")
+                elif layout.name == "efi-simple":
+                    print("    State: ready")
+                    print("    Root partititon: %s (%s)" % (layout.get_rootdev(), partSize(layout.get_rootdev())))
+                elif layout.name == "efi-lvm":
+                    print("    State: ready")
+                    if layout.bootHdd is not None:
+                        print("    Boot disk: %s" % (layout.bootHdd))
+                    else:
+                        print("    Boot disk: None")
+                    if layout.lvmPvHddList != []:
+                        print("    LVM PVs: %s (total: %s)" % (" ".join(layout.lvmPvHddList), totalSize(layout.lvmPvHddList, "2")))
+                    else:
+                        print("    LVM PVs: None")
+                elif layout.name == "efi-bcache-lvm":
+                    print("    State: ready")
+                    if layout.ssd is not None:
+                        print("    SSD: %s" % (layout.ssd))
+                        if layout.ssdSwapParti is not None:
+                            print("    Swap partition: %s (%s)" % (layout.ssdSwapParti, partSize(layout.ssdSwapParti)))
+                        else:
+                            print("    Swap partition: None")
+                        print("    Cache partition: %s (%s)" % (layout.ssdCacheParti, partSize(layout.ssdCacheParti)))
+                    else:
+                        print("    SSD: None")
+                        print("    Boot disk: %s" % (layout.bootHdd))
+                    totalSize = 0
+                    pvStrList = []
+                    for hddDev, bcacheDev in layout.lvmPvHddDict.items():
+                        pvStrList.append("%s,%s" % (hddDev, bcacheDev.replace("/dev/", "")))
+                        totalSize += FmUtil.getBlkDevSize(bcacheDev)
+                    if pvStrList != []:
+                        print("    LVM PVs: %s (total: %s)" % (" ".join(pvStrList), FmUtil.formatSize(totalSize)))
+                    else:
+                        print("    LVM PVs: None")
+                else:
+                    assert False
 
         print("Swap:")
         if True:
-            layout = self.param.storageManager.getStorageLayout()
             found = None
             swapDevOrFile = None
             swapSize = None
-            if isinstance(layout, FmStorageLayoutBiosSimple):
+            if layout is None:
+                found = False
+            elif layout.name == "bios-simple":
                 found = True
                 if layout.swapFile is not None:
                     swapDevOrFile = layout.swapFile
                     swapSize = os.path.getsize(swapDevOrFile)
-            elif isinstance(layout, FmStorageLayoutBiosLvm):
+            elif layout.name == "bios-lvm":
                 found = True
                 if layout.lvmSwapLv is not None:
                     swapDevOrFile = layout.lvmSwapLv
                     swapSize = FmUtil.getBlkDevSize(swapDevOrFile)
-            elif isinstance(layout, FmStorageLayoutEfiSimple):
+            elif layout.name == "efi-simple":
                 found = True
                 if layout.swapFile is not None:
                     swapDevOrFile = layout.swapFile
                     swapSize = os.path.getsize(swapDevOrFile)
-            elif isinstance(layout, FmStorageLayoutEfiLvm):
+            elif layout.name == "efi-lvm":
                 found = True
                 if layout.lvmSwapLv is not None:
                     swapDevOrFile = layout.lvmSwapLv
                     swapSize = FmUtil.getBlkDevSize(swapDevOrFile)
-            elif isinstance(layout, FmStorageLayoutEfiBcacheLvm):
+            elif layout.name == "efi-bcache-lvm":
                 found = True
                 if layout.ssdSwapParti is not None:
                     swapDevOrFile = layout.ssdSwapParti
                     swapSize = FmUtil.getBlkDevSize(swapDevOrFile)
-            elif isinstance(layout, FmStorageLayoutNonStandard):
-                found = False
-            elif isinstance(layout, FmStorageLayoutEmpty):
-                found = False
             else:
                 assert False
 
@@ -413,11 +394,18 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = self.param.storageManager.getStorageLayout()
+        layout = strict_hdds.parse_storage_layout()
+        if layout is None:
+            raise Exception("no valid storage layout")
 
-        self.infoPrinter.printInfo(">> Adding harddisk...")
-        self.param.storageManager.addHdd(layout, devpath, bMainBoot, bWithBadBlock)
-        print("")
+        if layout.name in ["bios-simple", "efi-simple"]:
+            raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
+        elif layout.name in ["bios-lvm", "efi-lvm", "efi-bcache-lvm"]:
+            self.infoPrinter.printInfo(">> Adding harddisk...")
+            layout.add_disk(devpath)
+            print("")
+        else:
+            assert False
 
         self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), layout)
 
@@ -428,15 +416,21 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = self.param.storageManager.getStorageLayout()
+        layout = strict_hdds.parse_storage_layout()
+        if layout is None:
+            raise Exception("no valid storage layout")
 
-        self.infoPrinter.printInfo(">> Move data in %s to other place..." % (devpath))
-        self.param.storageManager.releaseHdd(layout, devpath)
-        print("")
-
-        self.infoPrinter.printInfo(">> Removing harddisk...")
-        self.param.storageManager.removeHdd(layout, devpath)
-        print("")
+        if layout.name in ["bios-simple", "efi-simple"]:
+            raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
+        elif layout.name in ["bios-lvm", "efi-lvm", "efi-bcache-lvm"]:
+            self.infoPrinter.printInfo(">> Move data in %s to other place..." % (devpath))
+            layout.release_disk(devpath)
+            print("")
+            self.infoPrinter.printInfo(">> Removing harddisk...")
+            layout.remove_disk(devpath)
+            print("")
+        else:
+            assert False
 
         self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), layout)
 
@@ -447,32 +441,80 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = self.param.storageManager.getStorageLayout()
-        self.param.storageManager.enableSwap(layout)
+        layout = strict_hdds.parse_storage_layout()
+        if layout is None:
+            raise Exception("no valid storage layout")
 
-        if isinstance(layout, (FmStorageLayoutBiosSimple, FmStorageLayoutEfiSimple)):
-            swapSizeStr = FmUtil.formatSize(os.path.getsize(layout.swapFile))
-            print("Swap File: %s (size:%s)" % (layout.swapFile, swapSizeStr))
-        elif isinstance(layout, (FmStorageLayoutBiosLvm, FmStorageLayoutEfiLvm)):
-            uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.lvmSwapLv).get("ID_FS_UUID")
-            swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.lvmSwapLv))
-            print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.lvmSwapLv, uuid, swapSizeStr))
-        elif isinstance(layout, FmStorageLayoutEfiBcacheLvm):
-            uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.ssdSwapParti).get("ID_FS_UUID")
-            swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.ssdSwapParti))
-            print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.ssdSwapParti, uuid, swapSizeStr))
-        else:
-            assert False
+        if layout.name in ["bios-simple", "efi-simple"]:
+            if layout.get_swap() is None:
+                layout.create_swap_file()
+            serviceName = FmUtil.path2SwapServiceName(layout.get_swap())
+            if not layout.check_swap_size():
+                self.param.swapManager.disableSwapService(layout.get_swap(), serviceName)
+                layout.remove_swap_file()
+                layout.create_swap_file()
+            self.param.swapManager.createSwapService(layout.get_swap(), serviceName)
+            self.param.swapManager.enableSwapService(layout.get_swap(), serviceName)
 
-        return 0
+            swapSizeStr = FmUtil.formatSize(os.path.getsize(layout.get_swap()))
+            print("Swap File: %s (size:%s)" % (layout.get_swap(), swapSizeStr))
+            return 0
+
+        if layout.name in ["bios-lvm", "efi-lvm"]:
+            if layout.get_swap() is None:
+                layout.create_swap_lv()
+            serviceName = FmUtil.path2SwapServiceName(layout.get_swap())
+            if not layout.check_swap_size():
+                self.param.swapManager.disableSwapService(layout.get_swap(), serviceName)
+                layout.remove_swap_lv()
+                layout.create_swap_lv()
+            self.param.swapManager.createSwapService(layout.get_swap(), serviceName)
+            self.param.swapManager.enableSwapService(layout.get_swap(), serviceName)
+
+            uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.get_swap()).get("ID_FS_UUID")
+            swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.get_swap()))
+            print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.get_swap(), uuid, swapSizeStr))
+            return 0
+
+        if layout.name == "efi-bcache-lvm":
+            if layout.get_swap() is None:
+                raise Exception("no swap partition")
+            if not layout.check_swap_size():
+                raise Exception("swap partition is too small")
+            serviceName = FmUtil.path2SwapServiceName(layout.get_swap())
+            self.param.swapManager.createSwapService(layout.get_swap(), serviceName)
+            self.param.swapManager.enableSwapService(layout.get_swap(), serviceName)
+
+            uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.get_swap()).get("ID_FS_UUID")
+            swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.get_swap()))
+            print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.get_swap(), uuid, swapSizeStr))
+            return 0
+
+        assert False
 
     def doDisableSwap(self):
         if self.param.runMode == "prepare":
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = self.param.storageManager.getStorageLayout()
-        self.param.storageManager.disableSwap(layout)
+        layout = strict_hdds.parse_storage_layout()
+        if layout is None:
+            raise Exception("no valid storage layout")
+
+        if layout.get_swap() is not None:
+            serviceName = FmUtil.path2SwapServiceName(layout.get_swap())
+            self.param.swapManager.disableSwapService(layout.get_swap(), serviceName)
+            self.param.swapManager.removeSwapService(layout.get_swap(), serviceName)
+
+            if layout.name in ["bios-simple", "efi-simple"]:
+                layout.remove_swap_file()
+            elif layout.name in ["bios-lvm", "efi-lvm"]:
+                layout.remove_swap_lv()
+            elif layout.name == "efi-bcache-lvm":
+                pass
+            else:
+                assert False
+
         return 0
 
     def doAddUser(self, username):
@@ -600,7 +642,7 @@ class FmMain:
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
-        layout = self.param.storageManager.getStorageLayout()
+        layout = strict_hdds.parse_storage_layout()
         with FkmMountBootDirRw(layout):
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
             mgr = RescueOs()
@@ -626,7 +668,7 @@ class FmMain:
             print("Rescue OS is not installed.", file=sys.stderr)
             return 1
 
-        layout = self.param.storageManager.getStorageLayout()
+        layout = strict_hdds.parse_storage_layout()
         with FkmMountBootDirRw(layout):
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
             mgr.uninstall()

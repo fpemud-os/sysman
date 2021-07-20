@@ -5,6 +5,7 @@ import os
 import re
 import base64
 import pickle
+import strict_hdds
 from fm_util import FmUtil
 from fm_util import ParallelRunSequencialPrint
 from fm_param import FmConst
@@ -34,7 +35,7 @@ class FmSysUpdater:
         self.opEmerge9999 = os.path.join(FmConst.libexecDir, "op-emerge-9999.py")
 
     def update(self, bSync, bFetchAndBuild):
-        layout = self.param.storageManager.getStorageLayout()
+        layout = strict_hdds.parse_storage_layout()
         helperBootDir = FkmBootDir()
         helperBootLoader = FkmBootLoader()
         pkgwh = PkgWarehouse()
@@ -270,10 +271,14 @@ class FmSysUpdater:
                 print("")
 
             # synchronize boot partitions
-            if self.param.storageManager.needSyncBootPartition(layout):
-                self.infoPrinter.printInfo(">> Synchronizing boot partitions...")
-                self.param.storageManager.syncBootPartition(layout)
-                print("")
+            if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
+                src, dstList = layout.get_esp_sync_info()
+                if len(dstList) > 0:
+                    with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
+                        for dst in dstList:
+                            self.infoPrinter.printInfo("        - %s to %s..." % (src, dst))
+                            layout.sync_esp(src, dst)
+                    print("")
 
             # emerge @world
             self.infoPrinter.printInfo(">> Updating @world...")
@@ -304,23 +309,28 @@ class FmSysUpdater:
             buildServer.dispose()
 
     def stablize(self):
-        layout = self.param.storageManager.getStorageLayout()
+        layout = strict_hdds.parse_storage_layout()
 
         with FkmMountBootDirRw(layout):
             self.infoPrinter.printInfo(">> Stablizing...")
             FkmBootLoader().setStable(True)
             print("")
 
-        if self.param.storageManager.needSyncBootPartition(layout):
-            self.infoPrinter.printInfo(">> Synchronizing boot partitions...")
-            self.param.storageManager.syncBootPartition(layout)
-            print("")
+        if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
+            src, dstList = layout.get_esp_sync_info()
+            if len(dstList) > 0:
+                with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
+                    for dst in dstList:
+                        self.infoPrinter.printInfo("        - %s to %s..." % (src, dst))
+                        layout.sync_esp(src, dst)
+                print("")
 
     def updateAfterHddAddOrRemove(self, hwInfo, layout):
         ret = FkmBootEntry.findCurrent()
         if ret is None:
             raise Exception("No kernel in /boot, you should build a kernel immediately!")
 
+        # re-create initramfs
         with FkmMountBootDirRw(layout):
             self.infoPrinter.printInfo(">> Recreating initramfs...")
             self._installInitramfs(layout, True, ret.buildTarget.postfix)
@@ -330,10 +340,15 @@ class FmSysUpdater:
             FkmBootLoader().updateBootloader(hwInfo, layout, FmConst.kernelInitCmd)
             print("")
 
-        if self.param.storageManager.needSyncBootPartition(layout):
-            self.infoPrinter.printInfo(">> Synchronizing boot partitions...")
-            self.param.storageManager.syncBootPartition(layout)
-            print("")
+        # synchronize boot partitions
+        if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
+            src, dstList = layout.get_esp_sync_info()
+            if len(dstList) > 0:
+                with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
+                    for dst in dstList:
+                        self.infoPrinter.printInfo("        - %s to %s..." % (src, dst))
+                        layout.sync_esp(src, dst)
+                print("")
 
     def _exec(self, buildServer, cmd, argstr):
         if buildServer is None:

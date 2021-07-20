@@ -11,6 +11,7 @@ import pathlib
 import filecmp
 import strict_pgs
 import strict_fsh
+import strict_hdds
 import configparser
 import robust_layer.simple_fops
 from fm_util import FmUtil
@@ -22,13 +23,6 @@ from helper_pkg_warehouse import RepositoryCheckError
 from helper_pkg_warehouse import OverlayCheckError
 from helper_pkg_warehouse import CloudOverlayDb
 from helper_pkg_merger import PkgMerger
-from sys_storage_manager import FmStorageLayoutBiosSimple
-from sys_storage_manager import FmStorageLayoutBiosLvm
-from sys_storage_manager import FmStorageLayoutEfiSimple
-from sys_storage_manager import FmStorageLayoutEfiLvm
-from sys_storage_manager import FmStorageLayoutEfiBcacheLvm
-from sys_storage_manager import FmStorageLayoutNonStandard
-from sys_storage_manager import FmStorageLayoutEmpty
 
 
 # TODO:
@@ -203,7 +197,10 @@ class FmSysChecker:
             self.infoPrinter.printError("No hard disk?!")
             return
 
-        layout = self.param.storageManager.getStorageLayout()
+        layout = strict_hdds.parse_storage_layout()
+        if layout is None:
+            self.infoPrinter.printError("No valid storage layout.")
+            return
 
         # partition table check
         obj = _DiskPartitionTableChecker()
@@ -219,28 +216,22 @@ class FmSysChecker:
         # storage layout check
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
             # check root device
-            if layout.getRootDev() is not None:
-                if FmUtil.getMountDeviceForPath("/") != layout.getRootDev():
-                    self.infoPrinter.printError("Directory / should be mounted to root device %s." % (layout.getRootDev()))
+            if layout.get_rootdev() is not None:
+                if FmUtil.getMountDeviceForPath("/") != layout.get_rootdev():
+                    self.infoPrinter.printError("Directory / should be mounted to root device %s." % (layout.get_rootdev()))
 
             # check boot device
-            if layout.getBootDev() is not None:
-                if FmUtil.getMountDeviceForPath("/boot") != layout.getBootDev():
-                    self.infoPrinter.printError("Directory /boot should be mounted to boot device %s." % (layout.getBootDev()))
-            else:
+            if layout.name in ["bios-simple", "bios-lvm"]:
                 if FmUtil.isMountPoint("/boot"):
                     self.infoPrinter.printError("Directory /boot should not be mounted!")
+            elif layout.name in ["efi-simple", "efi-lvm", "efi-bcache-lvm"]:
+                if FmUtil.getMountDeviceForPath("/boot") != layout.get_esp():
+                    self.infoPrinter.printError("Directory /boot should be mounted to boot device %s." % (layout.get_esp()))
+            else:
+                assert False
 
-            # do storage layout specific checks
-            if isinstance(layout, FmStorageLayoutBiosSimple):
-                pass
-            elif isinstance(layout, FmStorageLayoutBiosLvm):
-                pass
-            elif isinstance(layout, FmStorageLayoutEfiSimple):
-                pass
-            elif isinstance(layout, FmStorageLayoutEfiLvm):
-                pass
-            elif isinstance(layout, FmStorageLayoutEfiBcacheLvm):
+            # check efi-bcache-lvm
+            if layout.name == "efi-bcache-lvm":
                 if layout.ssd is None:
                     self.infoPrinter.printError("Storage layout \"%s\" should have a cache device." % (layout.name))
                 else:
@@ -251,17 +242,6 @@ class FmSysChecker:
                         m = re.search("\\[(.*)\\]", f.read())
                         if m is None or m.group(1) != "writeback":
                             self.infoPrinter.printError("BCACHE device %s should be configured as writeback mode." % (os.path.basename(fn)))
-            elif isinstance(layout, FmStorageLayoutNonStandard):
-                self.infoPrinter.printError("Non-standard storage layout (which is bad) detected.")
-                self.infoPrinter.printError("Closest storage layout is \"%s\", but %s" % (layout.closestLayoutName, layout.message))
-            elif isinstance(layout, FmStorageLayoutEmpty):
-                self.infoPrinter.printError("Empty storage layout (which is unusable) detected.")
-            else:
-                if not layout.isReady():
-                    self.infoPrinter.printError("Storage layout \"%s\" detected, but is in not-ready state." % (layout.name))
-                else:
-                    if isinstance(layout, FmStorageLayoutEfiBcacheLvm) and layout.ssd is None:
-                        self.infoPrinter.printError("Storage layout is \"%s\", but without a SSD device." % (FmStorageLayoutEfiBcacheLvm.name))
 
         with self.infoPrinter.printInfoAndIndent("- Checking file systems"):
             # if True:
@@ -293,14 +273,7 @@ class FmSysChecker:
 
         with self.infoPrinter.printInfoAndIndent("- Checking swap"):
             dirname = "/etc/systemd/system"
-            if isinstance(layout, (FmStorageLayoutBiosSimple, FmStorageLayoutEfiSimple)):
-                swapFileOrDev = layout.swapFile
-            elif isinstance(layout, (FmStorageLayoutBiosLvm, FmStorageLayoutEfiLvm)):
-                swapFileOrDev = layout.lvmSwapLv
-            elif isinstance(layout, FmStorageLayoutEfiBcacheLvm):
-                swapFileOrDev = layout.ssdSwapParti
-            else:
-                swapFileOrDev = None
+            swapFileOrDev = layout.get_swap()
 
             # swap service should only exist in /etc
             for td in ["/usr/lib/systemd/system", "/lib/systemd/system"]:
@@ -317,9 +290,8 @@ class FmSysChecker:
             # swap should be enabled
             while True:
                 if swapFileOrDev is None:
-                    if isinstance(layout, (FmStorageLayoutBiosSimple, FmStorageLayoutEfiSimple, FmStorageLayoutBiosLvm, FmStorageLayoutEfiLvm, FmStorageLayoutEfiBcacheLvm)):
-                        self.infoPrinter.printError("Swap is not enabled.")
-                        break
+                    self.infoPrinter.printError("Swap is not enabled.")
+                    break
                 serviceName = FmUtil.systemdFindSwapServiceInDirectory(dirname, swapFileOrDev)
                 if serviceName is None:
                     self.infoPrinter.printError("Swap is not enabled.")
@@ -355,9 +327,9 @@ class FmSysChecker:
             self.infoPrinter.printError("/usr/local should not exist.")
 
     def _checkPreMountRootfsLayout(self):
-        layout = self.param.storageManager.getStorageLayout()
-        with TmpMount(layout.getRootDev()) as mp:
-            if layout.isReady() and layout.getType() == "efi":
+        layout = strict_hdds.parse_storage_layout()
+        with TmpMount(layout.get_rootdev()) as mp:
+            if layout.is_ready() and layout.bios_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
                 bMountBoot = True
             else:
                 bMountBoot = False

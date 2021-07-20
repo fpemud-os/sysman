@@ -4,6 +4,7 @@
 import os
 import re
 import glob
+import strict_hdds
 import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_param import FmConst
@@ -423,11 +424,9 @@ class FkmMountBootDirRw:
     def __init__(self, storageLayout):
         self.storageLayout = storageLayout
 
-        if self.storageLayout.getType() is None:
-            pass
-        elif self.storageLayout.getType() == "efi":
+        if self.storageLayout.bios_mode == strict_hdds.StorageLayout.BIOS_MODE_EFI:
             FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), "/boot", "-o", "rw,remount")
-        elif self.storageLayout.getType() == "bios":
+        elif self.storageLayout.bios_mode == strict_hdds.StorageLayout.BIOS_MODE_BIOS:
             pass
         else:
             assert False
@@ -436,11 +435,9 @@ class FkmMountBootDirRw:
         return self
 
     def __exit__(self, type, value, traceback):
-        if self.storageLayout.getType() is None:
-            pass
-        elif self.storageLayout.getType() == "efi":
+        if self.storageLayout.bios_mode == strict_hdds.StorageLayout.BIOS_MODE_EFI:
             FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), "/boot", "-o", "ro,remount")
-        elif self.storageLayout.getType() == "bios":
+        elif self.storageLayout.bios_mode == strict_hdds.StorageLayout.BIOS_MODE_BIOS:
             pass
         else:
             assert False
