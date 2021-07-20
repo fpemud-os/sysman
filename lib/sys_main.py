@@ -270,15 +270,11 @@ class FmMain:
         print("Overlays:")
         overlayList = layman.getOverlayList()
         if len(overlayList) > 0:
-            maxLen = 0
-            for lname in overlayList:
-                if len(lname) > maxLen:
-                    maxLen = len(lname)
-
+            maxLen = FmUtil.strListMaxLen(overlayList)
             for lname in overlayList:
                 if layman.getOverlayType(lname) == "static":
                     ltype = "[Static    ]"
-                    lurl = None
+                    lurl = ""
                 else:
                     ltype, lurl = layman.getOverlayVcsTypeAndUrl(lname)
                     if ltype == "git":
@@ -287,9 +283,7 @@ class FmMain:
                         ltype = "[Subversion]"
                     else:
                         assert False
-                s1 = FmUtil.pad(lname, maxLen)
-                s2 = lurl if lurl is not None else ""
-                print("    %s %s %s" % (s1, ltype, s2))
+                print("    %s %s %s" % (FmUtil.pad(lname, maxLen), ltype, lurl))
         else:
             print("    None")
 
