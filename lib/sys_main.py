@@ -158,8 +158,8 @@ class FmMain:
                 elif layout.name == "bios-lvm":
                     print("    State: ready")
                     print("    Boot disk: %s" % (layout.get_boot_disk()))
-                    if layout.lvmPvHddList != []:
-                        print("    LVM PVs: %s (total: %s)" % (" ".join(layout.lvmPvHddList), totalSize(layout.lvmPvHddList, "1")))
+                    if layout.diskList != []:
+                        print("    LVM PVs: %s (total: %s)" % (" ".join(layout.diskList), totalSize(layout.diskList, "1")))
                     else:
                         print("    LVM PVs: None")
                 elif layout.name == "efi-simple":
@@ -167,12 +167,9 @@ class FmMain:
                     print("    Root partititon: %s (%s)" % (layout.get_rootdev(), partSize(layout.get_rootdev())))
                 elif layout.name == "efi-lvm":
                     print("    State: ready")
-                    if layout.bootHdd is not None:
-                        print("    Boot disk: %s" % (layout.bootHdd))
-                    else:
-                        print("    Boot disk: None")
-                    if layout.lvmPvHddList != []:
-                        print("    LVM PVs: %s (total: %s)" % (" ".join(layout.lvmPvHddList), totalSize(layout.lvmPvHddList, "2")))
+                    print("    Boot disk: %s" % (FmUtil.devPathPartitionToDisk(layout.get_esp())))
+                    if layout.diskList != []:
+                        print("    LVM PVs: %s (total: %s)" % (" ".join(layout.diskList), totalSize(layout.diskList, "2")))
                     else:
                         print("    LVM PVs: None")
                 elif layout.name == "efi-bcache-lvm":
@@ -186,10 +183,10 @@ class FmMain:
                         print("    Cache partition: %s (%s)" % (layout.ssdCacheParti, partSize(layout.ssdCacheParti)))
                     else:
                         print("    SSD: None")
-                        print("    Boot disk: %s" % (layout.bootHdd))
+                        print("    Boot disk: %s" % (FmUtil.devPathPartitionToDisk(layout.get_esp())))
                     totalSize = 0
                     pvStrList = []
-                    for hddDev, bcacheDev in layout.lvmPvHddDict.items():
+                    for hddDev, bcacheDev in layout.hddDict.items():
                         pvStrList.append("%s,%s" % (hddDev, bcacheDev.replace("/dev/", "")))
                         totalSize += FmUtil.getBlkDevSize(bcacheDev)
                     if pvStrList != []:
@@ -200,43 +197,11 @@ class FmMain:
                     assert False
 
         print("Swap:")
-        if True:
-            found = None
-            swapDevOrFile = None
-            swapSize = None
-            if layout is None:
-                found = False
-            elif layout.name == "bios-simple":
-                found = True
-                if layout.swapFile is not None:
-                    swapDevOrFile = layout.swapFile
-                    swapSize = os.path.getsize(swapDevOrFile)
-            elif layout.name == "bios-lvm":
-                found = True
-                if layout.lvmSwapLv is not None:
-                    swapDevOrFile = layout.lvmSwapLv
-                    swapSize = FmUtil.getBlkDevSize(swapDevOrFile)
-            elif layout.name == "efi-simple":
-                found = True
-                if layout.swapFile is not None:
-                    swapDevOrFile = layout.swapFile
-                    swapSize = os.path.getsize(swapDevOrFile)
-            elif layout.name == "efi-lvm":
-                found = True
-                if layout.lvmSwapLv is not None:
-                    swapDevOrFile = layout.lvmSwapLv
-                    swapSize = FmUtil.getBlkDevSize(swapDevOrFile)
-            elif layout.name == "efi-bcache-lvm":
-                found = True
-                if layout.ssdSwapParti is not None:
-                    swapDevOrFile = layout.ssdSwapParti
-                    swapSize = FmUtil.getBlkDevSize(swapDevOrFile)
-            else:
-                assert False
-
-            if not found:
-                print("    Unknown")
-            elif swapDevOrFile is None:
+        if layout is None:
+            print("    Unknown")
+        else:
+            swapDevOrFile = layout.get_swap()
+            if swapDevOrFile is None:
                 print("    Disabled")
             else:
                 if self.param.runMode == "prepare":
@@ -248,7 +213,7 @@ class FmMain:
                     if not FmUtil.systemdIsServiceEnabled(serviceName):
                         print("    Disabled")
                     else:
-                        print("    Enabled (%s)" % (FmUtil.formatSize(swapSize)))
+                        print("    Enabled (%s)" % (FmUtil.formatSize(os.path.getsize(swapDevOrFile))))
                 else:
                     assert False
 
