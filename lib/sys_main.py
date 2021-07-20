@@ -136,8 +136,11 @@ class FmMain:
 
         print("")
 
+        layout = None
+        if self.param.runMode in ["normal", "setup"]:
+            layout = strict_hdds.parse_storage_layout()
+
         print("Storage layout:")
-        layout = strict_hdds.parse_storage_layout()
         if True:
             def partSize(devpath):
                 sz = FmUtil.getBlkDevSize(devpath)
@@ -151,70 +154,56 @@ class FmMain:
                 print("    State: unusable")
             else:
                 print("    Name: %s" % (layout.name))
+                print("    State: ready")
                 if layout.name == "bios-simple":
-                    print("    State: ready")
+                    print("    Boot disk: %s" % (layout.get_boot_disk()))
                     print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
                 elif layout.name == "bios-lvm":
-                    print("    State: ready")
                     print("    Boot disk: %s" % (layout.get_boot_disk()))
-                    if layout.diskList != []:
-                        print("    LVM PVs: %s (total: %s)" % (" ".join(layout.diskList), totalSize(layout.diskList, "1")))
-                    else:
-                        print("    LVM PVs: None")
+                    print("    LVM PVs: %s (total: %s)" % (" ".join(layout.get_disk_list()), totalSize(layout.get_disk_list(), "1")))
                 elif layout.name == "efi-simple":
-                    print("    State: ready")
+                    print("    Boot disk: %s" % (layout.get_boot_disk()))
                     print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
                 elif layout.name == "efi-lvm":
-                    print("    State: ready")
-                    print("    Boot disk: %s" % (FmUtil.devPathPartitionToDisk(layout.get_esp())))
-                    if layout.diskList != []:
-                        print("    LVM PVs: %s (total: %s)" % (" ".join(layout.diskList), totalSize(layout.diskList, "2")))
-                    else:
-                        print("    LVM PVs: None")
+                    print("    Boot disk: %s" % (layout.get_boot_disk()))
+                    print("    LVM PVs: %s (total: %s)" % (" ".join(layout.get_disk_list()), totalSize(layout.get_disk_list(), "2")))
                 elif layout.name == "efi-bcache-lvm":
-                    print("    State: ready")
-                    if layout.ssd is not None:
-                        print("    SSD: %s" % (layout.ssd))
-                        if layout.ssdSwapParti is not None:
-                            print("    Swap partition: %s (%s)" % (layout.ssdSwapParti, partSize(layout.ssdSwapParti)))
+                    if layout.get_ssd() is not None:
+                        print("    SSD: %s (boot disk)" % (layout.get_ssd()))
+                        if layout.get_ssd_swap_partition() is not None:
+                            print("    Swap partition: %s (%s)" % (layout.get_ssd_swap_partition(), partSize(layout.get_ssd_swap_partition())))
                         else:
                             print("    Swap partition: None")
-                        print("    Cache partition: %s (%s)" % (layout.ssdCacheParti, partSize(layout.ssdCacheParti)))
+                        print("    Cache partition: %s (%s)" % (layout.get_ssd_cache_partition(), partSize(layout.get_ssd_cache_partition())))
                     else:
                         print("    SSD: None")
-                        print("    Boot disk: %s" % (FmUtil.devPathPartitionToDisk(layout.get_esp())))
+                        print("    Boot disk: %s" % (layout.get_boot_disk()))
                     totalSize = 0
                     pvStrList = []
                     for hddDev, bcacheDev in layout.hddDict.items():
                         pvStrList.append("%s,%s" % (hddDev, bcacheDev.replace("/dev/", "")))
                         totalSize += FmUtil.getBlkDevSize(bcacheDev)
-                    if pvStrList != []:
-                        print("    LVM PVs: %s (total: %s)" % (" ".join(pvStrList), FmUtil.formatSize(totalSize)))
-                    else:
-                        print("    LVM PVs: None")
+                    print("    LVM PVs: %s (total: %s)" % (" ".join(pvStrList), FmUtil.formatSize(totalSize)))
                 else:
                     assert False
 
         print("Swap:")
-        if layout is None:
+        if self.param.runMode == "prepare":
             print("    Unknown")
-        else:
-            swapDevOrFile = layout.dev_swap
-            if swapDevOrFile is None:
+        elif self.param.runMode == "setup":
+            if layout is None:
+                print("    Unknown")
+            else:
+                print("    Disabled")
+        elif self.param.runMode == "normal":
+            if layout is None:
+                print("    Unknown")
+            elif layout.dev_swap is None or not FmUtil.systemdIsServiceEnabled(FmUtil.path2SwapServiceName(layout.dev_swap)):
                 print("    Disabled")
             else:
-                if self.param.runMode == "prepare":
-                    assert False        # always get FmStorageLayoutEmpty in prepare mode
-                elif self.param.runMode == "setup":
-                    print("    Disabled")
-                elif self.param.runMode == "normal":
-                    serviceName = FmUtil.path2SwapServiceName(swapDevOrFile)
-                    if not FmUtil.systemdIsServiceEnabled(serviceName):
-                        print("    Disabled")
-                    else:
-                        print("    Enabled (%s)" % (FmUtil.formatSize(os.path.getsize(swapDevOrFile))))
-                else:
-                    assert False
+                print("    Enabled (%s)" % (FmUtil.formatSize(os.path.getsize(layout.dev_swap))))
+        else:
+            assert False
 
         # FIXME
         print("Logging:")
