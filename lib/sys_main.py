@@ -251,15 +251,11 @@ class FmMain:
         print("Repositories:")
         repoList = repoman.getRepositoryList()
         if len(repoList) > 0:
-            maxLen = 0
-            for repoName in repoList:
-                if len(repoName) > maxLen:
-                    maxLen = len(repoName)
-
+            maxLen = FmUtil.strListMaxLen(repoList)
             for repoName in repoList:
                 s1 = FmUtil.pad(repoName, maxLen)
                 if repoman.isRepoExist(repoName):
-                    print("    %s [Good     ] (Last Update: %s)" % (s1, FmUtil.getDirLastUpdateTime(repoman.getRepoDir(repoName))))
+                    print("    %s [Good     ] Last Update: %s" % (s1, FmUtil.getDirLastUpdateTime(repoman.getRepoDir(repoName))))
                 else:
                     print("    %s [Not Exist]" % (s1))
         else:
@@ -271,24 +267,29 @@ class FmMain:
         overlayList = layman.getOverlayList()
         if len(overlayList) > 0:
             tlist2 = []
-            tlist4 = []
+            tlist3 = []
             for lname in overlayList:
                 if layman.getOverlayType(lname) == "static":
                     ltype = "Static"
+                    lurl = ""
                 else:
                     ltype, lurl = layman.getOverlayVcsTypeAndUrl(lname)
                     if ltype == "git":
-                        ltype = "Git        " + lurl
+                        ltype = "Git"
                     elif ltype == "svn":
-                        ltype = "Subversion " + lurl
+                        ltype = "Subversion"
                     else:
                         assert False
                 tlist2.append(ltype)
-                tlist4.append(FmUtil.getDirLastUpdateTime(layman.getOverlayDir(lname)))
+                tlist3.append(lurl)
             maxLen1 = FmUtil.strListMaxLen(overlayList)
-            maxLen2 = FmUtil.strListMaxLen(ltype)
+            maxLen2 = FmUtil.strListMaxLen(tlist2)
+            maxLen3 = FmUtil.strListMaxLen(tlist3)
             for i in range(0, len(overlayList)):
-                print("    %s [%s] (Last Update: %s)" % (FmUtil.pad(overlayList[i], maxLen1), FmUtil.pad(tlist2[i], maxLen2), tlist4[i]))
+                s1 = FmUtil.pad(overlayList[i], maxLen1)
+                s2 = FmUtil.pad(tlist2[i], maxLen2)
+                s3 = FmUtil.pad(tlist3[i], maxLen3)
+                print("    %s [%s %s] Last Update: %s" % (s1, s2, s3, FmUtil.getDirLastUpdateTime(layman.getOverlayDir(overlayList[i]))))
         else:
             print("    None")
 
