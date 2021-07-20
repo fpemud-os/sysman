@@ -191,9 +191,16 @@ class FkmBootLoader:
             for line in lineList2:
                 f.write(line + "\n")
 
-    def _genGrubCfg(self, grubCfgFile, mode, layout, prefix, buildTarget, grubKernelOpt, extraTimeout, initCmdline):
-        grubRootDev = layout.getBootDev() if layout.getBootDev() is not None else layout.getRootDev()
+    def _genGrubCfg(self, layout, buildTarget, grubKernelOpt, extraTimeout, initCmdline):
         buf = ''
+        if layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
+            grubRootDev = layout.get_esp()
+            prefix = "/"
+        elif layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
+            grubRootDev = layout.dev_rootfs()
+            prefix = "/boot"
+        else:
+            assert False
 
         # deal with recordfail variable
         buf += 'load_env\n'
@@ -206,10 +213,10 @@ class FkmBootLoader:
         buf += '\n'
 
         # specify default menuentry and timeout
-        if mode == "bios":
-            loadVideo = 'insmod vbe'
-        elif mode == "efi":
+        if layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
             loadVideo = 'insmod efi_gop ; insmod efi_uga'
+        elif layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
+            loadVideo = 'insmod vbe'
         else:
             assert False
         buf += '%s\n' % (loadVideo)
@@ -281,11 +288,15 @@ class FkmBootLoader:
         buf += '\n'
 
         # write menu entry for restarting to UEFI setup
-        if mode == "efi":
+        if layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
             buf += 'menuentry "Restart to UEFI setup" {\n'
             buf += '  fwsetup\n'
             buf += '}\n'
             buf += '\n'
+        elif layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
+            pass
+        else:
+            assert False
 
         # write menu entry for shutdown
         buf += 'menuentry "Power Off" {\n'
@@ -294,7 +305,7 @@ class FkmBootLoader:
         buf += '\n'
 
         # write grub.cfg file
-        with open(grubCfgFile, "w") as f:
+        with open("/boot/grub/grub.cfg", "w") as f:
             f.write(buf)
 
     def _grubGetMenuEntryList(self, title, buildTarget, grubRootDev, prefix, grubKernelOpt):
@@ -316,8 +327,7 @@ class FkmBootLoader:
         return buf
 
     def _biosGrubCheck(self, hwInfo, storageLayout):
-        if FmUtil.getBlkDevPartitionTableType(storageLayout.getBootHdd()) != "dos":
-            raise Exception("/ must be in a disk with MBR partition table!")
+        pass
 
     def _biosGrubInstall(self, hwInfo, storageLayout, kernelInitCmd):
         ret = FkmBootEntry.findCurrent()
@@ -333,13 +343,10 @@ class FkmBootLoader:
 
         # install /boot/grub directory
         # install grub into disk MBR
-        FmUtil.cmdCall("/usr/sbin/grub-install", "--target=i386-pc", storageLayout.getBootHdd())
+        FmUtil.cmdCall("/usr/sbin/grub-install", "--target=i386-pc", storageLayout.get_boot_disk())
 
         # generate grub.cfg
-        self._genGrubCfg("/boot/grub/grub.cfg",
-                         "bios",
-                         storageLayout,
-                         "/boot",
+        self._genGrubCfg(storageLayout,
                          ret.buildTarget,
                          grubKernelOpt,
                          hwInfo.grubExtraWaitTime,
@@ -347,18 +354,14 @@ class FkmBootLoader:
 
     def _biosGrubRemove(self, storageLayout):
         # remove MBR
-        with open(storageLayout.getBootHdd(), "wb+") as f:
+        with open(storageLayout.get_boot_disk(), "wb+") as f:
             f.write(FmUtil.newBuffer(0, 440))
 
         # remove /boot/grub directory
         robust_layer.simple_fops.rm("/boot/grub")
 
     def _uefiGrubCheck(self, hwInfo, storageLayout):
-        bootDev = storageLayout.getBootDev()
-        if not FmUtil.gptIsEspPartition(bootDev):
-            raise Exception("/boot must be mounted to ESP partition!")
-        if FmUtil.getBlkDevFsType(bootDev) != "vfat":
-            raise Exception("/boot must use vfat file system!")
+        pass
 
     def _uefiGrubInstall(self, hwInfo, storageLayout, kernelInitCmd):
         # get variables
@@ -382,10 +385,7 @@ class FkmBootLoader:
         FmUtil.cmdCall("/usr/sbin/grub-install", "--removable", "--target=x86_64-efi", "--efi-directory=/boot", "--no-nvram")
 
         # generate grub.cfg
-        self._genGrubCfg("/boot/grub/grub.cfg",
-                         "efi",
-                         storageLayout,
-                         "/",
+        self._genGrubCfg(storageLayout,
                          ret.buildTarget,
                          grubKernelOpt,
                          hwInfo.grubExtraWaitTime,
@@ -425,7 +425,7 @@ class FkmMountBootDirRw:
         self.storageLayout = storageLayout
 
         if self.storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
-            FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), "/boot", "-o", "rw,remount")
+            FmUtil.cmdCall("/bin/mount", self.storageLayout.get_esp(), "/boot", "-o", "rw,remount")
         elif self.storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
             pass
         else:
@@ -436,7 +436,7 @@ class FkmMountBootDirRw:
 
     def __exit__(self, type, value, traceback):
         if self.storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
-            FmUtil.cmdCall("/bin/mount", self.storageLayout.getBootDev(), "/boot", "-o", "ro,remount")
+            FmUtil.cmdCall("/bin/mount", self.storageLayout.get_esp(), "/boot", "-o", "ro,remount")
         elif self.storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
             pass
         else:
