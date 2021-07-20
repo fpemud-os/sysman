@@ -144,25 +144,25 @@ class FkmBootLoader:
         return ret
 
     def checkBootloader(self, hwInfo, storageLayout):
-        if storageLayout.getType() == "efi":
+        if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
             self._uefiGrubCheck(hwInfo, storageLayout)
-        elif storageLayout.getType() == "bios":
+        elif storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
             self._biosGrubCheck(hwInfo, storageLayout)
         else:
             assert False
 
     def updateBootloader(self, hwInfo, storageLayout, kernelInitCmd):
-        if storageLayout.getType() == "efi":
+        if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
             self._uefiGrubInstall(hwInfo, storageLayout, kernelInitCmd)
-        elif storageLayout.getType() == "bios":
+        elif storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
             self._biosGrubInstall(hwInfo, storageLayout, kernelInitCmd)
         else:
             assert False
 
     def removeBootloader(self, storageLayout):
-        if storageLayout.getType() == "efi":
+        if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
             self._uefiGrubRemove()
-        elif storageLayout.getType() == "bios":
+        elif storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
             self._biosGrubRemove(storageLayout)
         else:
             assert False
