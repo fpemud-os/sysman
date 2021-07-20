@@ -228,7 +228,7 @@ class FkmBootLoader:
 
         # write comments
         buf += '# These options are recorded in initramfs\n'
-        buf += '#   rootfs=%s(UUID:%s)\n' % (layout.getRootDev(), self._getBlkDevUuid(layout.getRootDev()))
+        buf += '#   rootfs=%s(UUID:%s)\n' % (layout.dev_rootfs, self._getBlkDevUuid(layout.dev_rootfs))
         if initCmdline != "":
             buf += '#   init=%s\n' % (initCmdline)
         buf += '\n'

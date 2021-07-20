@@ -382,7 +382,7 @@ class FmSysUpdater:
 
             buf = FmUtil.getFileContentFromInitrd(os.path.join("/boot", buildTarget.initrdFile), "startup.rc")
             lineList = buf.split("\n")
-            if ("# uuid(root)=%s" % (FmUtil.getBlkDevUuid(storageLayout.getRootDev()))) not in lineList:
+            if ("# uuid(root)=%s" % (FmUtil.getBlkDevUuid(storageLayout.dev_rootfs))) not in lineList:
                 break
             if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
                 if ("# uuid(boot)=%s" % (FmUtil.getBlkDevUuid(storageLayout.getBootDev()))) not in lineList:
@@ -398,7 +398,7 @@ class FmSysUpdater:
 
         if initramfsBuildNeeded:
             iBuilder = FkmInitramfsBuilder(self.param.tmpDir, buildTarget)
-            iBuilder.setMntInfo("root", storageLayout.getRootDev(), "")
+            iBuilder.setMntInfo("root", storageLayout.dev_rootfs, "")
             if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
                 iBuilder.setMntInfo("boot", storageLayout.getBootDev(), "ro,dmask=022,fmask=133")
             elif storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
