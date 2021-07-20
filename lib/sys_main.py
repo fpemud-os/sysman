@@ -150,7 +150,6 @@ class FmMain:
             if layout is None:
                 print("    State: unusable")
             else:
-                assert layout.is_ready()
                 print("    Name: %s" % (layout.name))
                 if layout.name == "bios-simple":
                     print("    State: ready")
