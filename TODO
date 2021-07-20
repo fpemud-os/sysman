@@ -6,6 +6,3 @@ select governor for cpu
 set cpufreq driver (with overclock) for cpu
 3.
 enable serial driver, specify serial port count
-
-
-don't depend on lm-sensor anymore
