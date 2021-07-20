@@ -270,20 +270,25 @@ class FmMain:
         print("Overlays:")
         overlayList = layman.getOverlayList()
         if len(overlayList) > 0:
-            maxLen = FmUtil.strListMaxLen(overlayList)
+            tlist2 = []
+            tlist4 = []
             for lname in overlayList:
                 if layman.getOverlayType(lname) == "static":
-                    ltype = "[Static    ]"
-                    lurl = ""
+                    ltype = "Static"
                 else:
                     ltype, lurl = layman.getOverlayVcsTypeAndUrl(lname)
                     if ltype == "git":
-                        ltype = "[Git       ]"
+                        ltype = "Git        " + lurl
                     elif ltype == "svn":
-                        ltype = "[Subversion]"
+                        ltype = "Subversion " + lurl
                     else:
                         assert False
-                print("    %s %s %s" % (FmUtil.pad(lname, maxLen), ltype, lurl))
+                tlist2.append(ltype)
+                tlist4.append(FmUtil.getDirLastUpdateTime(layman.getOverlayDir(lname)))
+            maxLen1 = FmUtil.strListMaxLen(overlayList)
+            maxLen2 = FmUtil.strListMaxLen(ltype)
+            for i in range(0, len(overlayList)):
+                print("    %s [%s] (Last Update: %s)" % (FmUtil.pad(overlayList[i], maxLen1), FmUtil.pad(tlist2[i], maxLen2), tlist4[i]))
         else:
             print("    None")
 
