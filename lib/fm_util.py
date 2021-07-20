@@ -52,6 +52,12 @@ from gi.repository import GLib
 class FmUtil:
 
     @staticmethod
+    def getDirLastUpdateTime(dirpath):
+        out = FmUtil.shellCall("/usr/bin/find \"%s\" -printf \"%%TY%%Tm%%Td%%TH%%TM%%TS\\n\" | /bin/sort | /bin/tail -1" % (dirpath))
+        out = re.search(r'^(.*)\.', out).group(1)
+        return datetime.strptime(out, "%Y%m%d%H%M%S")
+
+    @staticmethod
     def listDirWithoutKeepFiles(dirpath):
         ret = []
         for fn in os.listdir(dirpath):

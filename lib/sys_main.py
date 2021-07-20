@@ -259,9 +259,9 @@ class FmMain:
             for repoName in repoList:
                 s1 = FmUtil.pad(repoName, maxLen)
                 if repoman.isRepoExist(repoName):
-                    print("    %s %s (Last Update: )" % (s1, FmUtil.pad("[Good]", 15)))
+                    print("    %s [Good     ] (Last Update: %s)" % (s1, FmUtil.getDirLastUpdateTime(repoman.getRepoDir(repoName))))
                 else:
-                    print("    %s %s" % (s1, FmUtil.pad("[Not Exist]", 15)))
+                    print("    %s [Not Exist]" % (s1))
         else:
             print("    None")
 
@@ -277,20 +277,19 @@ class FmMain:
 
             for lname in overlayList:
                 if layman.getOverlayType(lname) == "static":
-                    ltype = "Static"
+                    ltype = "[Static    ]"
                     lurl = None
                 else:
                     ltype, lurl = layman.getOverlayVcsTypeAndUrl(lname)
                     if ltype == "git":
-                        ltype = "Git"
+                        ltype = "[Git       ]"
                     elif ltype == "svn":
-                        ltype == "Subversion"
+                        ltype = "[Subversion]"
                     else:
                         assert False
                 s1 = FmUtil.pad(lname, maxLen)
-                s2 = "[" + FmUtil.pad(ltype, 10) + "]"
-                s3 = lurl if lurl is not None else ""
-                print("    %s %s %s" % (s1, s2, s3))
+                s2 = lurl if lurl is not None else ""
+                print("    %s %s %s" % (s1, ltype, s2))
         else:
             print("    None")
 
