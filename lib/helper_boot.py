@@ -197,7 +197,7 @@ class FkmBootLoader:
             grubRootDev = layout.get_esp()
             prefix = "/"
         elif layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
-            grubRootDev = layout.dev_rootfs()
+            grubRootDev = layout.dev_rootfs
             prefix = "/boot"
         else:
             assert False
