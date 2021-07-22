@@ -1169,7 +1169,7 @@ class FmSysChecker:
             if line == "":
                 continue
             if not FmUtil.portageIsPkgInstallable(line):
-                self.infoPrinter.printError("Uninstallable package \"%s\" in \"%s\"." % (worldFile))
+                self.infoPrinter.printError("Uninstallable package \"%s\" in \"%s\"." % (line, worldFile))
 
     def _checkUsersAndGroups(self):
         # make sure passwd/group/shadow are tidy
