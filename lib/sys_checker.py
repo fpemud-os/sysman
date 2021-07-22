@@ -349,19 +349,7 @@ class FmSysChecker:
         for msg in obj.check_complete():
             self.infoPrinter.printError(msg)
 
-        # deprecated file: /etc/fstab
-        if os.path.exists("/etc/fstab"):
-            self.infoPrinter.printError("/etc/fstab should not exist.")
-
-        # deprecated file: /etc/mtab
-        if os.path.exists("/etc/mtab"):
-            self.infoPrinter.printError("/etc/fstab should not exist.")
-
-        # check /etc/sysctl.conf
-        if os.path.exists("/etc/sysctl.conf"):
-            self.infoPrinter.printError("/etc/sysctl.conf should not exist.")
-
-        # check /usr/local
+        # addtional check: /usr/local should not exist
         if os.path.exists("/usr/local"):
             self.infoPrinter.printError("/usr/local should not exist.")
 
