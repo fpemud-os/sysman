@@ -10,9 +10,60 @@ class FmSwapManager:
     def __init__(self, param):
         self.param = param
 
-    def createSwapService(self, path, serviceName):
+    def enableSwap(self, layout):
+        if layout.name in ["bios-simple", "efi-simple"]:
+            if layout.dev_swap is None:
+                layout.create_swap_file()
+            serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
+            if not layout.check_swap_size():
+                self._disableSwapService(layout.dev_swap, serviceName)
+                layout.remove_swap_file()
+                layout.create_swap_file()
+            self._createSwapService(layout.dev_swap, serviceName)
+            self._enableSwapService(layout.dev_swap, serviceName)
+            return
+
+        if layout.name in ["bios-lvm", "efi-lvm"]:
+            if layout.dev_swap is None:
+                layout.create_swap_lv()
+            serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
+            if not layout.check_swap_size():
+                self._disableSwapService(layout.dev_swap, serviceName)
+                layout.remove_swap_lv()
+                layout.create_swap_lv()
+            self._createSwapService(layout.dev_swap, serviceName)
+            self._enableSwapService(layout.dev_swap, serviceName)
+            return
+
+        if layout.name == "efi-bcache-lvm":
+            if layout.dev_swap is None:
+                raise Exception("no swap partition")
+            if not layout.check_swap_size():
+                raise Exception("swap partition is too small")
+            serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
+            self._createSwapService(layout.dev_swap, serviceName)
+            self._enableSwapService(layout.dev_swap, serviceName)
+            return
+
+        assert False
+
+    def disableSwap(self, layout):
+        serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
+        self._disableSwapService(layout.dev_swap, serviceName)
+        self._removeSwapService(layout.dev_swap, serviceName)
+
+        if layout.name in ["bios-simple", "efi-simple"]:
+            layout.remove_swap_file()
+        elif layout.name in ["bios-lvm", "efi-lvm"]:
+            layout.remove_swap_lv()
+        elif layout.name == "efi-bcache-lvm":
+            pass
+        else:
+            assert False
+
+    def _createSwapService(self, path, serviceName):
         fullf = os.path.join("/etc/systemd/system", serviceName)
-        fileContent = self._genSwapServFile(path)
+        fileContent = self.__genSwapServFile(path)
 
         if os.path.exists(fullf):
             with open(fullf, "r") as f:
@@ -22,10 +73,10 @@ class FmSwapManager:
         with open(fullf, "w") as f:
             f.write(fileContent)
 
-    def removeSwapService(self, path, serviceName):
+    def _removeSwapService(self, path, serviceName):
         os.unlink(os.path.join("/etc/systemd/system", serviceName))
 
-    def enableSwapService(self, path, serviceName):
+    def _enableSwapService(self, path, serviceName):
         FmUtil.cmdCall("/bin/systemctl", "enable", serviceName)
         if self.param.runMode == "prepare":
             assert False
@@ -36,7 +87,7 @@ class FmSwapManager:
         else:
             assert False
 
-    def disableSwapService(self, path, serviceName):
+    def _disableSwapService(self, path, serviceName):
         if self.param.runMode == "prepare":
             assert False
         elif self.param.runMode == "setup":
@@ -47,7 +98,7 @@ class FmSwapManager:
             assert False
         FmUtil.cmdCall("/bin/systemctl", "disable", serviceName)
 
-    def _genSwapServFile(self, swapfile):
+    def __genSwapServFile(self, swapfile):
         buf = ""
         buf += "[Unit]\n"
         if swapfile.startswith("/dev"):

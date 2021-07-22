@@ -274,7 +274,6 @@ class FmSysChecker:
 
         with self.infoPrinter.printInfoAndIndent("- Checking swap"):
             dirname = "/etc/systemd/system"
-            swapFileOrDev = layout.dev_swap
 
             # swap service should only exist in /etc
             for td in ["/usr/lib/systemd/system", "/lib/systemd/system"]:
@@ -284,16 +283,17 @@ class FmSysChecker:
 
             # only standard swap service should exist
             for sname in FmUtil.systemdFindAllSwapServicesInDirectory(dirname):
-                if swapFileOrDev is not None and sname == FmUtil.path2SwapServiceName(swapFileOrDev):
+                if layout.dev_swap is not None and sname == FmUtil.path2SwapServiceName(layout.dev_swap):
                     continue
                 self.infoPrinter.printError("Swap service \"%s\" should not exist." % (os.path.join(dirname, sname)))
 
             # swap should be enabled
+            bEnabled = False
             while True:
-                if swapFileOrDev is None:
+                if layout.dev_swap is None:
                     self.infoPrinter.printError("Swap is not enabled.")
                     break
-                serviceName = FmUtil.systemdFindSwapServiceInDirectory(dirname, swapFileOrDev)
+                serviceName = FmUtil.systemdFindSwapServiceInDirectory(dirname, layout.dev_swap)
                 if serviceName is None:
                     self.infoPrinter.printError("Swap is not enabled.")
                     break
@@ -301,7 +301,46 @@ class FmSysChecker:
                     if not FmUtil.systemdIsServiceEnabled(serviceName):
                         self.infoPrinter.printError("Swap is not enabled.")
                         break
+                bEnabled = True
                 break
+
+            # check swap size
+            while layout.dev_swap is not None:
+                if layout.check_swap_size():
+                    break
+
+                if layout.name in ["bios-simple", "bios-lvm"]:
+                    if self.bAutoFix:
+                        if bEnabled:
+                            self.param.swapManager.disableSwap(layout)
+                            self.param.swapManager.enableSwap(layout)
+                        else:
+                            layout.remove_swap_file()
+                            layout.create_swap_file()
+                        assert layout.check_swap_size()
+                    else:
+                        self.infoPrinter.printError("Swap file has invalid size.")
+                    break
+
+                if layout.name in ["efi-simple", "efi-lvm"]:
+                    if self.bAutoFix:
+                        if bEnabled:
+                            self.param.swapManager.disableSwap(layout)
+                            self.param.swapManager.enableSwap(layout)
+                        else:
+                            layout.remove_swap_lv()
+                            layout.create_swap_lv()
+                        assert layout.check_swap_size()
+                    else:
+                        self.infoPrinter.printError("Swap LV has invalid size.")
+                    break
+
+                if layout.name == "efi-bcache-lvm":
+                    # no way to auto-fix
+                    self.infoPrinter.printError("Swap partition has invalid size.")
+                    break
+
+                assert False
 
     def _checkRootfsLayout(self, deepCheck):
         # general check

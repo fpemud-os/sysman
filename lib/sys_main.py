@@ -397,52 +397,23 @@ class FmMain:
         if layout is None:
             raise Exception("no valid storage layout")
 
-        if layout.name in ["bios-simple", "efi-simple"]:
-            if layout.dev_swap is None:
-                layout.create_swap_file()
-            serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
-            if not layout.check_swap_size():
-                self.param.swapManager.disableSwapService(layout.dev_swap, serviceName)
-                layout.remove_swap_file()
-                layout.create_swap_file()
-            self.param.swapManager.createSwapService(layout.dev_swap, serviceName)
-            self.param.swapManager.enableSwapService(layout.dev_swap, serviceName)
+        self.param.swapManager.enableSwap(layout)
 
+        if layout.name in ["bios-simple", "efi-simple"]:
             swapSizeStr = FmUtil.formatSize(os.path.getsize(layout.dev_swap))
             print("Swap File: %s (size:%s)" % (layout.dev_swap, swapSizeStr))
-            return 0
-
-        if layout.name in ["bios-lvm", "efi-lvm"]:
-            if layout.dev_swap is None:
-                layout.create_swap_lv()
-            serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
-            if not layout.check_swap_size():
-                self.param.swapManager.disableSwapService(layout.dev_swap, serviceName)
-                layout.remove_swap_lv()
-                layout.create_swap_lv()
-            self.param.swapManager.createSwapService(layout.dev_swap, serviceName)
-            self.param.swapManager.enableSwapService(layout.dev_swap, serviceName)
-
+        elif layout.name in ["bios-lvm", "efi-lvm"]:
             uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.dev_swap).get("ID_FS_UUID")
             swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.dev_swap))
             print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.dev_swap, uuid, swapSizeStr))
-            return 0
-
-        if layout.name == "efi-bcache-lvm":
-            if layout.dev_swap is None:
-                raise Exception("no swap partition")
-            if not layout.check_swap_size():
-                raise Exception("swap partition is too small")
-            serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
-            self.param.swapManager.createSwapService(layout.dev_swap, serviceName)
-            self.param.swapManager.enableSwapService(layout.dev_swap, serviceName)
-
+        elif layout.name == "efi-bcache-lvm":
             uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.dev_swap).get("ID_FS_UUID")
             swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.dev_swap))
             print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.dev_swap, uuid, swapSizeStr))
-            return 0
+        else:
+            assert False
 
-        assert False
+        return 0
 
     def doDisableSwap(self):
         if self.param.runMode == "prepare":
@@ -453,20 +424,10 @@ class FmMain:
         if layout is None:
             raise Exception("no valid storage layout")
 
-        if layout.dev_swap is not None:
-            serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
-            self.param.swapManager.disableSwapService(layout.dev_swap, serviceName)
-            self.param.swapManager.removeSwapService(layout.dev_swap, serviceName)
+        if layout.dev_swap is None:
+            return 0
 
-            if layout.name in ["bios-simple", "efi-simple"]:
-                layout.remove_swap_file()
-            elif layout.name in ["bios-lvm", "efi-lvm"]:
-                layout.remove_swap_lv()
-            elif layout.name == "efi-bcache-lvm":
-                pass
-            else:
-                assert False
-
+        self.param.swapManager.disableSwap(layout)
         return 0
 
     def doAddUser(self, username):
