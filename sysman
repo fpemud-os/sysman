@@ -190,6 +190,7 @@ try:
 
         if args.op == "check":
             param.sysChecker.fullCheck(args.auto_fix, args.more_hardware_check, args.more_filesystem_check)
+            ret = 0
         else:
             if args.op == "show":
                 ret = FmMain(param).doShow()
@@ -209,7 +210,7 @@ try:
                 ret = FmMain(param).doDisableSwap()
             elif args.op == "log-to-harddisk":
                 # FIXME
-                FmMain(param).logToDisk(True)
+                ret = FmMain(param).logToDisk(True)
             elif args.op == "log-to-memory":
                 # FIXME
                 ret = FmMain(param).logToMemory()
