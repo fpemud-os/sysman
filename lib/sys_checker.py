@@ -103,6 +103,7 @@ class FmSysChecker:
                     self._checkOverlays(True)
                     self._checkNews()
                     self._checkImportantPackage()
+                    self._checkWorldFile()
                     self._checkRedundantRepositoryAndOverlay()
                 with self.infoPrinter.printInfoAndIndent("- Check users and groups..."):
                     self._checkUsersAndGroups()
@@ -1121,6 +1122,15 @@ class FmSysChecker:
         for pkg in importantPkgList:
             if pkg not in allPkgList:
                 self.infoPrinter.printError("Important package \"%s\" does not exist in any repository or overlay." % (pkg))
+
+    def _checkWorldFile(self):
+        worldFile = os.path.join(FmConst.portageDataDir, "world")
+        for line in pathlib.Path(worldFile).read_text().split("\n"):
+            line = line.strip()
+            if line == "":
+                continue
+            if not FmUtil.portageIsPkgInstallable(line):
+                self.infoPrinter.printError("Uninstallable package \"%s\" in \"%s\"." % (worldFile))
 
     def _checkUsersAndGroups(self):
         # make sure passwd/group/shadow are tidy
