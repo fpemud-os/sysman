@@ -348,7 +348,8 @@ class FmMain:
 
         layout = strict_hdds.parse_storage_layout()
         if layout is None:
-            raise Exception("no valid storage layout")
+            print("Invalid storage layout.", file=sys.stderr)
+            return 1
 
         if layout.name in ["bios-simple", "efi-simple"]:
             raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
@@ -370,7 +371,8 @@ class FmMain:
 
         layout = strict_hdds.parse_storage_layout()
         if layout is None:
-            raise Exception("no valid storage layout")
+            print("Invalid storage layout.", file=sys.stderr)
+            return 1
 
         if layout.name in ["bios-simple", "efi-simple"]:
             raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
@@ -395,7 +397,8 @@ class FmMain:
 
         layout = strict_hdds.parse_storage_layout()
         if layout is None:
-            raise Exception("no valid storage layout")
+            print("Invalid storage layout.", file=sys.stderr)
+            return 1
 
         self.param.swapManager.enableSwap(layout)
 
@@ -422,7 +425,8 @@ class FmMain:
 
         layout = strict_hdds.parse_storage_layout()
         if layout is None:
-            raise Exception("no valid storage layout")
+            print("Invalid storage layout.", file=sys.stderr)
+            return 1
 
         if layout.dev_swap is None:
             return 0
