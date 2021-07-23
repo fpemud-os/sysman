@@ -359,7 +359,7 @@ class FmSysChecker:
             obj = strict_fsh.PreMountRootFs(mp.mountpoint,
                                             mounted_boot=(layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI),
                                             mounted_home=False,
-                                            mounted_usr=False,
+                                            mounted_cache=False,
                                             mounted_var=False)
             obj.check(self.bAutoFix)
             for msg in obj.check_complete():
