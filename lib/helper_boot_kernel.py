@@ -162,6 +162,27 @@ class FkmKCache:
             robust_layer.simple_subversion.update(cacheDir, recheckout_on_failure=True, url=sourceInfo["url"])
             return
 
+        # source type "http-file"
+        if sourceInfo["update-method"] == "http-file":
+            os.makedirs(cacheDir, exist_ok=True)
+            if sourceInfo["local-name"] != "":
+                localFullfn = sourceInfo["local-name"]
+            else:
+                localFullfn = os.path.join(cacheDir, os.path.basename(sourceInfo["url"]))
+            FmUtil.wgetDownload(sourceInfo["url"], localFullfn)
+            return
+
+        # source type "http-archive"
+        if sourceInfo["update-method"] == "http-archive":
+            os.makedirs(cacheDir, exist_ok=True)
+            if sourceInfo["local-name"] != "":
+                localFullfn = sourceInfo["local-name"]
+            else:
+                localFullfn = os.path.join(cacheDir, os.path.basename(sourceInfo["url"]))
+            FmUtil.wgetDownload(sourceInfo["url"], localFullfn)
+            shutil.unpack_archive(localFullfn, cacheDir)
+            return
+
         # source type "httpdir"
         if sourceInfo["update-method"] == "httpdir":
             fnList = []
