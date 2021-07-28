@@ -15,12 +15,14 @@ try:
     while True:
         try:
             with urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT) as resp:
+                buf = None
                 with zipfile.ZipFile(resp, mode="r") as zipf:
                     buf = zipf.open("tbs6981_x86/TBS6981.sys").read()
-                    with open(targetFn, "wb") as f:
-                        s = 166120
-                        l = 55352
-                        f.write(buf[s:s+l])
+                with open(targetFn, "wb") as f:
+                    s = 166120
+                    l = 55352
+                    f.write(buf[s:s+l])
+                # FIXME: chksum targetFn as 96ae79acb8e51d90c90fa9759a1ce9df
             break
         except OSError as e:
             print("Failed to acces %s, %s" % (url, e))
