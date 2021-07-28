@@ -12,21 +12,21 @@ import urllib.request
 
 
 def findKernelVersion(url, typename):
-    resp = urllib.request.urlopen(url, timeout=60)
-    if resp.info().get('Content-Encoding') is None:
-        fakef = resp
-    elif resp.info().get('Content-Encoding') == 'gzip':
-        fakef = io.BytesIO(resp.read())
-        fakef = gzip.GzipFile(fileobj=fakef)
-    else:
-        assert False
-    root = lxml.html.parse(fakef)
+    with urllib.request.urlopen(url, timeout=60) as resp:
+        if resp.info().get('Content-Encoding') is None:
+            fakef = resp
+        elif resp.info().get('Content-Encoding') == 'gzip':
+            fakef = io.BytesIO(resp.read())
+            fakef = gzip.GzipFile(fileobj=fakef)
+        else:
+            assert False
+        root = lxml.html.parse(fakef)
 
-    td = root.xpath(".//td[text()='%s:']" % (typename))[0]
-    td = td.getnext()
-    while len(td) > 0:
-        td = td[0]
-    return td.text
+        td = root.xpath(".//td[text()='%s:']" % (typename))[0]
+        td = td.getnext()
+        while len(td) > 0:
+            td = td[0]
+        return td.text
 
 
 def download(url, version, kernelFile):

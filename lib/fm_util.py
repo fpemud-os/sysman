@@ -1831,17 +1831,17 @@ class FmUtil:
     @staticmethod
     def downloadIfNewer(url, fullfn):
         if os.path.exists(fullfn):
-            resp = urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=robust_layer.TIMEOUT)
+            with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=robust_layer.TIMEOUT) as resp:
+                remoteTm = datetime.strptime(resp.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z")
+                localTm = datetime.utcfromtimestamp(os.path.getmtime(fullfn))
+                if remoteTm <= localTm:
+                    return localTm
+        with urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT) as resp:
+            with open(fullfn, "wb") as f:
+                f.write(resp.read())
             remoteTm = datetime.strptime(resp.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z")
-            localTm = datetime.utcfromtimestamp(os.path.getmtime(fullfn))
-            if remoteTm <= localTm:
-                return localTm
-        resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
-        with open(fullfn, "wb") as f:
-            f.write(resp.read())
-        remoteTm = datetime.strptime(resp.headers["Last-Modified"], "%a, %d %b %Y %H:%M:%S %Z")
-        os.utime(fullfn, (remoteTm.timestamp(), remoteTm.timestamp()))
-        return remoteTm
+            os.utime(fullfn, (remoteTm.timestamp(), remoteTm.timestamp()))
+            return remoteTm
 
     @staticmethod
     def udevIsPureUaccessRuleFile(filepath):
@@ -2950,13 +2950,13 @@ class ArchLinuxBasedOsBuilder:
             signFile = None
             if True:
                 url = "%s/iso/latest" % (mr)
-                resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
-                root = lxml.html.parse(resp)
-                for link in root.xpath(".//a"):
-                    fn = os.path.basename(link.get("href"))
-                    if re.fullmatch("archlinux-bootstrap-(.*)-x86_64.tar.gz", fn) is not None:
-                        dataFile = fn
-                        signFile = fn + ".sig"
+                with urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT) as resp:
+                    root = lxml.html.parse(resp)
+                    for link in root.xpath(".//a"):
+                        fn = os.path.basename(link.get("href"))
+                        if re.fullmatch("archlinux-bootstrap-(.*)-x86_64.tar.gz", fn) is not None:
+                            dataFile = fn
+                            signFile = fn + ".sig"
 
             # changed?
             return (cachedDataFile != dataFile)

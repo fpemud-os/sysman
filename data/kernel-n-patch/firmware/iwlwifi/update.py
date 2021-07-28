@@ -16,17 +16,17 @@ while True:
     baseUrl = "https://wireless.wiki.kernel.org"
     homepageUrl = os.path.join(baseUrl, "en/users/drivers/iwlwifi")
     try:
-        resp = urllib.request.urlopen(homepageUrl, timeout=robust_layer.TIMEOUT)
-        root = lxml.html.parse(resp)
-        for aTag in root.xpath(".//table/tr/td/a"):
-            relativeUrl = aTag.get("href")
-            relativeUrl = relativeUrl[1:] if relativeUrl.startswith("/") else relativeUrl
-            m = re.fullmatch(r"(.*)-([0-9]+(\.|-)[0-9A-Za-z\.-]+(\.|-)[0-9]+).*", aTag.text)
-            name = m.group(1)
-            version = m.group(2)
-            remoteFileDict[name] = {                                    # only keeps newest "version" for a "name"
-                version: (aTag.text, os.path.join(baseUrl, relativeUrl)),
-            }
+        with urllib.request.urlopen(homepageUrl, timeout=robust_layer.TIMEOUT) as resp:
+            root = lxml.html.parse(resp)
+            for aTag in root.xpath(".//table/tr/td/a"):
+                relativeUrl = aTag.get("href")
+                relativeUrl = relativeUrl[1:] if relativeUrl.startswith("/") else relativeUrl
+                m = re.fullmatch(r"(.*)-([0-9]+(\.|-)[0-9A-Za-z\.-]+(\.|-)[0-9]+).*", aTag.text)
+                name = m.group(1)
+                version = m.group(2)
+                remoteFileDict[name] = {                                    # only keeps newest "version" for a "name"
+                    version: (aTag.text, os.path.join(baseUrl, relativeUrl)),
+                }
         break
     except OSError as e:
         print("Failed to acces %s, %s" % (baseUrl, e))
@@ -46,9 +46,9 @@ for name in remoteFileDict:
             # download content
             while True:
                 try:
-                    resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
-                    with tarfile.open(fileobj=resp, mode="r:gz") as tarf:
-                        tarf.extractall(dn)
+                    with urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT) as resp:
+                        with tarfile.open(fileobj=resp, mode="r:gz") as tarf:
+                            tarf.extractall(dn)
                     break
                 except OSError as e:
                     print("Failed to acces %s, %s" % (url, e))

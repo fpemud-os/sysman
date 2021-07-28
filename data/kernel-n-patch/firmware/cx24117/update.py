@@ -1,35 +1,30 @@
 #!/usr/bin/python3
 
-import os
-import re
 import time
-import shutil
-import tarfile
+import zipfile
 import robust_layer
 import robust_layer.simple_fops
-import lxml.html
 import urllib.request
 
 url = "http://www.tbsdtv.com/download/document/tbs6981/tbs6981-windows-driver_v2.0.1.6.zip"
+targetFn = "dvb-fe-cx24117.fw"
 
 print("Downloading and extracting \"%s\"..." % (url))
 try:
     # download content
     while True:
         try:
-            resp = urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT)
-
-
-
-            with zipfile.ZipFile(fileobj=resp, mode="r") as zipf:
-                zipf.extractall(dn)
+            with urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT) as resp:
+                with zipfile.ZipFile(resp, mode="r") as zipf:
+                    buf = zipf.open("tbs6981_x86/TBS6981.sys").read()
+                    with open(targetFn, "wb") as f:
+                        s = 166120
+                        l = 55352
+                        f.write(buf[s:s+l])
             break
         except OSError as e:
             print("Failed to acces %s, %s" % (url, e))
-            time.sleep(1.0)
-
-    # record directory
-    dirSet.add(dn)
+            time.sleep(robust_layer.RETRY_WAIT)
 except BaseException:
-    shutil.rmtree(dn)
+    robust_layer.simple_fops.rm(targetFn)
     raise

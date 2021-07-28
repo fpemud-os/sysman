@@ -408,36 +408,36 @@ class FkmKCache:
 
     def _findKernelVersion(self, typename):
         try:
-            resp = urllib.request.urlopen(self.kernelUrl, timeout=robust_layer.TIMEOUT)
-            if resp.info().get('Content-Encoding') is None:
-                fakef = resp
-            elif resp.info().get('Content-Encoding') == 'gzip':
-                fakef = io.BytesIO(resp.read())
-                fakef = gzip.GzipFile(fileobj=fakef)
-            else:
-                assert False
-            root = lxml.html.parse(fakef)
+            with urllib.request.urlopen(self.kernelUrl, timeout=robust_layer.TIMEOUT) as resp:
+                if resp.info().get('Content-Encoding') is None:
+                    fakef = resp
+                elif resp.info().get('Content-Encoding') == 'gzip':
+                    fakef = io.BytesIO(resp.read())
+                    fakef = gzip.GzipFile(fileobj=fakef)
+                else:
+                    assert False
+                root = lxml.html.parse(fakef)
 
-            td = root.xpath(".//td[text()='%s:']" % (typename))[0]
-            td = td.getnext()
-            while len(td) > 0:
-                td = td[0]
-            return td.text
+                td = root.xpath(".//td[text()='%s:']" % (typename))[0]
+                td = td.getnext()
+                while len(td) > 0:
+                    td = td[0]
+                return td.text
         except OSError as e:
             print("Failed to acces %s, %s" % (self.kernelUrl, e))
             return None
 
     def _findFirmwareVersion(self):
         try:
-            resp = urllib.request.urlopen(self.firmwareUrl, timeout=robust_layer.TIMEOUT)
-            root = lxml.html.parse(resp)
             ret = None
-            for atag in root.xpath(".//a"):
-                m = re.fullmatch("linux-firmware-(.*)\\.tar\\.xz", atag.text)
-                if m is not None:
-                    if ret is None or ret < m.group(1):
-                        ret = m.group(1)
-            assert ret is not None
+            with urllib.request.urlopen(self.firmwareUrl, timeout=robust_layer.TIMEOUT) as resp:
+                root = lxml.html.parse(resp)
+                for atag in root.xpath(".//a"):
+                    m = re.fullmatch("linux-firmware-(.*)\\.tar\\.xz", atag.text)
+                    if m is not None:
+                        if ret is None or ret < m.group(1):
+                            ret = m.group(1)
+                assert ret is not None
             return ret
         except OSError as e:
             print("Failed to acces %s, %s" % (self.firmwareUrl, e))
@@ -446,11 +446,11 @@ class FkmKCache:
     def _findWirelessRegDbVersion(self):
         try:
             ver = None
-            resp = urllib.request.urlopen(self.wirelessRegDbDirUrl, timeout=robust_layer.TIMEOUT)
-            out = resp.read().decode("iso8859-1")
-            for m in re.finditer("wireless-regdb-([0-9]+\\.[0-9]+\\.[0-9]+)\\.tar\\.xz", out, re.M):
-                if ver is None or m.group(1) > ver:
-                    ver = m.group(1)
+            with urllib.request.urlopen(self.wirelessRegDbDirUrl, timeout=robust_layer.TIMEOUT) as resp:
+                out = resp.read().decode("iso8859-1")
+                for m in re.finditer("wireless-regdb-([0-9]+\\.[0-9]+\\.[0-9]+)\\.tar\\.xz", out, re.M):
+                    if ver is None or m.group(1) > ver:
+                        ver = m.group(1)
             return ver
         except OSError as e:
             print("Failed to acces %s, %s" % (self.wirelessRegDbDirUrl, e))
