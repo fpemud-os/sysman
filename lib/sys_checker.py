@@ -36,6 +36,7 @@ from helper_pkg_merger import PkgMerger
 # *. hardware check: monitor config by ddcci
 # *. install and uninstall all in_focus packages
 # *. don't enable non-critical INTEL and AMD cpu kernel option (it's a general TODO item, not related to sysman-check)
+# *. /var should have at least 100MiB freespace, especially for mounted_var
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
