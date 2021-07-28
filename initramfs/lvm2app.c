@@ -937,7 +937,7 @@ static char *_generate_lv_dm_name(struct context *ctx, struct logical_volume *lv
     FAILURE_ON_MALLOC(ctx, ret);
 
     strcpy(ret, lv->vg->name);
-    strcat(ret, "-");
+    strcat(ret, ".");
     strcat(ret, lv->name);
 
     return ret;
