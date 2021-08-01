@@ -234,10 +234,10 @@ class FmSysChecker:
 
             # check efi-bcache-lvm
             if layout.name == "efi-bcache-lvm":
-                if layout.ssd is None:
+                if layout.get_ssd() is None:
                     self.infoPrinter.printError("Storage layout \"%s\" should have a cache device." % (layout.name))
                 else:
-                    if layout.ssdSwapParti is None:
+                    if layout.get_ssd_swap_partition() is None:
                         self.infoPrinter.printError("Storage layout \"%s\" should have a cache device with a swap partition." % (layout.name))
                 for fn in glob.glob("/sys/block/bcache*"):
                     with open(os.path.join(fn, "bcache", "cache_mode"), "r") as f:
