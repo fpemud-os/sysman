@@ -387,7 +387,14 @@ class EbuildRepositories:
             assert False
 
     def checkRepository(self, repoName, bAutoFix=False):
-        assert self.isRepoExist(repoName)
+        assert repoName in self._repoInfoDict
+
+        # check existence
+        if not self.isRepoExist(repoName):
+            if bAutoFix:
+                self.createRepository(repoName)
+            else:
+                raise RepositoryCheckError("repository \"%s\" does not exist" % (repoName))
 
         cfgFile = self.getRepoCfgReposFile(repoName)
         repoDir = self.getRepoDir(repoName)
