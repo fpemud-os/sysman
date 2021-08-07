@@ -94,7 +94,7 @@ class DynCfgModifier:
             # kernelMirrors = FmUtil.pmdbGetMirrors("kernel", "kernel", countryCode, ["http", "https", "ftp"], 2)
             # archMirrors = FmUtil.pmdbGetMirrors("archlinux", "archlinux", countryCode, ["http", "https", "ftp"], 2)
             gentooMirrors = ["https://mirrors.tuna.tsinghua.edu.cn/gentoo"]                     # FIXME
-            rsyncMirrors = ["rsync://rsync1.cn.gentoo.org/gentoo-portage"]                      # FIXME
+            rsyncMirrors = ["rsync://mirrors.tuna.tsinghua.edu.cn/gentoo-portage"]              # FIXME
             kernelMirrors = ["https://mirrors.tuna.tsinghua.edu.cn/kernel"]                     # FIXME
             archMirrors = ["https://mirror.lzu.edu.cn/archlinux/"]                              # FIXME
 
