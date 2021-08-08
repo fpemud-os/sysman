@@ -2,6 +2,7 @@
 sys-boot/grub              -~x86 -~amd64
 sys-apps/systemd           -~x86 -~amd64
 virtual/libudev            -~x86 -~amd64
+virtual/udev               -~x86 -~amd64
 
 # gcc/glibc/binutils
 sys-devel/gcc              -~x86 -~amd64
