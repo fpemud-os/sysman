@@ -37,6 +37,7 @@ from helper_pkg_merger import PkgMerger
 # *. install and uninstall all in_focus packages
 # *. don't enable non-critical INTEL and AMD cpu kernel option (it's a general TODO item, not related to sysman-check)
 # *. /var should have at least 100MiB freespace, especially for mounted_var
+# *. check dmesg for "end_request: I/O error, dev 03:06 (sda), sector"
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
