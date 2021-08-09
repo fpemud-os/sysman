@@ -116,6 +116,7 @@ sys-apps/ethtool
 sys-apps/hwloc
 sys-apps/pciutils
 sys-apps/usbutils
+sys-fs/fatcat
 sys-libs/libhugetlbfs               # it is not only a library
 sys-process/bpytop
 sys-process/lsof
