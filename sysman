@@ -14,6 +14,7 @@ if os.getuid() != 0:
 sys.path.append("/usr/lib64/fpemud-os-sysman")
 from fm_util import InfoPrinter
 from fm_util import SingletonProcess
+from fm_param import FmConst
 from fm_param import FmParam
 from sys_machine_info import FmMachineInfoGetter
 from sys_pkgman import FmPkgman
@@ -184,7 +185,7 @@ try:
 
         param.infoPrinter = InfoPrinter()
         param.machineInfoGetter = FmMachineInfoGetter(param)
-        param.bbki = bbki.Bbki(param.bbkiHostInfo)
+        param.bbki = bbki.Bbki(param.bbkiHostInfo, bbki.EtcDirConfig(FmConst.portageCfgDir))
         param.pkgManager = FmPkgman(param)
         param.swapManager = FmSwapManager(param)
         param.logManager = FmLoggingManager(param)
