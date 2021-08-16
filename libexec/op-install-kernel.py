@@ -28,10 +28,6 @@ kernelBuilder.buildStepExtract()
 print("        - Generating .config file...")
 kernelBuilder.buildStepGenerateDotCfg()
 
-print("        - Checking .config file...")
-c = FkmInitramfsKcfgChecker()
-c.check(kernelBuilder.realSrcDir, kernelBuilder.dotCfgFile)
-
 kernelBuildNeeded = False
 if not kernelBuildNeeded:
     if bootEntry is None:

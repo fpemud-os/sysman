@@ -74,6 +74,7 @@ class FmParam:
         # business objects
         self.infoPrinter = None
         self.machineInfoGetter = None
+        self.bbki = None
         self.pkgManager = None
         self.swapManager = None
         self.logManager = None

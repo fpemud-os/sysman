@@ -15,29 +15,6 @@ from fm_util import TempChdir
 from fm_param import FmConst
 
 
-class FkmInitramfsKcfgChecker:
-
-    def check(self, ksrcDir, dotCfgFile):
-        symDict = {
-            "RD_XZ": "y",
-            "RD_LZMA": "y",         # it seems RD_XZ has no effect, we have to enable RD_LZMA, kernel bug?
-            "BCACHE": "m",
-            "BLK_DEV_SD": "m",
-            "BLK_DEV_DM": "m",
-            "EXT2_FS": "m",
-            "EXT4_FS": "m",
-            "XFS_FS": "m",
-            "VFAT_FS": "m",
-        }
-
-        try:
-            p = Process(target=pylkcutil.checker.check_values, args=(ksrcDir, dotCfgFile, symDict, ))
-            p.start()
-            p.join()
-        except pylkcutil.checker.CheckError as e:
-            raise Exception("config symbol %s must be selected as \"%s\"!" % (e.name, e.value))
-
-
 class FkmInitramfsBuilder:
 
     def __init__(self, tmpDir, buildTarget):
