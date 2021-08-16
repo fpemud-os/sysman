@@ -2401,29 +2401,6 @@ class FmUtil:
             FmUtil._updateDirImpl(of2, nf2, keepAbsList, dirCmpObj2)
 
     @staticmethod
-    def removeDirContent(dirname, ignoreList=[]):
-        dirname = os.path.abspath(dirname)
-        ignoreList = FmUtil.getAbsPathList(dirname, ignoreList)
-
-        # call assistant
-        assert FmUtil.isTrivalFileOrDir(dirname)
-        FmUtil._removeDirContentImpl(dirname, ignoreList)
-
-    @staticmethod
-    def _removeDirContentImpl(dirname, ignoreAbsList):
-        for fb in os.listdir(dirname):
-            f = os.path.join(dirname, fb)
-            if any(x for x in ignoreAbsList if fnmatch.fnmatch(f, x)):
-                continue
-            assert FmUtil.isTrivalFileOrDir(f)
-            if os.path.isdir(f):
-                FmUtil._removeDirContentImpl(f, ignoreAbsList)
-            else:
-                os.remove(f)
-        if len(os.listdir(dirname)) == 0:
-            os.rmdir(dirname)
-
-    @staticmethod
     def hashDir(dirname):
         h = hashlib.sha1()
         for root, dirs, files in os.walk(dirname):
