@@ -3,6 +3,7 @@
 
 import os
 import sys
+import bbki
 import argparse
 import robust_layer.simple_fops
 
@@ -162,6 +163,7 @@ if "FPEMUD_REFSYSTEM_PREPARE" in os.environ:
     #   no mount point should be manipulated.
     #   don't create initramfs or install any boot-loader.
     param.runMode = "prepare"
+    param.bbkiHostInfo = bbki.HostInfo(arch="native")
 elif "FPEMUD_REFSYSTEM_SETUP" in os.environ:
     # setup mode:
     #   we are running in a chrooted environment in the target machine.
@@ -169,9 +171,11 @@ elif "FPEMUD_REFSYSTEM_SETUP" in os.environ:
     #   network is assumed as not available.
     #   we want to render the target machine bootable with as few operations as possible.
     param.runMode = "setup"
+    param.bbkiHostInfo = bbki.HostInfo(arch="native", boot_mode="native")
 else:
     # normal mode
     param.runMode = "normal"
+    param.bbkiHostInfo = bbki.HostInfo(arch="native", boot_mode="native")
 
 try:
     with SingletonProcess(param.singletonFile):
@@ -180,6 +184,7 @@ try:
 
         param.infoPrinter = InfoPrinter()
         param.machineInfoGetter = FmMachineInfoGetter(param)
+        param.bbki = bbki.Bbki(param.bbkiHostInfo)
         param.pkgManager = FmPkgman(param)
         param.swapManager = FmSwapManager(param)
         param.logManager = FmLoggingManager(param)
