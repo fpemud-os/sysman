@@ -75,7 +75,6 @@ class FmMain:
 
         self.param.sysChecker.basicCheckWithOverlayContent()
 
-        helperBootDir = FkmBootDir()
         helperRescueOs = RescueOs()
         repoman = EbuildRepositories()
         layman = EbuildOverlays()
@@ -108,10 +107,12 @@ class FmMain:
             print("    BIOS")
 
         print("Main OS:")
-        mainOsInfo = helperBootDir.getMainOsStatus()
-        if mainOsInfo is None:
-            mainOsInfo = "None?!"
-        print("    %s" % (mainOsInfo))
+        be = self.param.bbki.get_pending_boot_entry()
+        if be is None:
+            be = "None?!"
+        else:
+            be = "Linux (%s)" % (be.postfix)
+        print("    %s" % (be))
 
         print("Rescue OS:")
         if helperRescueOs.isInstalled():

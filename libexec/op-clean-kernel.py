@@ -11,7 +11,7 @@ pretendPrefix = "to be " if bPretend else ""
 resultFile = sys.argv[2]
 
 
-print("        - Analyzing...")
+print("        - Processing...")
 bbki = bbki.BBki(arch="native", boot_mode="native")
 bootFileList, moduleFileList, firmwareFileList = bbki.clean_boot_entries(prtend=bPretend)
 

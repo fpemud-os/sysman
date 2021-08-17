@@ -70,11 +70,24 @@ class FmSysUpdater:
 
         # do sync
         if bSync:
-            # update cache
-            self.infoPrinter.printInfo(">> Retrieving general information...")
-            kcache.sync()
-            overlayDb.update()
-            print("")
+            # sync bbki repositories
+            with ParallelRunSequencialPrint() as prspObj:
+                if buildServer is not None:
+                    startCoro = buildServer.asyncStartSshExec
+                    waitCoro = buildServer.asyncWaitSshExec
+                else:
+                    startCoro = FmUtil.asyncStartShellExec
+                    waitCoro = FmUtil.asyncWaitShellExec
+                for oname in self.param.bbki.repositories():
+                    prspObj.add_task(
+                        startCoro, ["%s sync-bbki-repo %s" % (self.opSync, oname)],
+                        waitCoro,
+                        pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing BBKI repository \"%s\"..." % (x)),
+                        post_func=lambda: print(""),
+                    )
+            # FIXME: there should be no sync down after realtime network filesystem support is done
+            if buildServer is not None:
+                buildServer.syncDownDirectory(FmConst.portageDataDir)
 
             # sync repository directories
             for repoName in pkgwh.repoman.getRepositoryList():
@@ -82,6 +95,11 @@ class FmSysUpdater:
                 self.infoPrinter.printInfo(">> Synchronizing repository \"%s\"..." % (repoName))
                 self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-repo %s" % (repoName), repoDir)
                 print("")
+
+            # update cloud overlay db
+            self.infoPrinter.printInfo(">> Synchronizing cloud overlay database...")
+            overlayDb.update()
+            print("")
 
             # sync overlay directories
             with ParallelRunSequencialPrint() as prspObj:
@@ -169,76 +187,9 @@ class FmSysUpdater:
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             kernelCfgRules = base64.b64encode(pickle.dumps(self.param.machineInfoGetter.hwInfo().kernelCfgRules)).decode("ascii")
 
-            with ParallelRunSequencialPrint() as prspObj:
-                if buildServer is not None:
-                    startCoro = buildServer.asyncStartSshExec
-                    waitCoro = buildServer.asyncWaitSshExec
-                else:
-                    startCoro = FmUtil.asyncStartShellExec
-                    waitCoro = FmUtil.asyncWaitShellExec
-
-                # update kernel in kcache
-                v = kcache.getLatestKernelVersion()
-                fn = os.path.basename(kcache.getKernelFileByVersion(v))
-                prspObj.add_task(
-                    startCoro, ["%s kernel \'%s\'" % (self.opFetch, v)],
-                    waitCoro,
-                    pre_func=lambda x=fn: self.infoPrinter.printInfo(">> Fetching %s..." % (x)),
-                    post_func=lambda: print(""),
-                )
-
-                # update firmware in kcache
-                v = kcache.getLatestFirmwareVersion()
-                fn = os.path.basename(kcache.getFirmwareFileByVersion(v))
-                prspObj.add_task(
-                    startCoro, ["%s firmware \'%s\'" % (self.opFetch, v)],
-                    waitCoro,
-                    pre_func=lambda x=fn: self.infoPrinter.printInfo(">> Fetching %s..." % (x)),
-                    post_func=lambda: print(""),
-                )
-
-                # update extra kernel driver in kcache
-                tset = set()
-                for name in kcache.getExtraDriverList():
-                    sourceName = kcache.getExtraDriverSourceInfo(name)["name"]
-                    if sourceName in tset:
-                        continue
-                    tset.add(sourceName)
-                    prspObj.add_task(
-                        startCoro, ["%s extra-driver-source \'%s\' \'%s\' %d" % (self.opFetch, name, sourceName, bSync)],
-                        waitCoro,
-                        pre_func=lambda x=sourceName: self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (x)),
-                        post_func=lambda: print(""),
-                    )
-                for name in kcache.getExtraFirmwareList():
-                    sourceName = kcache.getExtraFirmwareSourceInfo(name)["name"]
-                    if sourceName in tset:
-                        continue
-                    tset.add(sourceName)
-                    prspObj.add_task(
-                        startCoro, ["%s extra-firmware-source \'%s\' \'%s\' %d" % (self.opFetch, name, sourceName, bSync)],
-                        waitCoro,
-                        pre_func=lambda x=sourceName: self.infoPrinter.printInfo(">> Fetching extra source \"%s\"..." % (x)),
-                        post_func=lambda: print(""),
-                    )
-
-                # update wireless-regulatory-database in kcache
-                v = kcache.getLatestWirelessRegDbVersion()
-                fn = os.path.basename(kcache.getWirelessRegDbFileByVersion(v))
-                prspObj.add_task(
-                    startCoro, ["%s wireless-regdb \'%s\'" % (self.opFetch, v)],
-                    waitCoro,
-                    pre_func=lambda x=fn: self.infoPrinter.printInfo(">> Fetching %s..." % (x)),
-                    post_func=lambda: print(""),
-                )
-
-            # FIXME: there should be no sync down after realtime network filesystem support is done
-            if buildServer is not None:
-                buildServer.syncDownDirectory(FmConst.kcacheDir)
-
             # install kernel, initramfs and bootloader
             with FkmMountBootDirRw(layout):
-                self.infoPrinter.printInfo(">> Installing kernel...")
+                self.infoPrinter.printInfo(">> Installing boot entry...")
                 kernelBuilt = False
                 if True:
                     self._exec(buildServer, self.opInstallKernel, kernelCfgRules + " " + resultFile)
@@ -249,6 +200,8 @@ class FmSysUpdater:
                         self.infoPrinter.printInfo(">> Synchronizing down /boot, /lib/modules and /lib/firmware...")
                         buildServer.syncDownKernel()
                         print("")
+                installer = self.param.bbki.get_boot_entry_installer(self.param.bbki.get_kernel_atom(),
+                                                                     self.param.bbki.get_kernel_addo_atom())
 
                 self.infoPrinter.printInfo(">> Creating initramfs...")
                 initramfsBuilt = False
@@ -256,7 +209,7 @@ class FmSysUpdater:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT create initramfs!!!" % (self.param.runMode))
                     else:
-                        initramfsBuilt = self._installInitramfs(layout, kernelBuilt, postfix)
+                        initramfsBuilt = installer.install_initramfs()
                     print("")
 
                 self.infoPrinter.printInfo(">> Updating boot-loader...")
@@ -264,8 +217,8 @@ class FmSysUpdater:
                     print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                 else:
                     if kernelBuilt or initramfsBuilt:
-                        helperBootDir.updateBootEntry(postfix)
-                    self.param.bbki.reinstall_bootloader()
+                        installer.
+                        self.param.bbki.reinstall_bootloader()
                 print("")
 
             # synchronize boot partitions
