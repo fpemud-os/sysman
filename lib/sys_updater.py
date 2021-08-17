@@ -10,7 +10,6 @@ from fm_util import FmUtil
 from fm_util import ParallelRunSequencialPrint
 from fm_param import FmConst
 from helper_boot import FkmBootDir
-from helper_boot import FkmBootLoader
 from helper_boot import FkmMountBootDirRw
 from helper_boot_kernel import FkmBootEntry
 from helper_boot_kernel import FkmBuildTarget
@@ -37,14 +36,13 @@ class FmSysUpdater:
     def update(self, bSync, bFetchAndBuild):
         layout = strict_hdds.parse_storage_layout()
         helperBootDir = FkmBootDir()
-        helperBootLoader = FkmBootLoader()
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
         kcache = FkmKCache()
 
         # set system to unstable status
         with FkmMountBootDirRw(layout):
-            helperBootLoader.setStable(False)
+            self.param.bbki.set_stable(False)
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -267,7 +265,7 @@ class FmSysUpdater:
                 else:
                     if kernelBuilt or initramfsBuilt:
                         helperBootDir.updateBootEntry(postfix)
-                    helperBootLoader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
+                    self.param.bbki.reinstall_bootloader()
                 print("")
 
             # synchronize boot partitions
@@ -313,7 +311,7 @@ class FmSysUpdater:
 
         with FkmMountBootDirRw(layout):
             self.infoPrinter.printInfo(">> Stablizing...")
-            FkmBootLoader().setStable(True)
+            self.param.bbki.set_stable(True)
             print("")
 
         if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
@@ -337,7 +335,7 @@ class FmSysUpdater:
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            FkmBootLoader().updateBootloader(hwInfo, layout, FmConst.kernelInitCmd)
+            self.param.bbki.reinstall_bootloader()
             print("")
 
         # synchronize boot partitions

@@ -5,7 +5,6 @@ import os
 import strict_hdds
 from fm_util import FmUtil
 from fm_param import FmConst
-from helper_boot import FkmBootLoader
 from helper_boot import FkmMountBootDirRw
 from client_build_server import BuildServerSelector
 from helper_dyncfg import DynCfgModifier
@@ -73,7 +72,8 @@ class FmSysCleaner:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                     else:
-                        FkmBootLoader().updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
+                        # FkmBootLoader().updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
+                        self.param.bbki.reinstall_bootloader()
                     print("")
 
             if layout.name in ["efi-lvm", "efi-bcache-lvm"]:

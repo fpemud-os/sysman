@@ -78,7 +78,6 @@ class FmMain:
 
         helperBootDir = FkmBootDir()
         helperRescueOs = RescueOs()
-        helperBootLoader = FkmBootLoader()
         repoman = EbuildRepositories()
         layman = EbuildOverlays()
 
@@ -87,7 +86,7 @@ class FmMain:
             print("")
 
         s = "System status: "
-        if helperBootLoader.isStable():
+        if self.param.bkki.is_stable():
             s += "stable"
         else:
             s += "unstable"
@@ -567,8 +566,8 @@ class FmMain:
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            bootloader = FkmBootLoader()
-            bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
+            # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
+            self.param.bbki.reinstall_bootloader()
             print("")
 
         return 0
@@ -592,8 +591,9 @@ class FmMain:
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            bootloader = FkmBootLoader()
-            bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
+            # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
+            self.param.bbki.reinstall_bootloader()
+
             print("")
 
         return 0
