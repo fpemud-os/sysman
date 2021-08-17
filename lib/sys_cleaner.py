@@ -53,7 +53,7 @@ class FmSysCleaner:
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             bFileRemoved = False
             with FkmMountBootDirRw(layout):
-                self._exec(buildServer, self.opCleanKernel, resultFile)
+                self._exec(buildServer, self.opCleanKernel, "%d" % (bPretend), resultFile)
                 if buildServer is None:
                     with open(resultFile, "r", encoding="iso8859-1") as f:
                         data = f.read()
