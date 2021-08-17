@@ -52,6 +52,31 @@ from gi.repository import GLib
 class FmUtil:
 
     @staticmethod
+    def getAuxOsInfo():
+        """Returns (os-description, os-partition, os-boot-partition, chainloader-number)"""
+
+        ret = []
+        for line in FmUtil.cmdCall("/usr/bin/os-prober").split("\n"):
+            itemList = line.split(":")
+            if len(itemList) != 4:
+                continue
+            if itemList[3] == "linux":
+                continue
+
+            if itemList[1].endswith("(loader)"):               # for Microsoft Windows quirks
+                m = re.fullmatch("(.*?)([0-9]+)", itemList[0])
+                osDesc = itemList[1].replace("(loader)", "").strip()
+                osPart = "%s%d" % (m.group(1), int(m.group(2)) + 1)
+                osbPart = itemList[0]
+                chain = 4
+                ret.append((osDesc, osPart, osbPart, chain))
+                continue
+            if True:
+                ret.append((itemList[1], itemList[0], itemList[0], 1))
+                continue
+        return ret
+
+    @staticmethod
     def strListMaxLen(strList):
         maxLen = 0
         for lname in strList:

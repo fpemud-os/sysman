@@ -12,7 +12,6 @@ from fm_util import PrintLoadAvgThread
 from helper_boot_kernel import FkmBootEntry
 from helper_boot_kernel import FkmKernelBuilder
 from helper_boot_kernel import FkmKCache
-from helper_boot_initramfs import FkmInitramfsKcfgChecker
 
 
 kernelCfgRules = pickle.loads(base64.b64decode(sys.argv[1].encode("ascii")))

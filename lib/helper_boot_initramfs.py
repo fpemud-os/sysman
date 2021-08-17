@@ -6,10 +6,8 @@ import re
 import glob
 import shutil
 import tarfile
-import pylkcutil
 import robust_layer.simple_fops
 from collections import OrderedDict
-from multiprocessing import Process
 from fm_util import FmUtil
 from fm_util import TempChdir
 from fm_param import FmConst

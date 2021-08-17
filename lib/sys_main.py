@@ -122,7 +122,7 @@ class FmMain:
             print("    Not installed")
 
         if self.param.runMode in ["normal", "setup"]:
-            auxOsInfo = helperBootLoader.getAuxOsInfo()
+            auxOsInfo = FmUtil.getAuxOsInfo()
             if len(auxOsInfo) > 0:
                 print("Auxillary OSes:")
                 for osDesc, osPart, osbPart, chain in auxOsInfo:

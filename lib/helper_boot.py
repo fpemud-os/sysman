@@ -119,30 +119,6 @@ class FkmBootLoader:
                 return
             FmUtil.cmdCall("/usr/bin/grub-editenv", "/boot/grub/grubenv", "unset", "stable")
 
-    def getAuxOsInfo(self):
-        """Returns (os-description, os-partition, os-boot-partition, chainloader-number)"""
-
-        ret = []
-        for line in FmUtil.cmdCall("/usr/bin/os-prober").split("\n"):
-            itemList = line.split(":")
-            if len(itemList) != 4:
-                continue
-            if itemList[3] == "linux":
-                continue
-
-            if itemList[1].endswith("(loader)"):               # for Microsoft Windows quirks
-                m = re.fullmatch("(.*?)([0-9]+)", itemList[0])
-                osDesc = itemList[1].replace("(loader)", "").strip()
-                osPart = "%s%d" % (m.group(1), int(m.group(2)) + 1)
-                osbPart = itemList[0]
-                chain = 4
-                ret.append((osDesc, osPart, osbPart, chain))
-                continue
-            if True:
-                ret.append((itemList[1], itemList[0], itemList[0], 1))
-                continue
-        return ret
-
     def checkBootloader(self, hwInfo, storageLayout):
         if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
             self._uefiGrubCheck(hwInfo, storageLayout)
@@ -266,7 +242,7 @@ class FkmBootLoader:
                                                initrdFile)
 
         # write menu entry for auxillary os
-        for osDesc, osPart, osbPart, chain in self.getAuxOsInfo():
+        for osDesc, osPart, osbPart, chain in FmUtil.getAuxOsInfo():
             buf += 'menuentry "Auxillary: %s" {\n' % (osDesc)
             buf += '  %s\n' % (self._getGrubRootDevCmd(osbPart))
             buf += '  chainloader +%d\n' % (chain)
