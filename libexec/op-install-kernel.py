@@ -3,12 +3,14 @@
 
 import os
 import sys
+import bbki
 import base64
 import pickle
 import pathlib
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import FmUtil
 from fm_util import PrintLoadAvgThread
+from fm_param import FmConst
 from helper_boot_kernel import FkmBootEntry
 from helper_boot_kernel import FkmKernelBuilder
 from helper_boot_kernel import FkmKCache
@@ -17,31 +19,32 @@ from helper_boot_kernel import FkmKCache
 kernelCfgRules = pickle.loads(base64.b64decode(sys.argv[1].encode("ascii")))
 resultFile = sys.argv[2]
 
-bootEntry = FkmBootEntry.findCurrent(strict=False)
-kcache = FkmKCache()
-kernelBuilder = FkmKernelBuilder(kcache, kernelCfgRules)
+bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
+kernelBuilder = bbki.get_kernel_installer(bbki.HostInfo(arch="native"), bbki.get_kernel_atom(), bbki.get_kernel_addon_atoms())
+bootEntry = bbki.get_pending_boot_entry()
+targetBootEntry = kernelBuilder.get_target_boot_entry()
 
 print("        - Extracting...")
-kernelBuilder.buildStepExtract()
+kernelBuilder.unpack()
+
+print("        - Patching...")
+kernelBuilder.patch_kernel()
 
 print("        - Generating .config file...")
-kernelBuilder.buildStepGenerateDotCfg()
+kernelBuilder.generate_kernel_dotcfg()
 
 kernelBuildNeeded = False
 if not kernelBuildNeeded:
     if bootEntry is None:
         kernelBuildNeeded = True
 if not kernelBuildNeeded:
-    if not bootEntry.kernelFilesExists():
+    if not bootEntry.has_kernel_files():
         kernelBuildNeeded = True
 if not kernelBuildNeeded:
-    if bootEntry.buildTarget.ver != kernelBuilder.kernelVer:
+    if bootEntry != targetBootEntry:
         kernelBuildNeeded = True
 if not kernelBuildNeeded:
-    if kernelBuilder.srcSignature != pathlib.Path(bootEntry.kernelSrcSignatureFile).read_text():
-        kernelBuildNeeded = True
-if not kernelBuildNeeded:
-    if not FmUtil.dotCfgFileCompare(os.path.join("/boot", bootEntry.kernelCfgFile), kernelBuilder.dotCfgFile):
+    if not FmUtil.dotCfgFileCompare(bootEntry.kernel_config_filepath, kernelBuilder.dotCfgFile):
         kernelBuildNeeded = True
 
 with PrintLoadAvgThread("        - Building..."):
