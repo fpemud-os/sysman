@@ -20,7 +20,7 @@ kernelCfgRules = pickle.loads(base64.b64decode(sys.argv[1].encode("ascii")))
 resultFile = sys.argv[2]
 
 bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
-kernelBuilder = bbki.get_kernel_installer(bbki.HostInfo(arch="native"), bbki.get_kernel_atom(), bbki.get_kernel_addon_atoms())
+kernelBuilder = bbki.get_kernel_installer(bbki.get_kernel_atom(), bbki.get_kernel_addon_atoms())
 bootEntry = bbki.get_pending_boot_entry()
 targetBootEntry = kernelBuilder.get_target_boot_entry()
 
@@ -41,17 +41,19 @@ if not kernelBuildNeeded:
     if not bootEntry.has_kernel_files():
         kernelBuildNeeded = True
 if not kernelBuildNeeded:
-    if bootEntry != targetBootEntry:
+    if bootEntry != kernelBuilder.get_progress().target_boot_entry:
         kernelBuildNeeded = True
 if not kernelBuildNeeded:
-    if not FmUtil.dotCfgFileCompare(bootEntry.kernel_config_filepath, kernelBuilder.dotCfgFile):
+    if not FmUtil.dotCfgFileCompare(bootEntry.kernel_config_filepath, kernelBuilder.get_progress().kernel_config_filepath):
         kernelBuildNeeded = True
 
 with PrintLoadAvgThread("        - Building..."):
     if kernelBuildNeeded:
-        kernelBuilder.buildStepMakeInstall()
-        for name in kcache.getExtraDriverList():
-            kernelBuilder.buildStepBuildAndInstallExtraDriver(name)
+        kernelBuilder.build()
+
+with PrintLoadAvgThread("        - Installing..."):
+    if kernelBuildNeeded:
+        kernelBuilder.install()
 
 # FIXME: should move out from here
 print("        - Installing firmware and wireless-regdb...")

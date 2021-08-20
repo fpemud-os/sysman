@@ -71,8 +71,6 @@ class FmParam:
 
         self.runMode = None             # "normal" | "prepare" | "setup"
 
-        self.bbkiHostInfo = None
-
         # business objects
         self.infoPrinter = None
         self.machineInfoGetter = None

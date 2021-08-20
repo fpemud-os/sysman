@@ -35,8 +35,10 @@ class FmSysUpdater:
 
     def update(self, bSync, bFetchAndBuild):
         layout = strict_hdds.parse_storage_layout()
+        helperBootDir = FkmBootDir()
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
+        kcache = FkmKCache()
 
         # set system to unstable status
         with FkmMountBootDirRw(layout):
@@ -90,7 +92,7 @@ class FmSysUpdater:
             # sync repository directories
             for repoName in pkgwh.repoman.getRepositoryList():
                 repoDir = pkgwh.repoman.getRepoDir(repoName)
-                self.infoPrinter.printInfo(">> Synchronizing package repository \"%s\"..." % (repoName))
+                self.infoPrinter.printInfo(">> Synchronizing repository \"%s\"..." % (repoName))
                 self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-repo %s" % (repoName), repoDir)
                 print("")
 
@@ -113,7 +115,7 @@ class FmSysUpdater:
                     prspObj.add_task(
                         startCoro, ["%s sync-overlay %s" % (self.opSync, oname)],
                         waitCoro,
-                        pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing package overlay \"%s\"..." % (x)),
+                        pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
                         post_func=lambda: print(""),
                     )
             # FIXME: there should be no sync down after realtime network filesystem support is done
@@ -123,7 +125,7 @@ class FmSysUpdater:
             # add pre-enabled overlays
             for oname, ourl in pkgwh.getPreEnableOverlays().items():
                 if not pkgwh.layman.isOverlayExist(oname):
-                    self.infoPrinter.printInfo(">> Installing package overlay \"%s\"..." % (oname))
+                    self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % (oname))
                     vcsType = "git"
                     if overlayDb.hasOverlay(oname):
                         vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
@@ -145,7 +147,7 @@ class FmSysUpdater:
             for oname, data in pkgwh.getPreEnablePackages().items():
                 ourl = data[0]
                 if not pkgwh.layman.isOverlayExist(oname):
-                    self.infoPrinter.printInfo(">> Installing package overlay \"%s\"..." % (oname))
+                    self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % (oname))
                     vcsType = "git"
                     if overlayDb.hasOverlay(oname):
                         vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
@@ -198,7 +200,7 @@ class FmSysUpdater:
                         self.infoPrinter.printInfo(">> Synchronizing down /boot, /lib/modules and /lib/firmware...")
                         buildServer.syncDownKernel()
                         print("")
-                installer = self.param.bbki.get_kernel_installer(self.param.bbki.get_kernel_atom(),
+                installer = self.param.bbki.get_boot_entry_installer(self.param.bbki.get_kernel_atom(),
                                                                      self.param.bbki.get_kernel_addo_atom())
 
                 self.infoPrinter.printInfo(">> Creating initramfs...")
@@ -207,7 +209,7 @@ class FmSysUpdater:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT create initramfs!!!" % (self.param.runMode))
                     else:
-                        initramfsBuilt = self.param.bbki.install_initramfs()
+                        initramfsBuilt = installer.install_initramfs()
                     print("")
 
                 self.infoPrinter.printInfo(">> Updating boot-loader...")
@@ -215,7 +217,8 @@ class FmSysUpdater:
                     print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                 else:
                     if kernelBuilt or initramfsBuilt:
-                        self.param.bbki.install_bootloader()
+                        installer
+                        self.param.bbki.reinstall_bootloader()
                 print("")
 
             # synchronize boot partitions

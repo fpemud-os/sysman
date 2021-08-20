@@ -111,6 +111,7 @@ net-ftp/filezilla
 net-misc/aria2
 net-misc/cadaver
 net-misc/nyx
+sci-geosciences/gpxsee
 sys-apps/dmidecode
 sys-apps/ethtool
 sys-apps/hwloc
