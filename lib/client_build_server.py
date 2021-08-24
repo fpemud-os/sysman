@@ -262,19 +262,27 @@ class BuildServer:
             with open(self.cfgFile, "w") as f:
                 f.write(buf)
 
-    def sshExec(self, cmd):
+    def sshExec(self, *args, base64=False):
         assert self.wSshPort is not None
+
+        # FIXME: ssh sucks that it must use a shell to execute remote command
+        if base64:
+            args2 = list(args)
+            for i in range(1, len(args2)):
+                args2[i] = base64.b64encode(args2[i].encode("ascii")).decode("ascii")
+        else:
+            args2 = args
 
         # "-t" can get Ctrl+C controls remote process
         # XXXXX so that we forward signal to remote process, FIXME
-        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd)
+        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, " ".join(args2))
         FmUtil.shellExec(cmd)
 
-    async def asyncStartSshExec(self, cmd, loop=None):
+    async def asyncStartSshExec(self, *args, loop=None):
         assert self.wSshPort is not None
         assert loop is not None
 
-        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd)
+        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, " ".join(args))
         proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
         self.asyncJobCount += 1
         return (proc, proc.stdout)

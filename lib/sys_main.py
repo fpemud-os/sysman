@@ -101,10 +101,12 @@ class FmMain:
             assert False
 
         print("Boot mode:")
-        if FmUtil.isEfi():
+        if bbki.util.get_boot_mode() == bbki.BootMode.EFI:
             print("    UEFI")
-        else:
+        elif bbki.util.get_boot_mode() == bbki.BootMode.BIOS:
             print("    BIOS")
+        else:
+            assert False
 
         print("Main OS:")
         be = self.param.bbki.get_pending_boot_entry()
@@ -567,7 +569,7 @@ class FmMain:
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
             # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
-            self.param.bbki.reinstall_bootloader()
+            self.param.bbki.install_bootloader()
             print("")
 
         return 0
@@ -592,7 +594,7 @@ class FmMain:
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
             # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
-            self.param.bbki.reinstall_bootloader()
+            self.param.bbki.install_bootloader()
 
             print("")
 

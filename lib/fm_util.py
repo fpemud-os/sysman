@@ -473,10 +473,6 @@ class FmUtil:
         return hashlib.md5(s.encode('utf-8')).hexdigest()
 
     @staticmethod
-    def isEfi():
-        return os.path.exists("/sys/firmware/efi")
-
-    @staticmethod
     def isInChroot():
         # This technique is used in a few maintenance scripts in Debian
         out1 = FmUtil.cmdCall("/usr/bin/stat", "-c", "%%d:%%i", "/")

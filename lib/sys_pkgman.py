@@ -41,16 +41,15 @@ class FmPkgman:
         # emerge package
         self.infoPrinter.printInfo(">> Installing %s..." % (pkgName))
         cmd = "/usr/libexec/fpemud-os-sysman/op-emerge-package.py"
-        cmd = "%s %s %d" % (cmd, pkgName, tmpOp)
         if buildServer is not None:
             try:
-                buildServer.sshExec(cmd)
+                buildServer.sshExec(cmd, pkgName, tmpOp)
             finally:
                 self.infoPrinter.printInfo(">> Synchronizing down system files...")
                 buildServer.syncDownSystem()
                 print("")
         else:
-            FmUtil.shellExec(cmd)
+            FmUtil.cmdExec(cmd, pkgName, tmpOp)
 
         # end remote build
         if buildServer is not None:

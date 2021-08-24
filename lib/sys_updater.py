@@ -3,8 +3,7 @@
 
 import os
 import re
-import base64
-import pickle
+import json
 import strict_hdds
 from fm_util import FmUtil
 from fm_util import ParallelRunSequencialPrint
@@ -35,10 +34,8 @@ class FmSysUpdater:
 
     def update(self, bSync, bFetchAndBuild):
         layout = strict_hdds.parse_storage_layout()
-        helperBootDir = FkmBootDir()
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
-        kcache = FkmKCache()
 
         # set system to unstable status
         with FkmMountBootDirRw(layout):
@@ -93,7 +90,7 @@ class FmSysUpdater:
             for repoName in pkgwh.repoman.getRepositoryList():
                 repoDir = pkgwh.repoman.getRepoDir(repoName)
                 self.infoPrinter.printInfo(">> Synchronizing repository \"%s\"..." % (repoName))
-                self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-repo %s" % (repoName), repoDir)
+                self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-repo", repoName, directory=repoDir)
                 print("")
 
             # update cloud overlay db
@@ -131,11 +128,10 @@ class FmSysUpdater:
                         vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
                     if ourl is None:
                         raise Exception("no URL for overlay %s" % (oname))
-                    argstr = "add-trusted-overlay %s %s \'%s\'" % (oname, vcsType, ourl)
                     if buildServer is None:
-                        FmUtil.shellExec(self.opSync + " " + argstr)
+                        FmUtil.cmdExec(self.opSync, "add-trusted-overlay", oname, vcsType, ourl)
                     else:
-                        buildServer.sshExec(self.opSync + " " + argstr)
+                        buildServer.sshExec(self.opSync, "add-trusted-overlay", oname, vcsType, ourl)
                         buildServer.syncDownWildcardList([
                             os.path.join(pkgwh.layman.getOverlayFilesDir(oname), "***"),
                             pkgwh.layman.getOverlayDir(oname),
@@ -153,11 +149,10 @@ class FmSysUpdater:
                         vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
                     if ourl is None:
                         raise Exception("no URL for overlay %s" % (oname))
-                    argstr = "add-transient-overlay %s %s \'%s\'" % (oname, vcsType, ourl)
                     if buildServer is None:
-                        FmUtil.shellExec(self.opSync + " " + argstr)
+                        FmUtil.cmdExec(self.opSync, "add-transient-overlay", oname, vcsType, ourl)
                     else:
-                        buildServer.sshExec(self.opSync + " " + argstr)
+                        buildServer.sshExec(self.opSync, "add-transient-overlay", oname, vcsType, ourl)
                         buildServer.syncDownWildcardList([
                             os.path.join(pkgwh.layman.getOverlayFilesDir(oname), "***"),
                             pkgwh.layman.getOverlayDir(oname),
@@ -170,29 +165,28 @@ class FmSysUpdater:
                 tlist = [x for x in data[1] if not pkgwh.layman.isOverlayPackageEnabled(oname, x)]
                 if tlist != []:
                     self.infoPrinter.printInfo(">> Enabling packages in overlay \"%s\"..." % (oname))
-                    argstr = "enable-overlay-package %s %s" % (oname, " ".join(["\'%s\'" % (x) for x in tlist]))
-                    self._exec(buildServer, self.opSync, argstr)
+                    self._exec(buildServer, self.opSync, "enable-overlay-package", oname, *tlist)
                     print("")
             if buildServer is not None:
                 buildServer.syncDownDirectory(os.path.join(FmConst.portageDataDir, "overlay-*"), quiet=True)
 
             # refresh package related stuff
-            self._execAndSyncDownQuietly(buildServer, self.opSync, "refresh-package-related-stuff", FmConst.portageCfgDir)
+            self._execAndSyncDownQuietly(buildServer, self.opSync, "refresh-package-related-stuff", directory=FmConst.portageCfgDir)
 
             # eliminate "Performing Global Updates"
-            self._execAndSyncDownQuietly(buildServer, self.opSync, "touch-portage-tree", FmConst.portageDbDir)     # FIXME
+            self._execAndSyncDownQuietly(buildServer, self.opSync, "touch-portage-tree", directory=FmConst.portageDbDir)     # FIXME
 
         # do fetch and build
         if True:
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
-            kernelCfgRules = base64.b64encode(pickle.dumps(self.param.machineInfoGetter.hwInfo().kernelCfgRules)).decode("ascii")
+            kernelCfgRules = json.dumps(self.param.machineInfoGetter.hwInfo().kernelCfgRules)
 
             # install kernel, initramfs and bootloader
             with FkmMountBootDirRw(layout):
                 self.infoPrinter.printInfo(">> Installing boot entry...")
                 kernelBuilt = False
                 if True:
-                    self._exec(buildServer, self.opInstallKernel, kernelCfgRules + " " + resultFile)
+                    self._exec(buildServer, self.opInstallKernel, kernelCfgRules, resultFile)
                     kernelBuilt, postfix = self._parseKernelBuildResult(self._readResultFile(buildServer, resultFile))
                     print("")
 
@@ -200,8 +194,6 @@ class FmSysUpdater:
                         self.infoPrinter.printInfo(">> Synchronizing down /boot, /lib/modules and /lib/firmware...")
                         buildServer.syncDownKernel()
                         print("")
-                installer = self.param.bbki.get_boot_entry_installer(self.param.bbki.get_kernel_atom(),
-                                                                     self.param.bbki.get_kernel_addo_atom())
 
                 self.infoPrinter.printInfo(">> Creating initramfs...")
                 initramfsBuilt = False
@@ -209,7 +201,7 @@ class FmSysUpdater:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT create initramfs!!!" % (self.param.runMode))
                     else:
-                        initramfsBuilt = installer.install_initramfs()
+                        initramfsBuilt = self.param.bbki.install_initramfs()
                     print("")
 
                 self.infoPrinter.printInfo(">> Updating boot-loader...")
@@ -217,8 +209,7 @@ class FmSysUpdater:
                     print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                 else:
                     if kernelBuilt or initramfsBuilt:
-                        installer
-                        self.param.bbki.reinstall_bootloader()
+                        self.param.bbki.install_bootloader()
                 print("")
 
             # synchronize boot partitions
@@ -241,7 +232,7 @@ class FmSysUpdater:
                     buildServer.syncDownSystem()
                     print("")
             else:
-                FmUtil.shellExec(self.opEmergeWorld)
+                FmUtil.cmdExec(self.opEmergeWorld)
 
             # re-emerge all "-9999" packages
             self.infoPrinter.printInfo(">> Updating all \"-9999\" packages...")
@@ -253,7 +244,7 @@ class FmSysUpdater:
                     buildServer.syncDownSystem()
                     print("")
             else:
-                FmUtil.shellExec(self.opEmerge9999)
+                FmUtil.cmdExec(self.opEmerge9999)
 
         # end remote build
         if buildServer is not None:
@@ -288,7 +279,7 @@ class FmSysUpdater:
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            self.param.bbki.reinstall_bootloader()
+            self.param.bbki.install_bootloader()
             print("")
 
         # synchronize boot partitions
@@ -301,11 +292,11 @@ class FmSysUpdater:
                         layout.sync_esp(src, dst)
                 print("")
 
-    def _exec(self, buildServer, cmd, argstr):
+    def _exec(self, buildServer, *args, base64=False):
         if buildServer is None:
-            FmUtil.shellExec(cmd + " " + argstr)
+            FmUtil.cmdExec(*args)
         else:
-            buildServer.sshExec(cmd + " " + argstr)
+            buildServer.sshExec(*args, base64=base64)
 
     def _readResultFile(self, buildServer, resultFile):
         if buildServer is None:
@@ -314,11 +305,11 @@ class FmSysUpdater:
         else:
             return buildServer.getFile(resultFile).decode("iso8859-1")
 
-    def _execAndSyncDownQuietly(self, buildServer, cmd, argstr, directory):
+    def _execAndSyncDownQuietly(self, buildServer, *args, directory=None):
         if buildServer is None:
-            FmUtil.shellExec(cmd + " " + argstr)
+            FmUtil.cmdExec(*args)
         else:
-            buildServer.sshExec(cmd + " " + argstr)
+            buildServer.sshExec(*args)
             buildServer.syncDownDirectory(directory, quiet=True)
 
     def _installInitramfs(self, storageLayout, kernelBuilt, postfix):
