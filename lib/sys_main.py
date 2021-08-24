@@ -8,10 +8,9 @@ import strict_pgs
 import strict_hdds
 from fm_util import FmUtil
 from fm_param import FmConst
-from helper_boot import FkmBootDir
 from helper_dyncfg import DynCfgModifier
-from helper_boot_rescueos import RescueOs
-from helper_boot_rescueos import RescueDiskBuilder
+from helper_rescueos import RescueOs
+from helper_rescueos import RescueDiskBuilder
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
 from helper_pkg_warehouse import CloudOverlayDb

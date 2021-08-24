@@ -17,7 +17,6 @@ import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_param import FmConst
-from helper_boot_kernel import FkmBootEntry
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import RepositoryCheckError
 from helper_pkg_warehouse import OverlayCheckError
@@ -523,13 +522,13 @@ class FmSysChecker:
                 self.infoPrinter.printError("\"%s\" is not enabled." % (s))
 
     def _checkBootDir(self):
-        entry = FkmBootEntry.findCurrent()
-        if entry is None:
-            self.infoPrinter.printError("Invalid current boot item.")
+        pendingBe = self.param.bbki.get_pending_boot_entry()
+        if pendingBe is None:
+            self.infoPrinter.printError("No current boot entry.")
             return
 
-        if entry.buildTarget.verstr != FmUtil.shellCall("/usr/bin/uname -r"):
-            self.infoPrinter.printError("System is not using the current boot item, reboot needed.")
+        if self.param.bbki.get_current_boot_entry() != pendingBe:
+            self.infoPrinter.printError("System is not using the current boot entry, reboot needed.")
 
     def _checkBootloader(self):
         fn = "/boot/grub/grub.cfg"
@@ -541,13 +540,13 @@ class FmSysChecker:
             return
 
     def _checkFirmware(self):
-        entry = FkmBootEntry.findCurrent()
+        entry = self.param.bbki.get_pending_boot_entry()
         if entry is None:
-            self.infoPrinter.printError("Invalid current boot item, again. ;)")     # already checked in self._checkBootDir()
+            self.infoPrinter.printError("Invalid current boot entry, again. ;)")     # already checked in self._checkBootDir()
             return
 
         processedList = []
-        verDir = os.path.join("/lib/modules", entry.buildTarget.verstr)
+        verDir = os.path.join("/lib/modules", entry.verstr)
         for fullfn in glob.glob(os.path.join(verDir, "**", "*.ko"), recursive=True):
             # python-kmod bug: can only recognize the last firmware in modinfo
             # so use the command output of modinfo directly

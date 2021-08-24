@@ -8,10 +8,6 @@ import strict_hdds
 from fm_util import FmUtil
 from fm_util import ParallelRunSequencialPrint
 from fm_param import FmConst
-from helper_boot_kernel import FkmBootEntry
-from helper_boot_kernel import FkmBuildTarget
-from helper_boot_kernel import FkmKCache
-from helper_boot_initramfs import FkmInitramfsBuilder
 from client_build_server import BuildServerSelector
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import CloudOverlayDb
@@ -264,14 +260,21 @@ class FmSysUpdater:
                 print("")
 
     def updateAfterHddAddOrRemove(self, hwInfo, layout):
-        ret = FkmBootEntry.findCurrent()
-        if ret is None:
+        pendingBe = self.param.bbki.get_pending_boot_entry()
+        if pendingBe is None:
             raise Exception("No kernel in /boot, you should build a kernel immediately!")
 
         # re-create initramfs
         with self.param.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Recreating initramfs...")
-            self._installInitramfs(layout, True, ret.buildTarget.postfix)
+            # iBuilder.setMntInfo("root", storageLayout.dev_rootfs, "")
+            # if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
+            #     iBuilder.setMntInfo("boot", storageLayout.get_esp(), "ro,dmask=022,fmask=133")
+            # elif storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
+            #     pass
+            # else:
+            #     assert False
+            self.param.bbki.install_initramfs()
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
@@ -307,47 +310,6 @@ class FmSysUpdater:
         else:
             buildServer.sshExec(*args)
             buildServer.syncDownDirectory(directory, quiet=True)
-
-    def _installInitramfs(self, storageLayout, kernelBuilt, postfix):
-        buildTarget = FkmBuildTarget.newFromPostfix(postfix)
-
-        initramfsBuildNeeded = True
-        while True:
-            if kernelBuilt:
-                break
-            if not os.path.exists(os.path.join("/boot", buildTarget.initrdFile)):
-                break
-
-            buf = FmUtil.getFileContentFromInitrd(os.path.join("/boot", buildTarget.initrdFile), "startup.rc")
-            lineList = buf.split("\n")
-            if ("# uuid(root)=%s" % (FmUtil.getBlkDevUuid(storageLayout.dev_rootfs))) not in lineList:
-                break
-            if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
-                if ("# uuid(boot)=%s" % (FmUtil.getBlkDevUuid(storageLayout.get_esp()))) not in lineList:
-                    break
-            elif storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
-                if re.search("^# uuid\\(boot\\)=", buf, re.M) is not None:
-                    break
-            else:
-                break
-
-            initramfsBuildNeeded = False
-            break
-
-        if initramfsBuildNeeded:
-            iBuilder = FkmInitramfsBuilder(self.param.tmpDir, buildTarget)
-            iBuilder.setMntInfo("root", storageLayout.dev_rootfs, "")
-            if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
-                iBuilder.setMntInfo("boot", storageLayout.get_esp(), "ro,dmask=022,fmask=133")
-            elif storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
-                pass
-            else:
-                assert False
-            iBuilder.build(buildTarget.initrdFile, buildTarget.initrdTarFile)
-        else:
-            print("No operation needed.")
-
-        return initramfsBuildNeeded
 
     def _parseKernelBuildResult(self, result):
         lines = result.split("\n")

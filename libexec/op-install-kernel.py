@@ -10,9 +10,6 @@ sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import FmUtil
 from fm_util import PrintLoadAvgThread
 from fm_param import FmConst
-from helper_boot_kernel import FkmBootEntry
-from helper_boot_kernel import FkmKernelBuilder
-from helper_boot_kernel import FkmKCache
 
 
 kernelCfgRules = json.loads(sys.argv[1])
