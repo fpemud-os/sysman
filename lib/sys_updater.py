@@ -73,11 +73,11 @@ class FmSysUpdater:
                     startCoro = buildServer.asyncStartSshExec
                     waitCoro = buildServer.asyncWaitSshExec
                 else:
-                    startCoro = FmUtil.asyncStartShellExec
-                    waitCoro = FmUtil.asyncWaitShellExec
+                    startCoro = FmUtil.asyncStartCmdExec
+                    waitCoro = FmUtil.asyncWaitCmdExec
                 for oname in self.param.bbki.repositories():
                     prspObj.add_task(
-                        startCoro, ["%s sync-bbki-repo %s" % (self.opSync, oname)],
+                        startCoro, [self.opSync, "sync-bbki-repo", oname],
                         waitCoro,
                         pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing BBKI repository \"%s\"..." % (x)),
                         post_func=lambda: print(""),
@@ -104,13 +104,13 @@ class FmSysUpdater:
                     startCoro = buildServer.asyncStartSshExec
                     waitCoro = buildServer.asyncWaitSshExec
                 else:
-                    startCoro = FmUtil.asyncStartShellExec
-                    waitCoro = FmUtil.asyncWaitShellExec
+                    startCoro = FmUtil.asyncStartCmdExec
+                    waitCoro = FmUtil.asyncWaitCmdExec
                 for oname in pkgwh.layman.getOverlayList():
                     if pkgwh.layman.getOverlayType(oname) == "static":
                         continue
                     prspObj.add_task(
-                        startCoro, ["%s sync-overlay %s" % (self.opSync, oname)],
+                        startCoro, [self.opSync, "sync-overlay", oname],
                         waitCoro,
                         pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
                         post_func=lambda: print(""),

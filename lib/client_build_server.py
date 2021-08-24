@@ -278,11 +278,11 @@ class BuildServer:
         cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, " ".join(args2))
         FmUtil.shellExec(cmd)
 
-    async def asyncStartSshExec(self, *args, loop=None):
+    async def asyncStartSshExec(self, cmd, *kargs, loop=None):
         assert self.wSshPort is not None
         assert loop is not None
 
-        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, " ".join(args))
+        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd, " ".join(kargs))
         proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
         self.asyncJobCount += 1
         return (proc, proc.stdout)

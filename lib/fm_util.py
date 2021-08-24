@@ -1311,13 +1311,13 @@ class FmUtil:
         ret.check_returncode()
 
     @staticmethod
-    async def asyncStartShellExec(cmd, loop=None):
+    async def asyncStartCmdExec(cmd, *kargs, loop=None):
         assert loop is not None
-        proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
+        proc = await asyncio.create_subprocess_exec(cmd, kargs, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
         return (proc, proc.stdout)
 
     @staticmethod
-    async def asyncWaitShellExec(proc):
+    async def asyncWaitCmdExec(proc):
         retcode = await proc.wait()
         if retcode != 0:
             raise subprocess.CalledProcessError(retcode, [])      # use subprocess.CalledProcessError since there's no equivalent in asyncio
