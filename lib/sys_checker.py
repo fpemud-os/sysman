@@ -79,9 +79,7 @@ class FmSysChecker:
                     self._checkPreMountRootfsLayout()
 
             with self.infoPrinter.printInfoAndIndent("- Check BIOS, bootloader, initramfs and kernel..."):
-                self._checkBootDir()
-                self._checkBootloader()
-                self._checkFirmware()
+                self.param.bbki.check(self.bAutoFix, self.infoPrinter.printError)
 
             with self.infoPrinter.printInfoAndIndent(">> Check operating system..."):
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):
@@ -520,46 +518,6 @@ class FmSysChecker:
                 continue
             if not FmUtil.systemdIsServiceEnabled(s):
                 self.infoPrinter.printError("\"%s\" is not enabled." % (s))
-
-    def _checkBootDir(self):
-        pendingBe = self.param.bbki.get_pending_boot_entry()
-        if pendingBe is None:
-            self.infoPrinter.printError("No current boot entry.")
-            return
-
-        if self.param.bbki.get_current_boot_entry() != pendingBe:
-            self.infoPrinter.printError("System is not using the current boot entry, reboot needed.")
-
-    def _checkBootloader(self):
-        fn = "/boot/grub/grub.cfg"
-        if not os.path.exists(fn):
-            self.infoPrinter.printError("\"%s\" does not exist." % (fn))
-            return
-        if FmUtil.cmdCallWithRetCode("/usr/bin/grub-script-check", fn)[0] != 0:
-            self.infoPrinter.printError("Invalid \"%s\" content." % (fn))
-            return
-
-    def _checkFirmware(self):
-        entry = self.param.bbki.get_pending_boot_entry()
-        if entry is None:
-            self.infoPrinter.printError("Invalid current boot entry, again. ;)")     # already checked in self._checkBootDir()
-            return
-
-        processedList = []
-        verDir = os.path.join("/lib/modules", entry.verstr)
-        for fullfn in glob.glob(os.path.join(verDir, "**", "*.ko"), recursive=True):
-            # python-kmod bug: can only recognize the last firmware in modinfo
-            # so use the command output of modinfo directly
-            for line in FmUtil.cmdCall("/bin/modinfo", fullfn).split("\n"):
-                m = re.fullmatch("firmware: +(\\S.*)", line)
-                if m is None:
-                    continue
-                firmwareName = m.group(1)
-                if firmwareName in processedList:
-                    continue
-                if not os.path.exists(os.path.join("/lib/firmware", firmwareName)):
-                    self.infoPrinter.printError("Firmware \"%s\" does not exist. (required by \"%s\")" % (firmwareName, fullfn))
-                processedList.append(firmwareName)
 
     def _checkPortageCfg(self, bFullCheck=True):
         # check /var/lib/portage
