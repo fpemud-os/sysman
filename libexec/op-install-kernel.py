@@ -8,12 +8,8 @@ import base64
 import pickle
 import pathlib
 sys.path.append('/usr/lib64/fpemud-os-sysman')
-from fm_util import FmUtil
 from fm_util import PrintLoadAvgThread
 from fm_param import FmConst
-from helper_boot_kernel import FkmBootEntry
-from helper_boot_kernel import FkmKernelBuilder
-from helper_boot_kernel import FkmKCache
 
 
 kernelCfgRules = pickle.loads(base64.b64decode(sys.argv[1].encode("ascii")))
@@ -44,7 +40,7 @@ if not kernelBuildNeeded:
     if bootEntry != kernelBuilder.get_progress().target_boot_entry:
         kernelBuildNeeded = True
 if not kernelBuildNeeded:
-    if not FmUtil.dotCfgFileCompare(bootEntry.kernel_config_filepath, kernelBuilder.get_progress().kernel_config_filepath):
+    if not bbki.util.compare_kernel_config_files(bootEntry.kernel_config_filepath, kernelBuilder.get_progress().kernel_config_filepath):
         kernelBuildNeeded = True
 
 with PrintLoadAvgThread("        - Building..."):
@@ -55,12 +51,8 @@ with PrintLoadAvgThread("        - Installing..."):
     if kernelBuildNeeded:
         kernelBuilder.install()
 
-# FIXME: should move out from here
-print("        - Installing firmware and wireless-regdb...")
-kernelBuilder.buildStepInstallFirmware()
-
 if kernelBuildNeeded:
-    kernelBuilder.buildStepClean()
+    kernelBuilder.dispose()
 
 os.makedirs(os.path.dirname(resultFile), exist_ok=True)
 with open(resultFile, "w", encoding="iso8859-1") as f:
