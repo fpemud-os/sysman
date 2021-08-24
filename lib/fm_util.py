@@ -473,10 +473,6 @@ class FmUtil:
         return hashlib.md5(s.encode('utf-8')).hexdigest()
 
     @staticmethod
-    def isEfi():
-        return os.path.exists("/sys/firmware/efi")
-
-    @staticmethod
     def isInChroot():
         # This technique is used in a few maintenance scripts in Debian
         out1 = FmUtil.cmdCall("/usr/bin/stat", "-c", "%%d:%%i", "/")
@@ -1315,13 +1311,13 @@ class FmUtil:
         ret.check_returncode()
 
     @staticmethod
-    async def asyncStartShellExec(cmd, loop=None):
+    async def asyncStartCmdExec(cmd, *kargs, loop=None):
         assert loop is not None
-        proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
+        proc = await asyncio.create_subprocess_exec(cmd, kargs, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
         return (proc, proc.stdout)
 
     @staticmethod
-    async def asyncWaitShellExec(proc):
+    async def asyncWaitCmdExec(proc):
         retcode = await proc.wait()
         if retcode != 0:
             raise subprocess.CalledProcessError(retcode, [])      # use subprocess.CalledProcessError since there's no equivalent in asyncio

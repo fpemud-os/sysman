@@ -8,11 +8,9 @@ import strict_pgs
 import strict_hdds
 from fm_util import FmUtil
 from fm_param import FmConst
-from helper_boot import FkmBootDir
-from helper_boot import FkmMountBootDirRw
 from helper_dyncfg import DynCfgModifier
-from helper_boot_rescueos import RescueOs
-from helper_boot_rescueos import RescueDiskBuilder
+from helper_rescueos import RescueOs
+from helper_rescueos import RescueDiskBuilder
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
 from helper_pkg_warehouse import CloudOverlayDb
@@ -101,10 +99,12 @@ class FmMain:
             assert False
 
         print("Boot mode:")
-        if FmUtil.isEfi():
+        if bbki.util.get_boot_mode() == bbki.BootMode.EFI:
             print("    UEFI")
-        else:
+        elif bbki.util.get_boot_mode() == bbki.BootMode.BIOS:
             print("    BIOS")
+        else:
+            assert False
 
         print("Main OS:")
         be = self.param.bbki.get_pending_boot_entry()
@@ -558,16 +558,14 @@ class FmMain:
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
-        layout = strict_hdds.parse_storage_layout()
-        with FkmMountBootDirRw(layout):
+        with self.param.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
             mgr = RescueOs()
             mgr.installOrUpdate(self.param.tmpDirOnHdd)
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
-            self.param.bbki.reinstall_bootloader()
+            self.param.bbki.install_bootloader()
             print("")
 
         return 0
@@ -585,14 +583,14 @@ class FmMain:
             return 1
 
         layout = strict_hdds.parse_storage_layout()
-        with FkmMountBootDirRw(layout):
+        with self.param.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
             mgr.uninstall()
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
             # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
-            self.param.bbki.reinstall_bootloader()
+            self.param.bbki.install_bootloader()
 
             print("")
 

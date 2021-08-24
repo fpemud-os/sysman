@@ -4,15 +4,14 @@
 import os
 import sys
 import bbki
-import base64
-import pickle
+import json
 import pathlib
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import PrintLoadAvgThread
 from fm_param import FmConst
 
 
-kernelCfgRules = pickle.loads(base64.b64decode(sys.argv[1].encode("ascii")))
+kernelCfgRules = json.loads(sys.argv[1])
 resultFile = sys.argv[2]
 
 bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))

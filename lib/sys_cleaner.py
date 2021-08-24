@@ -5,7 +5,6 @@ import os
 import strict_hdds
 from fm_util import FmUtil
 from fm_param import FmConst
-from helper_boot import FkmMountBootDirRw
 from client_build_server import BuildServerSelector
 from helper_dyncfg import DynCfgModifier
 
@@ -52,7 +51,7 @@ class FmSysCleaner:
         if True:
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             bFileRemoved = False
-            with FkmMountBootDirRw(layout):
+            with self.param.bbki.boot_dir_writer:
                 self._exec(buildServer, self.opCleanKernel, "%d" % (bPretend), resultFile)
                 if buildServer is None:
                     with open(resultFile, "r", encoding="iso8859-1") as f:
@@ -72,8 +71,7 @@ class FmSysCleaner:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                     else:
-                        # FkmBootLoader().updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
-                        self.param.bbki.install_bootloader()
+                        self.param.bbki.install_bootloader(boot_mode, host_storage, aux_os_list, aux_kernel_init_cmdline):
                     print("")
 
             if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
@@ -87,7 +85,7 @@ class FmSysCleaner:
 
         # clean kcache
         self.infoPrinter.printInfo(">> Cleaning %s..." % (FmConst.kcacheDir))
-        self._execAndSyncDownQuietly(buildServer, self.opCleanKcache, "", FmConst.kcacheDir)
+        self._execAndSyncDownQuietly(buildServer, self.opCleanKcache, directory=FmConst.kcacheDir)
         print("")
 
         # clean not-used packages and USE flags
@@ -104,24 +102,24 @@ class FmSysCleaner:
         # clean distfiles
         # sync down distfiles directory quietly since there's only deletion
         self.infoPrinter.printInfo(">> Cleaning %s..." % (FmConst.distDir))
-        self._execAndSyncDownQuietly(buildServer, "/usr/bin/eclean-dist", "", FmConst.distDir)
+        self._execAndSyncDownQuietly(buildServer, "/usr/bin/eclean-dist", directory=FmConst.distDir)
         print("")
 
         # end remote build
         if buildServer is not None:
             buildServer.dispose()
 
-    def _exec(self, buildServer, cmd, argstr):
+    def _exec(self, buildServer, *args):
         if buildServer is None:
-            FmUtil.shellExec(cmd + " " + argstr)
+            FmUtil.cmdExec(*args)
         else:
-            buildServer.sshExec(cmd + " " + argstr)
+            buildServer.sshExec(*args)
 
-    def _execAndSyncDownQuietly(self, buildServer, cmd, argstr, directory):
+    def _execAndSyncDownQuietly(self, buildServer, *args, directory=None):
         if buildServer is None:
-            FmUtil.shellExec(cmd + " " + argstr)
+            FmUtil.cmdExec(*args)
         else:
-            buildServer.sshExec(cmd + " " + argstr)
+            buildServer.sshExec(*args)
             buildServer.syncDownDirectory(directory, quiet=True)
 
     def _parseKernelCleanResult(self, result):
