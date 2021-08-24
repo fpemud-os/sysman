@@ -9,7 +9,6 @@ import strict_hdds
 from fm_util import FmUtil
 from fm_param import FmConst
 from helper_boot import FkmBootDir
-from helper_boot import FkmMountBootDirRw
 from helper_dyncfg import DynCfgModifier
 from helper_boot_rescueos import RescueOs
 from helper_boot_rescueos import RescueDiskBuilder
@@ -560,15 +559,13 @@ class FmMain:
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
-        layout = strict_hdds.parse_storage_layout()
-        with FkmMountBootDirRw(layout):
+        with self.param.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
             mgr = RescueOs()
             mgr.installOrUpdate(self.param.tmpDirOnHdd)
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
             self.param.bbki.install_bootloader()
             print("")
 
@@ -587,7 +584,7 @@ class FmMain:
             return 1
 
         layout = strict_hdds.parse_storage_layout()
-        with FkmMountBootDirRw(layout):
+        with self.param.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
             mgr.uninstall()
             print("")

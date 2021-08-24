@@ -5,7 +5,6 @@ import os
 import strict_hdds
 from fm_util import FmUtil
 from fm_param import FmConst
-from helper_boot import FkmMountBootDirRw
 from client_build_server import BuildServerSelector
 from helper_dyncfg import DynCfgModifier
 
@@ -52,7 +51,7 @@ class FmSysCleaner:
         if True:
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             bFileRemoved = False
-            with FkmMountBootDirRw(layout):
+            with self.param.bbki.boot_dir_writer:
                 self._exec(buildServer, self.opCleanKernel, "%d" % (bPretend), resultFile)
                 if buildServer is None:
                     with open(resultFile, "r", encoding="iso8859-1") as f:

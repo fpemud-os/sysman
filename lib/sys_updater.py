@@ -8,8 +8,6 @@ import strict_hdds
 from fm_util import FmUtil
 from fm_util import ParallelRunSequencialPrint
 from fm_param import FmConst
-from helper_boot import FkmBootDir
-from helper_boot import FkmMountBootDirRw
 from helper_boot_kernel import FkmBootEntry
 from helper_boot_kernel import FkmBuildTarget
 from helper_boot_kernel import FkmKCache
@@ -38,8 +36,7 @@ class FmSysUpdater:
         overlayDb = CloudOverlayDb()
 
         # set system to unstable status
-        with FkmMountBootDirRw(layout):
-            self.param.bbki.set_stable(False)
+        self.param.bbki.set_stable(False)
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -182,7 +179,7 @@ class FmSysUpdater:
             kernelCfgRules = json.dumps(self.param.machineInfoGetter.hwInfo().kernelCfgRules)
 
             # install kernel, initramfs and bootloader
-            with FkmMountBootDirRw(layout):
+            with self.param.bbki.boot_dir_writer:
                 self.infoPrinter.printInfo(">> Installing boot entry...")
                 kernelBuilt = False
                 if True:
@@ -253,10 +250,9 @@ class FmSysUpdater:
     def stablize(self):
         layout = strict_hdds.parse_storage_layout()
 
-        with FkmMountBootDirRw(layout):
-            self.infoPrinter.printInfo(">> Stablizing...")
-            self.param.bbki.set_stable(True)
-            print("")
+        self.infoPrinter.printInfo(">> Stablizing...")
+        self.param.bbki.set_stable(True)
+        print("")
 
         if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
             src, dstList = layout.get_esp_sync_info()
@@ -273,7 +269,7 @@ class FmSysUpdater:
             raise Exception("No kernel in /boot, you should build a kernel immediately!")
 
         # re-create initramfs
-        with FkmMountBootDirRw(layout):
+        with self.param.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Recreating initramfs...")
             self._installInitramfs(layout, True, ret.buildTarget.postfix)
             print("")
