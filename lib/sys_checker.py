@@ -344,9 +344,7 @@ class FmSysChecker:
     def _checkRootfsLayout(self, deepCheck):
         # general check
         obj = strict_fsh.RootFs()
-        obj.check(deep_check=deepCheck, auto_fix=self.bAutoFix)
-        for msg in obj.check_complete():
-            self.infoPrinter.printError(msg)
+        obj.check(deep_check=deepCheck, auto_fix=self.bAutoFix, error_callback=self.infoPrinter.printError)
 
         # addtional check: /usr/local should not exist
         if os.path.exists("/usr/local"):
@@ -360,9 +358,7 @@ class FmSysChecker:
                                             mounted_home=False,
                                             mounted_cache=False,
                                             mounted_var=False)
-            obj.check(self.bAutoFix)
-            for msg in obj.check_complete():
-                self.infoPrinter.printError(msg)
+            obj.check(auto_fix=self.bAutoFix, error_callback=self.infoPrinter.printError)
 
     def _checkMachineInfo(self):
         """Check /etc/machine-info"""
