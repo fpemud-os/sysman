@@ -215,7 +215,7 @@ class FmSysChecker:
 
         # storage layout check
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
-            if layout.name == "bios-simple"
+            if layout.name == "bios-simple":
                 pass
             elif layout.name == "bios-lvm":
                 pass
