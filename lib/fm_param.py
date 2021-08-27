@@ -55,10 +55,6 @@ class FmConst:
     myCertFile = os.path.join(portageCfgDir, "cert.pem")
     myPrivKeyFile = os.path.join(portageCfgDir, "privkey.pem")
 
-    # deprecated
-    bootDir = "/boot"
-    kernelInitCmd = "/usr/lib/systemd/systemd"
-
 
 class FmParam:
 

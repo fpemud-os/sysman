@@ -267,13 +267,6 @@ class FmSysUpdater:
         # re-create initramfs
         with self.param.bbki.obj().boot_dir_writer:
             self.infoPrinter.printInfo(">> Recreating initramfs...")
-            # iBuilder.setMntInfo("root", storageLayout.dev_rootfs, "")
-            # if storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
-            #     iBuilder.setMntInfo("boot", storageLayout.get_esp(), "ro,dmask=022,fmask=133")
-            # elif storageLayout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
-            #     pass
-            # else:
-            #     assert False
             self.param.bbki.installInitramfs(layout)
             print("")
 

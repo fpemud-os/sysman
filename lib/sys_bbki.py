@@ -3,7 +3,9 @@
 
 
 import bbki
+import strict_hdds
 from fm_param import FmConst
+from fm_util import FmUtil
 
 
 class FmBbkiWrapper:
@@ -16,16 +18,13 @@ class FmBbkiWrapper:
         return self._bbki
 
     def installInitramfs(self, layout):
-        self._bbki.install_initramfs(self, self.getStorageInfo(layout))
+        self._bbki.install_initramfs(self._bbkiStorageInfo(layout))
 
     def installBootloader(self, layout):
-        self._bbki.install_bootloader(bbki.util.get_boot_mode(), self.getStorageInfo(layout), self.getAuxOsInfo(), "")
+        self._bbki.install_bootloader(self._bbkiBootMode(layout), self._bbkiStorageInfo(layout), self.getAuxOsInfo(), "")
 
     def updateBootloader(self):
         self._bbki.update_bootloader()
-
-    def getStorageInfo(self, layout):
-        pass
 
     def getAuxOsInfo(self):
         ret = []
@@ -41,9 +40,27 @@ class FmBbkiWrapper:
                 osDesc = itemList[1].replace("(loader)", "").strip()
                 osPart = "%s%d" % (m.group(1), int(m.group(2)) + 1)
                 chain = 4
-                ret.append(HostAuxOs(osDesc, osPart, FmUtil.getBlkDevUuid(osPart), chain))
+                ret.append(bbki.HostAuxOs(osDesc, osPart, FmUtil.getBlkDevUuid(osPart), chain))
                 continue
             if True:
-                ret.append(HostAuxOs(itemList[1], itemList[0], FmUtil.getBlkDevUuid(itemList[0]), 1))
+                ret.append(bbki.HostAuxOs(itemList[1], itemList[0], FmUtil.getBlkDevUuid(itemList[0]), 1))
                 continue
         return ret
+
+    def _bbkiBootMode(self, layout):
+        if layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
+            return bbki.BootMode.EFI
+        elif layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
+            return bbki.BootMode.BIOS
+        else:
+            assert False
+
+    def _bbkiStorageInfo(self, layout):
+        mpList = []
+        mpList.append(bbki.HostMountPoint(bbki.HostMountPoint.NAME_ROOT, "/", layout.dev_rootfs))
+        if layout.name in ["bios-simple", "bios-lvm"]:
+            bootDisk = layout.get_boot_disk()
+        elif layout.name in ["efi-simple", "efi-lvm", "efi-bcache-lvm"]:
+            mpList.append(bbki.HostMountPoint(bbki.HostMountPoint.NAME_ESP, "/boot", layout.get_esp()))
+            bootDisk = None
+        return bbki.HostStorage(self.bbkiBootMode(layout), mpList, bootDisk)

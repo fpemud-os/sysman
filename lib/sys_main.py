@@ -585,7 +585,6 @@ class FmMain:
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
             self.param.bbki.updateBootloader()
 
             print("")
