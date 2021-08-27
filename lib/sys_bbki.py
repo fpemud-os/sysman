@@ -44,6 +44,6 @@ class FmBbkiWrapper:
                 ret.append(HostAuxOs(osDesc, osPart, FmUtil.getBlkDevUuid(osPart), chain))
                 continue
             if True:
-                ret.append(HostAuxOs(itemList[1], itemList[0], FmUtil.getBlkDevUuid(itemList[0]), 1)
+                ret.append(HostAuxOs(itemList[1], itemList[0], FmUtil.getBlkDevUuid(itemList[0]), 1))
                 continue
         return ret
