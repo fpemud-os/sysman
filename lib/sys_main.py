@@ -107,7 +107,7 @@ class FmMain:
             assert False
 
         print("Main OS:")
-        be = self.param.bbki.get_pending_boot_entry()
+        be = self.param.bbki.bbki.get_pending_boot_entry()
         if be is None:
             be = "None?!"
         else:
@@ -558,14 +558,14 @@ class FmMain:
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
-        with self.param.bbki.boot_dir_writer:
+        with self.param.bbki.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
             mgr = RescueOs()
             mgr.installOrUpdate(self.param.tmpDirOnHdd)
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            self.param.bbki.install_bootloader()
+            self.param.bbki.installBootloader()
             print("")
 
         return 0
@@ -583,14 +583,14 @@ class FmMain:
             return 1
 
         layout = strict_hdds.parse_storage_layout()
-        with self.param.bbki.boot_dir_writer:
+        with self.param.bbki.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
             mgr.uninstall()
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
             # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
-            self.param.bbki.install_bootloader()
+            self.param.bbki.installBootloader()
 
             print("")
 

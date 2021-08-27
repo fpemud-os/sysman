@@ -71,7 +71,7 @@ class FmSysCleaner:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                     else:
-                        self.param.bbki.install_bootloader(boot_mode, host_storage, aux_os_list, aux_kernel_init_cmdline):
+                        self.param.bbki.installBootloader()
                     print("")
 
             if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
