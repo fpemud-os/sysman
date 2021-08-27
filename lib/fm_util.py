@@ -848,6 +848,12 @@ class FmUtil:
         return None
 
     @staticmethod
+    def bcacheDeviceGetMode(devPath):
+        assert re.fullmatch("/dev/bcache[0-9]+", devPath)
+        buf = pathlib.Path(os.path.join("/sys", "block", os.path.basename(devPath), "bcache", "cache_mode")).read_text()
+        return re.search("\\[(.*)\\]", buf).group(1)
+
+    @staticmethod
     def isBlkDevSsdOrHdd(devPath):
         bn = os.path.basename(devPath)
         with open("/sys/block/%s/queue/rotational" % (bn), "r") as f:

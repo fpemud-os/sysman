@@ -215,33 +215,23 @@ class FmSysChecker:
 
         # storage layout check
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
-            # check root device
-            if layout.dev_rootfs is not None:
-                if FmUtil.getMountDeviceForPath("/") != layout.dev_rootfs:
-                    self.infoPrinter.printError("Directory / should be mounted to root device %s." % (layout.dev_rootfs))
-
-            # check boot device
-            if layout.name in ["bios-simple", "bios-lvm"]:
-                if FmUtil.isMountPoint("/boot"):
-                    self.infoPrinter.printError("Directory /boot should not be mounted!")
-            elif layout.name in ["efi-simple", "efi-lvm", "efi-bcache-lvm"]:
-                if FmUtil.getMountDeviceForPath("/boot") != layout.get_esp():
-                    self.infoPrinter.printError("Directory /boot should be mounted to boot device %s." % (layout.get_esp()))
-            else:
-                assert False
-
-            # check efi-bcache-lvm
-            if layout.name == "efi-bcache-lvm":
+            if layout.name == "bios-simple"
+                pass
+            elif layout.name == "bios-lvm":
+                pass
+            elif layout.name == "efi-simple":
+                pass
+            elif layout.name == "efi-lvm":
+                pass
+            elif layout.name == "efi-bcache-lvm":
                 if layout.get_ssd() is None:
                     self.infoPrinter.printError("Storage layout \"%s\" should have a cache device." % (layout.name))
-                else:
-                    if layout.get_ssd_swap_partition() is None:
-                        self.infoPrinter.printError("Storage layout \"%s\" should have a cache device with a swap partition." % (layout.name))
                 for fn in glob.glob("/sys/block/bcache*"):
-                    with open(os.path.join(fn, "bcache", "cache_mode"), "r") as f:
-                        m = re.search("\\[(.*)\\]", f.read())
-                        if m is None or m.group(1) != "writeback":
-                            self.infoPrinter.printError("BCACHE device %s should be configured as writeback mode." % (os.path.basename(fn)))
+                    devPath = os.path.join("/dev", os.path.basename(fn))
+                    if FmUtil.bcacheDeviceGetMode(devPath) != "writeback":
+                        self.infoPrinter.printError("BCACHE device %s should be configured as writeback mode." % (devPath))
+            else:
+                assert False
 
         with self.infoPrinter.printInfoAndIndent("- Checking file systems"):
             # if True:
