@@ -107,7 +107,7 @@ class FmMain:
             assert False
 
         print("Main OS:")
-        be = self.param.bbki.bbki.get_pending_boot_entry()
+        be = self.param.bbki.obj().get_pending_boot_entry()
         if be is None:
             be = "None?!"
         else:
@@ -121,17 +121,14 @@ class FmMain:
             print("    Not installed")
 
         if self.param.runMode in ["normal", "setup"]:
-            auxOsInfo = FmUtil.getAuxOsInfo()
+            auxOsInfo = self.param.bbki.getAuxOsInfo()
             if len(auxOsInfo) > 0:
                 print("Auxillary OSes:")
-                for osDesc, osPart, osbPart, chain in auxOsInfo:
-                    sys.stdout.write("    %s:" % (osDesc))
-                    for i in range(0, 20 - len(osDesc)):
+                for item in auxOsInfo:
+                    sys.stdout.write("    %s:" % (item.name))
+                    for i in range(0, 20 - len(item.name)):
                         sys.stdout.write(" ")
-                    if osPart == osbPart:
-                        print(osPart)
-                    else:
-                        print(osPart + " (Boot Partition: " + osbPart + ")")
+                    print(item.partition_path)
 
         print("")
 
@@ -558,14 +555,14 @@ class FmMain:
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
-        with self.param.bbki.bbki.boot_dir_writer:
+        with self.param.bbki.obj().boot_dir_writer:
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
             mgr = RescueOs()
             mgr.installOrUpdate(self.param.tmpDirOnHdd)
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            self.param.bbki.installBootloader()
+            self.param.bbki.updateBootloader()
             print("")
 
         return 0
@@ -582,15 +579,14 @@ class FmMain:
             print("Rescue OS is not installed.", file=sys.stderr)
             return 1
 
-        layout = strict_hdds.parse_storage_layout()
-        with self.param.bbki.bbki.boot_dir_writer:
+        with self.param.bbki.obj().boot_dir_writer:
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
             mgr.uninstall()
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
             # bootloader.updateBootloader(self.param.machineInfoGetter.hwInfo(), layout, FmConst.kernelInitCmd)
-            self.param.bbki.installBootloader()
+            self.param.bbki.updateBootloader()
 
             print("")
 

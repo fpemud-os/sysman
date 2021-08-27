@@ -79,7 +79,7 @@ class FmSysChecker:
                     self._checkPreMountRootfsLayout()
 
             with self.infoPrinter.printInfoAndIndent("- Check BIOS, bootloader, initramfs and kernel..."):
-                self.param.bbki.bbki.check(self.bAutoFix, self.infoPrinter.printError)
+                self.param.bbki.obj().check(self.bAutoFix, self.infoPrinter.printError)
 
             with self.infoPrinter.printInfoAndIndent(">> Check operating system..."):
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):
