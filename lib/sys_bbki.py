@@ -11,3 +11,9 @@ class FmBbkiWrapper:
     def __init__(self, param):
         self.param = param
         self.bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
+
+    def installInitramfs(self):
+        pass
+
+    def installBootloader(self):
+        pass
