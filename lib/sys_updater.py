@@ -2,7 +2,6 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 import os
-import re
 import json
 import strict_hdds
 from fm_util import FmUtil

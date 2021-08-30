@@ -3,6 +3,8 @@
 
 import os
 import sys
+import bbki
+import bbki.util
 import pyudev
 import strict_pgs
 import strict_hdds
@@ -82,7 +84,7 @@ class FmMain:
             print("")
 
         s = "System status: "
-        if self.param.bkki.is_stable():
+        if self.param.bbki.obj().is_stable():
             s += "stable"
         else:
             s += "unstable"

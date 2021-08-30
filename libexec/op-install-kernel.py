@@ -3,9 +3,9 @@
 
 import os
 import sys
-import bbki
 import json
-import pathlib
+import bbki
+import bbki.util
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import PrintLoadAvgThread
 from fm_param import FmConst
