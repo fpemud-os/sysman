@@ -31,7 +31,8 @@ class FmSysUpdater:
         overlayDb = CloudOverlayDb()
 
         # set system to unstable status
-        self.param.bbki.obj().set_stable(False)
+        if self.param.bbki.obj().is_stable():
+            self.param.bbki.obj().set_stable(False)
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -67,7 +68,7 @@ class FmSysUpdater:
                 else:
                     startCoro = FmUtil.asyncStartCmdExec
                     waitCoro = FmUtil.asyncWaitCmdExec
-                for oname in self.param.bbki.obj().repositories():
+                for oname in self.param.bbki.obj().repositories:
                     prspObj.add_task(
                         startCoro, [self.opSync, "sync-bbki-repo", oname],
                         waitCoro,
