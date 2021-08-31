@@ -1294,7 +1294,7 @@ class FmUtil:
     @staticmethod
     async def asyncStartCmdExec(cmd, *kargs, loop=None):
         assert loop is not None
-        proc = await asyncio.create_subprocess_exec(cmd, kargs, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
+        proc = await asyncio.create_subprocess_exec(cmd, *kargs, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
         return (proc, proc.stdout)
 
     @staticmethod

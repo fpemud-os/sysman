@@ -2,14 +2,24 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 import sys
+import bbki
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
 from helper_pkg_merger import PkgMerger
+from fm_param import FmConst
 
 
 item = sys.argv[1]
+
+if item == "sync-bbki-repo":
+    repoName = sys.argv[2]
+    assert repoName == "main"
+    bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
+    repo = bbki.repositories[0]
+    repo.sync()
+    sys.exit(0)
 
 if item == "sync-repo":
     repoName = sys.argv[2]
