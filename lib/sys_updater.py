@@ -68,11 +68,11 @@ class FmSysUpdater:
                 else:
                     startCoro = FmUtil.asyncStartCmdExec
                     waitCoro = FmUtil.asyncWaitCmdExec
-                for oname in self.param.bbki.obj().repositories:
+                for repo in self.param.bbki.obj().repositories:
                     prspObj.add_task(
-                        startCoro, [self.opSync, "sync-bbki-repo", oname],
+                        startCoro, [self.opSync, "sync-bbki-repo", repo.name],
                         waitCoro,
-                        pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing BBKI repository \"%s\"..." % (x)),
+                        pre_func=lambda x=repo.name: self.infoPrinter.printInfo(">> Synchronizing BBKI repository \"%s\"..." % (x)),
                         post_func=lambda: print(""),
                     )
             # FIXME: there should be no sync down after realtime network filesystem support is done
@@ -99,13 +99,13 @@ class FmSysUpdater:
                 else:
                     startCoro = FmUtil.asyncStartCmdExec
                     waitCoro = FmUtil.asyncWaitCmdExec
-                for oname in pkgwh.layman.getOverlayList():
-                    if pkgwh.layman.getOverlayType(oname) == "static":
+                for repo in pkgwh.layman.getOverlayList():
+                    if pkgwh.layman.getOverlayType(repo) == "static":
                         continue
                     prspObj.add_task(
-                        startCoro, [self.opSync, "sync-overlay", oname],
+                        startCoro, [self.opSync, "sync-overlay", repo],
                         waitCoro,
-                        pre_func=lambda x=oname: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
+                        pre_func=lambda x=repo: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
                         post_func=lambda: print(""),
                     )
             # FIXME: there should be no sync down after realtime network filesystem support is done
@@ -113,52 +113,52 @@ class FmSysUpdater:
                 buildServer.syncDownDirectory(FmConst.portageDataDir)
 
             # add pre-enabled overlays
-            for oname, ourl in pkgwh.getPreEnableOverlays().items():
-                if not pkgwh.layman.isOverlayExist(oname):
-                    self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % (oname))
+            for repo, ourl in pkgwh.getPreEnableOverlays().items():
+                if not pkgwh.layman.isOverlayExist(repo):
+                    self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % repo)
                     vcsType = "git"
-                    if overlayDb.hasOverlay(oname):
-                        vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
+                    if overlayDb.hasOverlay(repo):
+                        vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(repo)
                     if ourl is None:
-                        raise Exception("no URL for overlay %s" % (oname))
+                        raise Exception("no URL for overlay %s" % repo)
                     if buildServer is None:
-                        FmUtil.cmdExec(self.opSync, "add-trusted-overlay", oname, vcsType, ourl)
+                        FmUtil.cmdExec(self.opSync, "add-trusted-overlay", repo, vcsType, ourl)
                     else:
-                        buildServer.sshExec(self.opSync, "add-trusted-overlay", oname, vcsType, ourl)
+                        buildServer.sshExec(self.opSync, "add-trusted-overlay", repo, vcsType, ourl)
                         buildServer.syncDownWildcardList([
-                            os.path.join(pkgwh.layman.getOverlayFilesDir(oname), "***"),
-                            pkgwh.layman.getOverlayDir(oname),
-                            pkgwh.layman.getOverlayCfgReposFile(oname),
+                            os.path.join(pkgwh.layman.getOverlayFilesDir(repo), "***"),
+                            pkgwh.layman.getOverlayDir(repo),
+                            pkgwh.layman.getOverlayCfgReposFile(repo),
                         ], quiet=True)
                     print("")
 
             # add pre-enabled overlays by pre-enabled package
-            for oname, data in pkgwh.getPreEnablePackages().items():
+            for repo, data in pkgwh.getPreEnablePackages().items():
                 ourl = data[0]
-                if not pkgwh.layman.isOverlayExist(oname):
-                    self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % (oname))
+                if not pkgwh.layman.isOverlayExist(repo):
+                    self.infoPrinter.printInfo(">> Installing overlay \"%s\"..." % repo)
                     vcsType = "git"
-                    if overlayDb.hasOverlay(oname):
-                        vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(oname)
+                    if overlayDb.hasOverlay(repo):
+                        vcsType, ourl = overlayDb.getOverlayVcsTypeAndUrl(repo)
                     if ourl is None:
-                        raise Exception("no URL for overlay %s" % (oname))
+                        raise Exception("no URL for overlay %s" % repo)
                     if buildServer is None:
-                        FmUtil.cmdExec(self.opSync, "add-transient-overlay", oname, vcsType, ourl)
+                        FmUtil.cmdExec(self.opSync, "add-transient-overlay", repo, vcsType, ourl)
                     else:
-                        buildServer.sshExec(self.opSync, "add-transient-overlay", oname, vcsType, ourl)
+                        buildServer.sshExec(self.opSync, "add-transient-overlay", repo, vcsType, ourl)
                         buildServer.syncDownWildcardList([
-                            os.path.join(pkgwh.layman.getOverlayFilesDir(oname), "***"),
-                            pkgwh.layman.getOverlayDir(oname),
-                            pkgwh.layman.getOverlayCfgReposFile(oname),
+                            os.path.join(pkgwh.layman.getOverlayFilesDir(repo), "***"),
+                            pkgwh.layman.getOverlayDir(repo),
+                            pkgwh.layman.getOverlayCfgReposFile(repo),
                         ], quiet=True)
                     print("")
 
             # add pre-enabled packages
-            for oname, data in pkgwh.getPreEnablePackages().items():
-                tlist = [x for x in data[1] if not pkgwh.layman.isOverlayPackageEnabled(oname, x)]
+            for repo, data in pkgwh.getPreEnablePackages().items():
+                tlist = [x for x in data[1] if not pkgwh.layman.isOverlayPackageEnabled(repo, x)]
                 if tlist != []:
-                    self.infoPrinter.printInfo(">> Enabling packages in overlay \"%s\"..." % (oname))
-                    self._exec(buildServer, self.opSync, "enable-overlay-package", oname, *tlist)
+                    self.infoPrinter.printInfo(">> Enabling packages in overlay \"%s\"..." % repo)
+                    self._exec(buildServer, self.opSync, "enable-overlay-package", repo, *tlist)
                     print("")
             if buildServer is not None:
                 buildServer.syncDownDirectory(os.path.join(FmConst.portageDataDir, "overlay-*"), quiet=True)
