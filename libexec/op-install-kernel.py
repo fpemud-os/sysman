@@ -17,7 +17,6 @@ resultFile = sys.argv[2]
 bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
 kernelBuilder = bbki.get_kernel_installer(bbki.get_kernel_atom(), bbki.get_kernel_addon_atoms())
 bootEntry = bbki.get_pending_boot_entry()
-targetBootEntry = kernelBuilder.get_target_boot_entry()
 
 print("        - Extracting...")
 kernelBuilder.unpack()
@@ -26,7 +25,7 @@ print("        - Patching...")
 kernelBuilder.patch_kernel()
 
 print("        - Generating .config file...")
-kernelBuilder.generate_kernel_dotcfg()
+kernelBuilder.generate_kernel_config_file()
 
 kernelBuildNeeded = False
 if not kernelBuildNeeded:
