@@ -15,10 +15,15 @@ kernelCfgRules = json.loads(sys.argv[1])
 resultFile = sys.argv[2]
 
 bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
-kernelBuilder = bbki.get_kernel_installer(bbki.get_kernel_atom(), bbki.get_kernel_addon_atoms())
-bootEntry = bbki.get_pending_boot_entry()
+
+print("        - Fetching...")
+kernelAtom = bbki.get_kernel_atom()
+kernelAddonAtoms = bbki.get_kernel_addon_atoms()
+for atom in [kernelAtom] + kernelAddonAtoms:
+    bbki.fetch(atom)
 
 print("        - Extracting...")
+kernelBuilder = bbki.get_kernel_installer(kernelAtom, kernelAddonAtoms)
 kernelBuilder.unpack()
 
 print("        - Patching...")
@@ -27,6 +32,7 @@ kernelBuilder.patch_kernel()
 print("        - Generating .config file...")
 kernelBuilder.generate_kernel_config_file()
 
+bootEntry = bbki.get_pending_boot_entry()
 kernelBuildNeeded = False
 if not kernelBuildNeeded:
     if bootEntry is None:
