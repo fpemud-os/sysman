@@ -61,4 +61,4 @@ if kernelBuildNeeded:
 os.makedirs(os.path.dirname(resultFile), exist_ok=True)
 with open(resultFile, "w", encoding="iso8859-1") as f:
     f.write("%d\n" % (kernelBuildNeeded))
-    f.write("%s\n" % (kernelBuilder.dstTarget.postfix))
+    f.write("%s\n" % (kernelBuilder.get_progress().target_boot_entry.postfix))
