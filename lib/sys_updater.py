@@ -176,7 +176,7 @@ class FmSysUpdater:
 
             # install kernel, initramfs and bootloader
             with self.param.bbki.obj().boot_dir_writer:
-                self.infoPrinter.printInfo(">> Installing kernel...")
+                self.infoPrinter.printInfo(">> Installing kernel-%s..." % (self.param.bbki.obj().get_kernel_atom().ver))
                 kernelBuilt = False
                 if True:
                     self._exec(buildServer, self.opInstallKernel, kernelCfgRules, resultFile)
