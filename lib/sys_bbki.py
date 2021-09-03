@@ -63,4 +63,4 @@ class FmBbkiWrapper:
         elif layout.name in ["efi-simple", "efi-lvm", "efi-bcache-lvm"]:
             mpList.append(bbki.HostMountPoint(bbki.HostMountPoint.NAME_ESP, "/boot", layout.get_esp()))
             bootDisk = None
-        return bbki.HostStorage(self.bbkiBootMode(layout), mpList, bootDisk)
+        return bbki.HostStorage(self._bbkiBootMode(layout), mpList, bootDisk)
