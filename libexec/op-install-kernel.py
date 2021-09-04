@@ -19,11 +19,12 @@ bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
 print("        - Fetching...")
 kernelAtom = bbki.get_kernel_atom()
 kernelAddonAtoms = bbki.get_kernel_addon_atoms()
-for atom in [kernelAtom] + kernelAddonAtoms:
+initramfsAtom = bbki.get_initramfs_atom("minitrd")
+for atom in [kernelAtom] + kernelAddonAtoms + [initramfsAtom]:
     bbki.fetch(atom)
 
 print("        - Extracting...")
-kernelBuilder = bbki.get_kernel_installer(kernelAtom, kernelAddonAtoms)
+kernelBuilder = bbki.get_kernel_installer(kernelAtom, kernelAddonAtoms, initramfsAtom)
 kernelBuilder.unpack()
 
 print("        - Patching...")

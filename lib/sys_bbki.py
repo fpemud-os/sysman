@@ -18,7 +18,7 @@ class FmBbkiWrapper:
         return self._bbki
 
     def installInitramfs(self, layout):
-        self._bbki.install_initramfs(self._bbkiStorageInfo(layout))
+        self._bbki.install_initramfs(None, self._bbkiStorageInfo(layout))
 
     def installBootloader(self, layout):
         self._bbki.install_bootloader(self._bbkiBootMode(layout), self._bbkiStorageInfo(layout), self.getAuxOsInfo(), "")
