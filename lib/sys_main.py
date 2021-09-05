@@ -82,7 +82,7 @@ class FmMain:
             print("")
 
         s = "System status: "
-        if self.param.bbki.obj().is_stable():
+        if self.param.bbki.is_stable():
             s += "stable"
         else:
             s += "unstable"
@@ -107,7 +107,7 @@ class FmMain:
             assert False
 
         print("Main OS:")
-        be = self.param.bbki.obj().get_pending_boot_entry()
+        be = self.param.bbki.get_pending_boot_entry()
         if be is None:
             be = "None?!"
         else:
@@ -555,7 +555,7 @@ class FmMain:
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
-        with self.param.bbki.obj().boot_dir_writer:
+        with self.param.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
             self.param.bbki.installOrUpdateRescueOs(self.param.tmpDirOnHdd)
             print("")
@@ -577,7 +577,7 @@ class FmMain:
             print("Rescue OS is not installed.", file=sys.stderr)
             return 1
 
-        with self.param.bbki.obj().boot_dir_writer:
+        with self.param.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
             self.param.bbki.uninstallRescueOs()
             print("")

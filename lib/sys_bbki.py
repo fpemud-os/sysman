@@ -24,8 +24,25 @@ class FmBbkiWrapper:
         self.pkgDir = os.path.join(FmConst.dataDir, "rescue", "pkg")
         self.mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
 
-    def obj(self):
-        return self._bbki
+    @property
+    def repositories(self):
+        return self._bbki.repositories
+
+    @property
+    def boot_dir_writer(self):
+        return self._bbki.boot_dir_writer
+
+    def is_stable(self):
+        return self._bbki.is_stable()
+
+    def set_stable(self, value):
+        self._bbki.set_stable(value)
+
+    def get_current_boot_entry(self):
+        return self._bbki.get_current_boot_entry()
+
+    def get_pending_boot_entry(self):
+        return self._bbki.get_pending_boot_entry()
 
     def installInitramfs(self, layout):
         self._bbki.install_initramfs(self._bbki.get_initramfs_atom(), self._bbkiStorageInfo(layout))
@@ -68,6 +85,18 @@ class FmBbkiWrapper:
 
     def updateBootloaderAfterRescueOsChange(self):
         self._bbki.update_bootloader(self.getAuxOsInfo(), "")
+
+    def check(self, autofix=False, error_callback=None):
+        return self._bbki.check(autofix, error_callback)
+
+    def get_kernel_atom(self):
+        return self._bbki.get_kernel_atom()
+
+    def get_kernel_addon_atoms(self):
+        return self._bbki.get_kernel_addon_atoms()
+
+    def get_initramfs_atom(self):
+        return self._bbki.get_initramfs_atom()
 
     def getAuxOsInfo(self):
         ret = []

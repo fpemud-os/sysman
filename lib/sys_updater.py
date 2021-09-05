@@ -31,8 +31,8 @@ class FmSysUpdater:
         overlayDb = CloudOverlayDb()
 
         # set system to unstable status
-        if self.param.bbki.obj().is_stable():
-            self.param.bbki.obj().set_stable(False)
+        if self.param.bbki.is_stable():
+            self.param.bbki.set_stable(False)
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -68,7 +68,7 @@ class FmSysUpdater:
                 else:
                     startCoro = FmUtil.asyncStartCmdExec
                     waitCoro = FmUtil.asyncWaitCmdExec
-                for repo in self.param.bbki.obj().repositories:
+                for repo in self.param.bbki.repositories:
                     prspObj.add_task(
                         startCoro, [self.opSync, "sync-bbki-repo", repo.name],
                         waitCoro,
@@ -175,8 +175,8 @@ class FmSysUpdater:
             kernelCfgRules = json.dumps(self.param.machineInfoGetter.hwInfo().kernelCfgRules)
 
             # install kernel, initramfs and bootloader
-            with self.param.bbki.obj().boot_dir_writer:
-                self.infoPrinter.printInfo(">> Installing kernel-%s..." % (self.param.bbki.obj().get_kernel_atom().ver))
+            with self.param.bbki.boot_dir_writer:
+                self.infoPrinter.printInfo(">> Installing kernel-%s..." % (self.param.bbki.get_kernel_atom().ver))
                 kernelBuilt = False
                 if True:
                     self._exec(buildServer, self.opInstallKernel, kernelCfgRules, resultFile)
@@ -247,7 +247,7 @@ class FmSysUpdater:
         layout = strict_hdds.parse_storage_layout()
 
         self.infoPrinter.printInfo(">> Stablizing...")
-        self.param.bbki.obj().set_stable(True)
+        self.param.bbki.set_stable(True)
         print("")
 
         if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
@@ -260,12 +260,12 @@ class FmSysUpdater:
                 print("")
 
     def updateAfterHddAddOrRemove(self, hwInfo, layout):
-        pendingBe = self.param.bbki.obj().get_pending_boot_entry()
+        pendingBe = self.param.bbki.get_pending_boot_entry()
         if pendingBe is None:
             raise Exception("No kernel in /boot, you should build a kernel immediately!")
 
         # re-create initramfs
-        with self.param.bbki.obj().boot_dir_writer:
+        with self.param.bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Recreating initramfs...")
             self.param.bbki.installInitramfs(layout)
             print("")
