@@ -11,7 +11,6 @@ import strict_hdds
 from fm_util import FmUtil
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
-from helper_rescueos import RescueOs
 from helper_rescueos import RescueDiskBuilder
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
@@ -75,7 +74,6 @@ class FmMain:
 
         self.param.sysChecker.basicCheckWithOverlayContent()
 
-        helperRescueOs = RescueOs()
         repoman = EbuildRepositories()
         layman = EbuildOverlays()
 
@@ -117,7 +115,7 @@ class FmMain:
         print("    %s" % (be))
 
         print("Rescue OS:")
-        if helperRescueOs.isInstalled():
+        if self.param.bbki.isRescueOsInstalled():
             print("    Installed")
         else:
             print("    Not installed")
@@ -559,12 +557,11 @@ class FmMain:
 
         with self.param.bbki.obj().boot_dir_writer:
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
-            mgr = RescueOs()
-            mgr.installOrUpdate(self.param.tmpDirOnHdd)
+            self.param.bbki.installOrUpdateRescueOs(self.param.tmpDirOnHdd)
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            self.param.bbki.updateBootloader()
+            self.param.bbki.updateBootloaderAfterRescueOsChange()
             print("")
 
         return 0
@@ -576,19 +573,17 @@ class FmMain:
 
         self.param.sysChecker.baiscCheckStorage()
 
-        mgr = RescueOs()
-        if not mgr.isInstalled():
+        if not self.param.bbki.isRescueOsInstalled():
             print("Rescue OS is not installed.", file=sys.stderr)
             return 1
 
         with self.param.bbki.obj().boot_dir_writer:
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
-            mgr.uninstall()
+            self.param.bbki.uninstallRescueOs()
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            self.param.bbki.updateBootloader()
-
+            self.param.bbki.updateBootloaderAfterRescueOsChange()
             print("")
 
         return 0

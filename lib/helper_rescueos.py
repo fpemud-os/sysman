@@ -3,58 +3,11 @@
 
 import os
 import glob
-import shutil
 import pathlib
-import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_util import ArchLinuxBasedOsBuilder
 from fm_param import FmConst
-
-
-class RescueOs:
-
-    def __init__(self):
-        self.filesDir = os.path.join(FmConst.dataDir, "rescue", "rescueos")
-        self.pkgListFile = os.path.join(self.filesDir, "packages")
-        self.pkgDir = os.path.join(FmConst.dataDir, "rescue", "pkg")
-        self.sysRescCdDir = "/boot/rescue"
-        self.mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
-        self.rootfsFn = os.path.join(self.sysRescCdDir, "x86_64", "airootfs.sfs")
-        self.rootfsMd5Fn = os.path.join(self.sysRescCdDir, "x86_64", "airootfs.sha512")
-        self.kernelFn = os.path.join(self.sysRescCdDir, "x86_64", "vmlinuz")
-        self.initrdFn = os.path.join(self.sysRescCdDir, "x86_64", "initcpio.img")
-
-    def isInstalled(self):
-        return os.path.exists(self.sysRescCdDir)
-
-    def installOrUpdate(self, tmpDir):
-        os.makedirs(os.path.join(self.sysRescCdDir, "x86_64"), exist_ok=True)
-        builder = ArchLinuxBasedOsBuilder(self.mirrorList, FmConst.archLinuxCacheDir, tmpDir)
-        try:
-            if builder.bootstrapPrepare():
-                builder.bootstrapDownload()
-
-            builder.bootstrapExtract()
-
-            localPkgFileList = glob.glob(os.path.join(self.pkgDir, "*.pkg.tar.xz"))
-
-            fileList = []
-            for x in glob.glob(os.path.join(FmConst.libexecDir, "rescue-*")):
-                fileList.append((x, 0o755, "/root"))
-            fileList.append((os.path.join(self.filesDir, "getty-autologin.conf"), 0o644, "/etc/systemd/system/getty@.service.d"))
-
-            builder.createRootfs(initcpioHooksDir=os.path.join(self.filesDir, "initcpio"),
-                                 pkgList=FmUtil.readListFile(self.pkgListFile),
-                                 localPkgFileList=localPkgFileList, fileList=fileList)
-
-            builder.squashRootfs(self.rootfsFn, self.rootfsMd5Fn, self.kernelFn, self.initrdFn)
-        except Exception:
-            shutil.rmtree(self.sysRescCdDir)
-            raise
-
-    def uninstall(self):
-        robust_layer.simple_fops.rm(self.sysRescCdDir)
 
 
 class RescueDiskBuilder:
