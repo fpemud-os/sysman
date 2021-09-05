@@ -14,17 +14,17 @@ from fm_param import FmConst
 kernelCfgRules = json.loads(sys.argv[1])
 resultFile = sys.argv[2]
 
-bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
+obj = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
 
 print("        - Fetching...")
-kernelAtom = bbki.get_kernel_atom()
-kernelAddonAtoms = bbki.get_kernel_addon_atoms()
-initramfsAtom = bbki.get_initramfs_atom()
+kernelAtom = obj.get_kernel_atom()
+kernelAddonAtoms = obj.get_kernel_addon_atoms()
+initramfsAtom = obj.get_initramfs_atom()
 for atom in [kernelAtom] + kernelAddonAtoms + [initramfsAtom]:
-    bbki.fetch(atom)
+    obj.fetch(atom)
 
 print("        - Extracting...")
-kernelBuilder = bbki.get_kernel_installer(kernelAtom, kernelAddonAtoms, initramfsAtom)
+kernelBuilder = obj.get_kernel_installer(kernelAtom, kernelAddonAtoms, initramfsAtom)
 kernelBuilder.unpack()
 
 print("        - Patching...")
@@ -33,7 +33,7 @@ kernelBuilder.patch_kernel()
 print("        - Generating .config file...")
 kernelBuilder.generate_kernel_config_file()
 
-bootEntry = bbki.get_pending_boot_entry()
+bootEntry = obj.get_pending_boot_entry()
 kernelBuildNeeded = False
 if not kernelBuildNeeded:
     if bootEntry is None:
