@@ -205,29 +205,6 @@ class FmUtil:
             return ret
 
     @staticmethod
-    def dotCfgFileCompare(file1, file2):
-        # Returns True if two files are same
-
-        lineList1 = []
-        with open(file1) as f:
-            lineList1 = f.read().split("\n")
-        lineList1 = [x for x in lineList1 if x.strip() != "" and not x.strip().startswith("#")]
-        lineList1.sort()
-
-        lineList2 = []
-        with open(file2) as f:
-            lineList2 = f.read().split("\n")
-        lineList2 = [x for x in lineList2 if x.strip() != "" and not x.strip().startswith("#")]
-        lineList2.sort()
-
-        if len(lineList1) != len(lineList2):
-            return False
-        for i in range(0, len(lineList1)):
-            if lineList1[i] != lineList2[i]:
-                return False
-        return True
-
-    @staticmethod
     def formatSize(value):
         # value is in bytes
         if value > 1024 * 1024 * 1024 * 1024:
@@ -390,18 +367,6 @@ class FmUtil:
     @staticmethod
     def md5hash(s):
         return hashlib.md5(s.encode('utf-8')).hexdigest()
-
-    @staticmethod
-    def isInChroot():
-        # This technique is used in a few maintenance scripts in Debian
-        out1 = FmUtil.cmdCall("/usr/bin/stat", "-c", "%%d:%%i", "/")
-        out2 = FmUtil.cmdCall("/usr/bin/stat", "-c", "%%d:%%i", "/proc/1/root/.")
-        return out1 != out2
-
-    @staticmethod
-    def getMajorMinor(devfile):
-        info = os.stat(devfile)
-        return (os.major(info.st_dev), os.minor(info.st_dev))
 
     @staticmethod
     def removeDuplication(theList):

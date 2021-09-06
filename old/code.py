@@ -1,4 +1,12 @@
 
+
+    @staticmethod
+    def isInChroot():
+        # This technique is used in a few maintenance scripts in Debian
+        out1 = FmUtil.cmdCall("/usr/bin/stat", "-c", "%%d:%%i", "/")
+        out2 = FmUtil.cmdCall("/usr/bin/stat", "-c", "%%d:%%i", "/proc/1/root/.")
+        return out1 != out2
+
     @staticmethod
     def cmdListPtyExec(cmdList, envDict=None):
         proc = ptyprocess.PtyProcessUnicode.spawn(cmdList, env=envDict)
