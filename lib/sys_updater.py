@@ -177,32 +177,29 @@ class FmSysUpdater:
             # install kernel, initramfs and bootloader
             with self.param.bbki.boot_dir_writer:
                 self.infoPrinter.printInfo(">> Installing kernel-%s..." % (self.param.bbki.get_kernel_atom().ver))
-                kernelBuilt = False
                 if True:
                     self._exec(buildServer, self.opInstallKernel, kernelCfgRules, resultFile)
-                    kernelBuilt, postfix = self._parseKernelBuildResult(self._readResultFile(buildServer, resultFile))
+                    # kernelBuilt, postfix = self._parseKernelBuildResult(self._readResultFile(buildServer, resultFile))
                     print("")
 
-                    if kernelBuilt and buildServer is not None:
+                    if buildServer is not None:
                         self.infoPrinter.printInfo(">> Synchronizing down /boot, /lib/modules and /lib/firmware...")
                         buildServer.syncDownKernel()
                         print("")
 
                 self.infoPrinter.printInfo(">> Creating initramfs...")
-                initramfsBuilt = False
                 if True:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT create initramfs!!!" % (self.param.runMode))
                     else:
-                        initramfsBuilt = self.param.bbki.installInitramfs(layout)
+                        self.param.bbki.installInitramfs(layout)
                     print("")
 
                 self.infoPrinter.printInfo(">> Updating boot-loader...")
                 if self.param.runMode == "prepare":
                     print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                 else:
-                    if kernelBuilt or initramfsBuilt:
-                        self.param.bbki.installBootloader(layout)
+                    self.param.bbki.updateBootloader(layout)
                 print("")
 
             # synchronize boot partitions
@@ -271,7 +268,7 @@ class FmSysUpdater:
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            self.param.bbki.installBootloader(layout)
+            self.param.bbki.updateBootloader(layout)
             print("")
 
         # synchronize boot partitions

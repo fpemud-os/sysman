@@ -47,7 +47,7 @@ class FmBbkiWrapper:
     def installInitramfs(self, layout):
         self._bbki.install_initramfs(self._bbki.get_initramfs_atom(), self._bbkiStorageInfo(layout))
 
-    def installBootloader(self, layout):
+    def updateBootloader(self, layout):
         self._bbki.install_bootloader(self._bbkiBootMode(layout), self._bbkiStorageInfo(layout), self.getAuxOsInfo(), "")
 
     def isRescurOsInstalled(self):
