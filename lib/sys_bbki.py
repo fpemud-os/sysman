@@ -112,10 +112,10 @@ class FmBbkiWrapper:
                 osDesc = itemList[1].replace("(loader)", "").strip()
                 osPart = "%s%d" % (m.group(1), int(m.group(2)) + 1)
                 chain = 4
-                ret.append(bbki.HostAuxOs(osDesc, osPart, FmUtil.getBlkDevUuid(osPart), chain))
+                ret.append(bbki.HostAuxOs(osDesc, osPart, chain))
                 continue
             if True:
-                ret.append(bbki.HostAuxOs(itemList[1], itemList[0], FmUtil.getBlkDevUuid(itemList[0]), 1))
+                ret.append(bbki.HostAuxOs(itemList[1], itemList[0], 1))
                 continue
         return ret
 
