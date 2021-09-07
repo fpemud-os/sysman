@@ -12,7 +12,7 @@ pretendPrefix = "to be " if bPretend else ""
 
 print("        - Processing...")
 bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
-fileList = bbki.clean_distfiles(prtend=bPretend)
+fileList = bbki.clean_distfiles(pretend=bPretend)
 
 # show file list to be removed in BBKI distfiles directory
 print("            Files %sremoved in \"%s\":" % (pretendPrefix, bbki.config.cache_distfiles_dir))

@@ -15,7 +15,7 @@ resultFile = sys.argv[2]
 
 print("        - Processing...")
 bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
-bootFileList, moduleFileList, firmwareFileList = bbki.clean_boot_dir(prtend=bPretend)
+bootFileList, moduleFileList, firmwareFileList = bbki.clean_boot_dir(pretend=bPretend)
 
 # show file list to be removed in boot directory
 print("            Items %sremoved in \"/boot\":" % (pretendPrefix))
