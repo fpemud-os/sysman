@@ -86,6 +86,9 @@ class FmBbkiWrapper:
     def updateBootloaderAfterRescueOsChange(self):
         self._bbki.update_bootloader(self.getAuxOsInfo(), "")
 
+    def updateBootloaderAfterCleaning(self):
+        self._bbki.update_bootloader(self.getAuxOsInfo(), "")
+
     def check(self, autofix=False, error_callback=None):
         return self._bbki.check(autofix, error_callback)
 
