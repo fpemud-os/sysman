@@ -85,7 +85,7 @@ class FmSysCleaner:
 
         # clean kcache
         self.infoPrinter.printInfo(">> Cleaning %s..." % (FmConst.kcacheDir))
-        self._execAndSyncDownQuietly(buildServer, self.opCleanKcache, directory=FmConst.kcacheDir)
+        self._execAndSyncDownQuietly(buildServer, self.opCleanKcache, "%d" % (bPretend), directory=FmConst.kcacheDir)
         print("")
 
         # clean not-used packages and USE flags
