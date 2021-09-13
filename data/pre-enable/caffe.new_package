@@ -1,4 +1,0 @@
-[main]
-name = aweal
-url = https://github.com/aweal/overlay
-package = dev-libs/caffe
