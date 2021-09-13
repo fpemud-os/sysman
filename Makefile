@@ -3,7 +3,7 @@ prefix=/usr
 all:
 
 clean:
-	make -C initramfs clean
+	make -C clean
 
 install:
 	install -d -m 0755 "$(DESTDIR)/$(prefix)/bin"
