@@ -45,7 +45,8 @@ from helper_pkg_merger import PkgMerger
 #       no zeroconf network printer exists
 #    if printer is not exported:
 #       do nothing
-#
+# *. no virtual-printer is allowed
+# 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
 # 2. no "printError" in basicCheck()
