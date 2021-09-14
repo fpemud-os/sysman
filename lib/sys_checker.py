@@ -40,9 +40,7 @@ from helper_pkg_merger import PkgMerger
 # *. should mount noatime
 # *. verify cups setup is fresh and easy
 #    if printer is exported:
-#       non-network printer can be exported
-#       non-zeroconf network printer can be exported as zeroconf
-#       no zeroconf network printer exists
+#       non-network printer exist and only non-network printer can be exported
 #    if printer is not exported:
 #       do nothing
 # *. no virtual-printer is allowed. virtual-printer is a mis-use of print framework, they should be implemented as other form
