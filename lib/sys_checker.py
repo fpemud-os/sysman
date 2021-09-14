@@ -38,6 +38,7 @@ from helper_pkg_merger import PkgMerger
 # *. /var should have at least 100MiB freespace, especially for mounted_var
 # *. check dmesg for "end_request: I/O error, dev 03:06 (sda), sector"
 # *. should mount noatime
+# *. verify printer setup is fresh and easy
 
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
