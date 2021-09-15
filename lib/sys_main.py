@@ -82,7 +82,7 @@ class FmMain:
             print("")
 
         s = "System status: "
-        if self.param.bbki.is_stable():
+        if self.param.bbki.isStable():
             s += "stable"
         else:
             s += "unstable"

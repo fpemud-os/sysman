@@ -31,8 +31,8 @@ class FmSysUpdater:
         overlayDb = CloudOverlayDb()
 
         # set system to unstable status
-        if self.param.bbki.is_stable():
-            self.param.bbki.set_stable(False)
+        if self.param.bbki.isStable():
+            self.param.bbki.setStable(False)
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -244,7 +244,7 @@ class FmSysUpdater:
         layout = strict_hdds.parse_storage_layout()
 
         self.infoPrinter.printInfo(">> Stablizing...")
-        self.param.bbki.set_stable(True)
+        self.param.bbki.setStable(True)
         print("")
 
         if layout.name in ["efi-lvm", "efi-bcache-lvm"]:

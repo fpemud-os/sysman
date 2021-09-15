@@ -32,11 +32,11 @@ class FmBbkiWrapper:
     def boot_dir_writer(self):
         return self._bbki.boot_dir_writer
 
-    def is_stable(self):
-        return self._bbki.is_stable()
+    def isStable(self):
+        return self._bbki.get_stable_flag()
 
-    def set_stable(self, value):
-        self._bbki.set_stable(value)
+    def setStable(self, value):
+        self._bbki.set_stable_flag(value)
 
     def get_current_boot_entry(self):
         return self._bbki.get_current_boot_entry()
