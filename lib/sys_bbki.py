@@ -45,10 +45,20 @@ class FmBbkiWrapper:
         return self._bbki.get_pending_boot_entry()
 
     def installInitramfs(self, layout):
-        self._bbki.install_initramfs(self._bbki.get_initramfs_atom(), self._bbkiStorageInfo(layout))
+        beList = self._bbki.get_boot_entries()
+        if len(beList) == 0:
+            raise Exception("no boot entry")
+        if len(beList) > 1:
+            raise Exception("multiple boot entries")
+        self._bbki.install_initramfs(self._bbki.get_initramfs_atom(), self._bbkiStorageInfo(layout), beList[0])
 
     def updateBootloader(self, layout):
-        self._bbki.install_bootloader(self._bbkiBootMode(layout), self._bbkiStorageInfo(layout), self.getAuxOsInfo(), "")
+        beList = self._bbki.get_boot_entries()
+        if len(beList) == 0:
+            raise Exception("no boot entry")
+        if len(beList) > 1:
+            raise Exception("multiple boot entries")
+        self._bbki.install_bootloader(self._bbkiBootMode(layout), self._bbkiStorageInfo(layout), beList[0], self.getAuxOsInfo(), "")
 
     def isRescurOsInstalled(self):
         return os.path.exists(self._bbki.rescue_os_spec.root_dir)
@@ -84,10 +94,20 @@ class FmBbkiWrapper:
         robust_layer.simple_fops.rm(self._bbki.rescue_os_spec.root_dir)
 
     def updateBootloaderAfterRescueOsChange(self):
-        self._bbki.update_bootloader(self.getAuxOsInfo(), "")
+        beList = self._bbki.get_boot_entries()
+        if len(beList) == 0:
+            raise Exception("no boot entry")
+        if len(beList) > 1:
+            raise Exception("multiple boot entries")
+        self._bbki.update_bootloader(beList[0], self.getAuxOsInfo(), "")
 
     def updateBootloaderAfterCleaning(self):
-        self._bbki.update_bootloader(self.getAuxOsInfo(), "")
+        beList = self._bbki.get_boot_entries()
+        if len(beList) == 0:
+            raise Exception("no boot entry")
+        if len(beList) > 1:
+            raise Exception("multiple boot entries")
+        self._bbki.update_bootloader(beList[0], self.getAuxOsInfo(), "")
 
     def check(self, autofix=False, error_callback=None):
         return self._bbki.check(autofix, error_callback)
