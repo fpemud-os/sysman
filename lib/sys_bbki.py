@@ -94,20 +94,10 @@ class FmBbkiWrapper:
         robust_layer.simple_fops.rm(self._bbki.rescue_os_spec.root_dir)
 
     def updateBootloaderAfterRescueOsChange(self):
-        beList = self._bbki.get_boot_entries()
-        if len(beList) == 0:
-            raise Exception("no boot entry")
-        if len(beList) > 1:
-            raise Exception("multiple boot entries")
-        self._bbki.update_bootloader(beList[0], self.getAuxOsInfo(), "")
+        self._bbki.update_bootloader()
 
     def updateBootloaderAfterCleaning(self):
-        beList = self._bbki.get_boot_entries()
-        if len(beList) == 0:
-            raise Exception("no boot entry")
-        if len(beList) > 1:
-            raise Exception("multiple boot entries")
-        self._bbki.update_bootloader(beList[0], self.getAuxOsInfo(), "")
+        self._bbki.update_bootloader()
 
     def check(self, autofix=False, error_callback=None):
         return self._bbki.check(autofix, error_callback)
