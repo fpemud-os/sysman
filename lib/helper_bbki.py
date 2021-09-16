@@ -98,8 +98,11 @@ class BbkiWrapper:
     def updateBootloaderAfterCleaning(self):
         self._bbki.update_bootloader()
 
-    def check(self, autofix=False, error_callback=None):
-        return self._bbki.check(autofix, error_callback)
+    def check_repositories(self, autofix=False, error_callback=None):
+        return self._bbki.check_repositories(autofix, error_callback)
+
+    def check_boot_entry_files(self, autofix=False, error_callback=None):
+        return self._bbki.check_boot_entry_files(autofix, error_callback)
 
     def get_kernel_atom(self):
         return self._bbki.get_kernel_atom()
