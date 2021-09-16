@@ -1386,11 +1386,15 @@ class FmSysChecker:
     def __checkAndFixEtcSymlink(self, filename, target):
         if os.path.islink(filename) and os.readlink(filename) == target:
             return
-        robust_layer.simple_fops.ln(target, filename)
+
+        if not self.bAutoFix:
+            raise FmCheckException("\"%s\" is an invalid symlink" % (filename))
+        else:
+            robust_layer.simple_fops.ln(target, filename)
 
     def __initCheckAndFixEtcDirContent(self, etcDir):
         self._etcDir = etcDir
-        self._etcSymIndex = 1
+        self._etcDirContentIndex = 1
         self._etcSymLinkList = []
 
     def __checkAndFixEtcDirContentSymlink(self, etcDir, linkName, libDir, targetName):
@@ -1398,8 +1402,8 @@ class FmSysChecker:
         assert os.path.exists(os.path.join(libDir, targetName))
 
         if "?" in linkName:
-            linkName = linkName.replace("?", "%02d" % (self._etcSymIndex))
-            self._etcSymIndex += 1
+            linkName = linkName.replace("?", "%02d" % (self._etcDirContentIndex))
+            self._etcDirContentIndex += 1
 
         linkFile = os.path.join(self._etcDir, linkName)
         targetFile = os.path.join(libDir, targetName)
@@ -1432,8 +1436,8 @@ class FmSysChecker:
         assert etcDir == self._etcDir
 
         if "?" in fileName:
-            fileName = fileName.replace("?", "%02d" % (self._etcSymIndex))
-            self._etcSymIndex += 1
+            fileName = fileName.replace("?", "%02d" % (self._etcDirContentIndex))
+            self._etcDirContentIndex += 1
 
         fn = os.path.join(self._etcDir, fileName)
         if not os.path.exists(fn):
@@ -1451,7 +1455,7 @@ class FmSysChecker:
                 os.unlink(fullfn)
 
         del self._etcSymLinkList
-        del self._etcSymIndex
+        del self._etcDirContentIndex
         del self._etcDir
 
     def __portageGetUnknownFilename(self, dirpath):
