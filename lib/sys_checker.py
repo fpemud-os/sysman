@@ -675,7 +675,7 @@ class FmSysChecker:
         # check /etc/portage/package.unmask directory
         self.__checkAndFixEtcDir(FmConst.portageCfgUnmaskDir)
         if True:
-            self.__initCheckAndFixEtcDirContent()
+            self.__initCheckAndFixEtcDirContent(FmConst.portageCfgUnmaskDir)
 
             # standard files
             self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgUnmaskDir, "?-base",
@@ -687,7 +687,7 @@ class FmSysChecker:
         # check /etc/portage/package.use directory
         self.__checkAndFixEtcDir(FmConst.portageCfgUseDir)
         if True:
-            self.__initCheckAndFixEtcDirContent()
+            self.__initCheckAndFixEtcDirContent(FmConst.portageCfgUseDir)
 
             # standard files
             self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgUseDir, "?-base",
@@ -760,7 +760,7 @@ class FmSysChecker:
         # check /etc/portage/package.accept_keywords directory
         self.__checkAndFixEtcDir(FmConst.portageCfgAcceptKeywordsDir)
         if True:
-            self.__initCheckAndFixEtcDirContent()
+            self.__initCheckAndFixEtcDirContent(FmConst.portageCfgAcceptKeywordsDir)
 
             self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgAcceptKeywordsDir, "?-base",
                                                    commonDir, "package.accept_keywords")
@@ -774,7 +774,7 @@ class FmSysChecker:
         # check /etc/portage/package.in_focus directory
         self.__checkAndFixEtcDir(FmConst.portageCfgInFocusDir)
         if True:
-            self.__initCheckAndFixEtcDirContent()
+            self.__initCheckAndFixEtcDirContent(FmConst.portageCfgInFocusDir)
 
             # standard files
             self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgInFocusDir, "?-base",            # /etc/portage/package.in_focus/01-base
@@ -786,7 +786,7 @@ class FmSysChecker:
         # check /etc/portage/package.license directory
         self.__checkAndFixEtcDir(FmConst.portageCfgLicDir)
         if True:
-            self.__initCheckAndFixEtcDirContent()
+            self.__initCheckAndFixEtcDirContent(FmConst.portageCfgLicDir)
 
             # standard files
             self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgLicDir, "01-base",               # /etc/portage/package.license/01-base
@@ -798,7 +798,7 @@ class FmSysChecker:
         # check /etc/portage/package.env directory
         self.__checkAndFixEtcDir(FmConst.portageCfgEnvDir)
         if True:
-            self.__initCheckAndFixEtcDirContent()
+            self.__initCheckAndFixEtcDirContent(FmConst.portageCfgEnvDir)
 
             # standard files
             self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgEnvDir, "01-base",               # /etc/portage/package.env/01-base
@@ -829,7 +829,7 @@ class FmSysChecker:
         # check /etc/portage/bbki.kernel_addon directory
         self.__checkAndFixEtcDir(FmConst.bbkiKernelAddonDir)
         if True:
-            self.__initCheckAndFixEtcDirContent()
+            self.__initCheckAndFixEtcDirContent(FmConst.bbkiKernelAddonDir)
 
             # standard files
             self.__checkAndFixEtcDirContentSymlink(FmConst.bbkiKernelAddonDir, "?-base",            # /etc/portage/bbki.kernel_addon/01-base
@@ -841,7 +841,7 @@ class FmSysChecker:
         # check /etc/portage/bbki.mask directory
         self.__checkAndFixEtcDir(FmConst.bbkiMaskDir)
         if True:
-            self.__initCheckAndFixEtcDirContent()
+            self.__initCheckAndFixEtcDirContent(FmConst.bbkiMaskDir)
 
             # standard files
             self.__checkAndFixEtcDirContentSymlink(FmConst.bbkiMaskDir, "?-not_adapted",            # /etc/portage/bbki.mask/01-not_adapted
