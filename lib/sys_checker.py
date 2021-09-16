@@ -44,7 +44,7 @@ from helper_pkg_merger import PkgMerger
 #    if printer is not exported:
 #       do nothing
 # *. no virtual-printer is allowed. virtual-printer is a mis-use of print framework, they should be implemented as other form
-# 
+#
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
 # 2. no "printError" in basicCheck()
@@ -563,19 +563,6 @@ class FmSysChecker:
             if not re.fullmatch("[0-9\\.]+", tlist[-1]):
                 raise FmCheckException("%s must points to a vanilla profile (eg. default/linux/amd64/17.0)" % (FmConst.portageCfgMakeProfile))
 
-        # check directories in /etc/portage
-        self.__checkAndFixEtcDir(FmConst.portageCfgReposDir)           # /etc/portage/repos.conf
-        self.__checkAndFixEtcDir(FmConst.portageCfgMaskDir)            # /etc/portage/package.mask
-        self.__checkAndFixEtcDir(FmConst.portageCfgUnmaskDir)          # /etc/portage/package.unmask
-        self.__checkAndFixEtcDir(FmConst.portageCfgUseDir)             # /etc/portage/package.use
-        self.__checkAndFixEtcDir(FmConst.portageCfgAcceptKeywordsDir)  # /etc/portage/package.accept_keywords
-        self.__checkAndFixEtcDir(FmConst.portageCfgInFocusDir)         # /etc/portage/package.in_focus
-        self.__checkAndFixEtcDir(FmConst.portageCfgLicDir)             # /etc/portage/package.license
-        self.__checkAndFixEtcDir(FmConst.portageCfgEnvDir)             # /etc/portage/package.env
-        self.__checkAndFixEtcDir(FmConst.portageCfgEnvDataDir)         # /etc/portage/env
-        self.__checkAndFixEtcDir(FmConst.kernelMaskDir)                # /etc/portage/kernel.mask
-        self.__checkAndFixEtcDir(FmConst.kernelUseDir)                 # /etc/portage/kernel.use
-
         # check /etc/portage/make.conf
         if True:
             # check CHOST variable
@@ -650,7 +637,11 @@ class FmSysChecker:
                 else:
                     raise FmCheckException("variable KERNEL_DEFAULT_MIRROR in %s does not exist or has invalid value" % (FmConst.portageCfgMakeConf))
 
+        # check /etc/portage/repos.conf directory
+        self.__checkAndFixEtcDir(FmConst.portageCfgReposDir)
+
         # check /etc/portage/package.mask directory
+        self.__checkAndFixEtcDir(FmConst.portageCfgMaskDir)
         if True:
             self.__initCheckAndFixEtcSymlink()
 
@@ -682,6 +673,7 @@ class FmSysChecker:
                 #             raise FmCheckException("invalid package atom \"%s\" in %s" % (pkgAtom, fullfn))
 
         # check /etc/portage/package.unmask directory
+        self.__checkAndFixEtcDir(FmConst.portageCfgUnmaskDir)
         if True:
             self.__initCheckAndFixEtcSymlink()
 
@@ -695,6 +687,7 @@ class FmSysChecker:
                 self.__clearInvalidEtcSymlink(FmConst.portageCfgUnmaskDir)
 
         # check /etc/portage/package.use directory
+        self.__checkAndFixEtcDir(FmConst.portageCfgUseDir)
         if True:
             self.__initCheckAndFixEtcSymlink()
 
@@ -769,6 +762,7 @@ class FmSysChecker:
                 pass
 
         # check /etc/portage/package.accept_keywords directory
+        self.__checkAndFixEtcDir(FmConst.portageCfgAcceptKeywordsDir)
         if True:
             self.__initCheckAndFixEtcSymlink()
 
@@ -784,6 +778,7 @@ class FmSysChecker:
                 self.__clearInvalidEtcSymlink(FmConst.portageCfgAcceptKeywordsDir)
 
         # check /etc/portage/package.in_focus directory
+        self.__checkAndFixEtcDir(FmConst.portageCfgInFocusDir)
         if True:
             self.__initCheckAndFixEtcSymlink()
 
@@ -796,6 +791,7 @@ class FmSysChecker:
                 self.__clearInvalidEtcSymlink(FmConst.portageCfgInFocusDir)
 
         # check /etc/portage/package.license directory
+        self.__checkAndFixEtcDir(FmConst.portageCfgLicDir)
         if True:
             # standard files
             commonDir = os.path.join(FmConst.dataDir, "etc-common")
@@ -807,6 +803,7 @@ class FmSysChecker:
                 self.__clearInvalidEtcSymlink(FmConst.portageCfgLicDir)
 
         # check /etc/portage/package.env directory
+        self.__checkAndFixEtcDir(FmConst.portageCfgEnvDir)
         if True:
             # standard files
             commonDir = os.path.join(FmConst.dataDir, "etc-common")
@@ -830,18 +827,23 @@ class FmSysChecker:
             if self.bAutoFix:
                 self.__clearInvalidEtcSymlink(FmConst.portageCfgEnvDir)
 
-        # check /etc/portage/kernel.mask directory
+        # check /etc/portage/env directory
+        self.__checkAndFixEtcDir(FmConst.portageCfgEnvDataDir)
+
+        # check /etc/portage/bbki.mask directory
+        self.__checkAndFixEtcDir(FmConst.bbkiMaskDir)
         if True:
             # standard files
             commonDir = os.path.join(FmConst.dataDir, "etc-common")
-            self.__checkAndFixEtcSymlink(FmConst.kernelMaskDir, "?-not_adapted",            # /etc/portage/kernel.mask/01-not_adapted
+            self.__checkAndFixEtcSymlink(FmConst.bbkiMaskDir, "?-not_adapted",            # /etc/portage/kernel.mask/01-not_adapted
                                          commonDir, "kernel.mask.not_adapted")
 
             # remove redundant files
             if self.bAutoFix:
-                self.__clearInvalidEtcSymlink(FmConst.kernelMaskDir)
+                self.__clearInvalidEtcSymlink(FmConst.bbkiMaskDir)
 
         # check /etc/portage/kernel.use directory
+        self.__checkAndFixEtcDir(FmConst.kernelUseDir)
         if True:
             # remove redundant files
             if self.bAutoFix:
