@@ -800,14 +800,11 @@ class FmSysChecker:
         self.__checkAndFixEtcDir(FmConst.portageCfgEnvDataDir)
         if True:
             self.__initCheckAndFixEtcDirContent(FmConst.portageCfgEnvDir)
-            self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgEnvDir, "01-base",               # /etc/portage/package.env/01-base
-                                                   commonDir, "package.env")
+            self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgEnvDir, "01-base", commonDir, "package.env")   # /etc/portage/package.env/01-base
             self.__endCheckAndFixEtcDirContent(FmConst.portageCfgEnvDir)
 
-
             self.__initCheckAndFixEtcDirContent(FmConst.portageCfgEnvDataDir)
-            self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgEnvDataDir, "01-base",           # /etc/portage/env/01-base (directory symlink)
-                                                   commonDir, "env.base")
+            self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgEnvDataDir, "01-base", commonDir, "env.base")  # /etc/portage/env/01-base (directory symlink)
             self.__endCheckAndFixEtcDirContent(FmConst.portageCfgEnvDataDir)
 
             # /etc/portage/package.env/01-base and /etc/portage/env/01-base should be consistent
