@@ -831,7 +831,7 @@ class FmSysChecker:
         self.__checkAndFixEtcDir(FmConst.portageCfgEnvDataDir)
 
         # check /etc/portage/bbki.kernel
-        self.__checkAndFixSymlink(FmConst.bbkiKernelFile, os.path.join(commonDir, "bbki.kernel"))
+        self.__checkAndFixEtcSymlink(FmConst.bbkiKernelFile, os.path.join(commonDir, "bbki.kernel"))
 
         # check /etc/portage/bbki.kernel_addon directory
         self.__checkAndFixEtcDir(FmConst.bbkiKernelAddonDir)
@@ -1368,6 +1368,26 @@ class FmSysChecker:
             else:
                 raise FmCheckException("\"%s\" is not a directory" % (etcDir))
 
+    def __checkAndFixEtcFile(self, filename, content):
+        if os.path.exists(filename):
+            with open(filename, "r") as f:
+                if f.read() == content:
+                    return
+                else:
+                    if not self.bAutoFix:
+                        raise FmCheckException("\"%s\" has invalid content" % (filename))
+        else:
+            if not self.bAutoFix:
+                raise FmCheckException("\"%s\" does not exist" % (filename))
+
+        with open(filename, "w") as f:
+            f.write(content)
+
+    def __checkAndFixEtcSymlink(self, filename, target):
+        if os.path.islink(filename) and os.readlink(filename) == target:
+            return
+        robust_layer.simple_fops.ln(target, filename)
+
     def __initCheckAndFixEtcDirContent(self, etcDir):
         self._etcDir = etcDir
         self._etcSymIndex = 1
@@ -1433,26 +1453,6 @@ class FmSysChecker:
         del self._etcSymLinkList
         del self._etcSymIndex
         del self._etcDir
-
-    def __checkAndFixFile(self, filename, content):
-        if os.path.exists(filename):
-            with open(filename, "r") as f:
-                if f.read() == content:
-                    return
-                else:
-                    if not self.bAutoFix:
-                        raise FmCheckException("\"%s\" has invalid content" % (filename))
-        else:
-            if not self.bAutoFix:
-                raise FmCheckException("\"%s\" does not exist" % (filename))
-
-        with open(filename, "w") as f:
-            f.write(content)
-
-    def __checkAndFixSymlink(self, filename, target):
-        if os.path.islink(filename) and os.readlink(filename) == target:
-            return
-        robust_layer.simple_fops.ln(target, filename)
 
     def __portageGetUnknownFilename(self, dirpath):
         if not os.path.exists(os.path.join(dirpath, "90-unknown")):
