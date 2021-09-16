@@ -42,8 +42,10 @@ class FmConst:
     kcacheDir = os.path.join(portageCacheDir, "kcache")
     archLinuxCacheDir = os.path.join(portageCacheDir, "archlinux")
 
-    kernelMaskDir = os.path.join(portageCfgDir, "kernel.mask")
-    kernelUseDir = os.path.join(portageCfgDir, "kernel.use")
+    bbkiKernelFile = os.path.join(portageCfgDir, "bbki.kernel")
+    bbkiKernelAddonDir = os.path.join(portageCfgDir, "bbki.kernel_addon")
+    bbkiMaskDir = os.path.join(portageCfgDir, "bbki.mask")
+    bbkiOptionsFile = os.path.join(portageCfgDir, "bbki.options")
 
     cfgDispatchConf = "/etc/dispatch-conf.conf"
     machineInfoFile = "/etc/machine-info"

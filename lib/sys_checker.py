@@ -513,6 +513,8 @@ class FmSysChecker:
                 self.infoPrinter.printError("\"%s\" is not enabled." % (s))
 
     def _checkPortageCfg(self, bFullCheck=True):
+        commonDir = os.path.join(FmConst.dataDir, "etc-common")
+
         # check /var/lib/portage
         if not os.path.isdir(FmConst.portageDataDir):
             if self.bAutoFix:
@@ -646,7 +648,6 @@ class FmSysChecker:
             self.__initCheckAndFixEtcSymlink()
 
             # standard files
-            commonDir = os.path.join(FmConst.dataDir, "etc-common")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgMaskDir, "?-base",               # /etc/portage/package.mask/01-base
                                          commonDir, "package.mask.base")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgMaskDir, "?-base_deprecated",    # /etc/portage/package.mask/02-base_deprecated
@@ -678,7 +679,6 @@ class FmSysChecker:
             self.__initCheckAndFixEtcSymlink()
 
             # standard files
-            commonDir = os.path.join(FmConst.dataDir, "etc-common")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgUnmaskDir, "?-base",
                                          commonDir, "package.unmask.base")
 
@@ -692,7 +692,6 @@ class FmSysChecker:
             self.__initCheckAndFixEtcSymlink()
 
             # standard files
-            commonDir = os.path.join(FmConst.dataDir, "etc-common")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgUseDir, "?-base",
                                          commonDir, "package.use.base")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgUseDir, "?-base_bugfix",
@@ -766,7 +765,6 @@ class FmSysChecker:
         if True:
             self.__initCheckAndFixEtcSymlink()
 
-            commonDir = os.path.join(FmConst.dataDir, "etc-common")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgAcceptKeywordsDir, "?-base",
                                          commonDir, "package.accept_keywords")
 
@@ -782,7 +780,6 @@ class FmSysChecker:
         if True:
             self.__initCheckAndFixEtcSymlink()
 
-            commonDir = os.path.join(FmConst.dataDir, "etc-common")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgInFocusDir, "?-base",            # /etc/portage/package.in_focus/01-base
                                          commonDir, "package.in_focus")
 
@@ -794,7 +791,6 @@ class FmSysChecker:
         self.__checkAndFixEtcDir(FmConst.portageCfgLicDir)
         if True:
             # standard files
-            commonDir = os.path.join(FmConst.dataDir, "etc-common")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgLicDir, "01-base",               # /etc/portage/package.license/01-base
                                          commonDir, "package.license")
 
@@ -806,7 +802,6 @@ class FmSysChecker:
         self.__checkAndFixEtcDir(FmConst.portageCfgEnvDir)
         if True:
             # standard files
-            commonDir = os.path.join(FmConst.dataDir, "etc-common")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgEnvDir, "01-base",               # /etc/portage/package.env/01-base
                                          commonDir, "package.env")
             self.__checkAndFixEtcSymlink(FmConst.portageCfgEnvDataDir, "01-base",           # /etc/portage/env/01-base (directory symlink)
@@ -830,24 +825,33 @@ class FmSysChecker:
         # check /etc/portage/env directory
         self.__checkAndFixEtcDir(FmConst.portageCfgEnvDataDir)
 
+        # check /etc/portage/bbki.kernel
+        self.__checkAndFixSymlink(FmConst.bbkiKernelFile, os.path.join(commonDir, "bbki.kernel"))
+
+        # check /etc/portage/bbki.kernel_addon directory
+        self.__checkAndFixEtcDir(FmConst.bbkiKernelAddonDir)
+        if True:
+            # standard files
+            self.__checkAndFixEtcSymlink(FmConst.bbkiKernelAddonDir, "?-base",            # /etc/portage/bbki.kernel_addon/01-base
+                                         commonDir, "bbki.kernel_addon.base")
+
+            # remove redundant files
+            if self.bAutoFix:
+                self.__clearInvalidEtcSymlink(FmConst.bbkiKernelAddonDir)
+
         # check /etc/portage/bbki.mask directory
         self.__checkAndFixEtcDir(FmConst.bbkiMaskDir)
         if True:
             # standard files
-            commonDir = os.path.join(FmConst.dataDir, "etc-common")
-            self.__checkAndFixEtcSymlink(FmConst.bbkiMaskDir, "?-not_adapted",            # /etc/portage/kernel.mask/01-not_adapted
-                                         commonDir, "kernel.mask.not_adapted")
+            self.__checkAndFixEtcSymlink(FmConst.bbkiMaskDir, "?-not_adapted",            # /etc/portage/bbki.mask/01-not_adapted
+                                         commonDir, "bbki.mask.not_adapted")
 
             # remove redundant files
             if self.bAutoFix:
                 self.__clearInvalidEtcSymlink(FmConst.bbkiMaskDir)
 
-        # check /etc/portage/kernel.use directory
-        self.__checkAndFixEtcDir(FmConst.kernelUseDir)
-        if True:
-            # remove redundant files
-            if self.bAutoFix:
-                self.__clearInvalidEtcSymlink(FmConst.kernelUseDir)
+        # check /etc/portage/bbki.options
+        pass
 
         # check dispatch-conf.conf
         if True:
@@ -1421,6 +1425,11 @@ class FmSysChecker:
 
         with open(filename, "w") as f:
             f.write(content)
+
+    def __checkAndFixSymlink(self, filename, target):
+        if os.path.islink(filename) and os.readlink(filename) == target:
+            return
+        robust_layer.simple_fops.ln(target, filename)
 
     def __portageGetUnknownFilename(self, dirpath):
         if not os.path.exists(os.path.join(dirpath, "90-unknown")):
