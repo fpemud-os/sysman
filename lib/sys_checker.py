@@ -659,8 +659,7 @@ class FmSysChecker:
             self.__checkAndFixEtcDirContentEmptyFile(FmConst.portageCfgMaskDir, "bugfix")
 
             # remove redundant files
-            if self.bAutoFix:
-                self.__endCheckAndFixEtcDirContent(FmConst.portageCfgMaskDir)
+            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgMaskDir)
 
             # check package atom validity
             if bFullCheck:
@@ -683,8 +682,7 @@ class FmSysChecker:
                                                    commonDir, "package.unmask.base")
 
             # remove redundant files
-            if self.bAutoFix:
-                self.__endCheckAndFixEtcDirContent(FmConst.portageCfgUnmaskDir)
+            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgUnmaskDir)
 
         # check /etc/portage/package.use directory
         self.__checkAndFixEtcDir(FmConst.portageCfgUseDir)
@@ -712,8 +710,7 @@ class FmSysChecker:
                         raise FmCheckException("invalid USE flag \"%s\" for package \"%s\" in %s" % (uf, pkgAtom, fn))
 
             # remove redundant files
-            if self.bAutoFix:
-                self.__endCheckAndFixEtcDirContent(FmConst.portageCfgUseDir)
+            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgUseDir)
 
             # check use flag existence
             if bFullCheck:
@@ -772,8 +769,7 @@ class FmSysChecker:
             self.__checkAndFixEtcDirContentEmptyFile(FmConst.portageCfgAcceptKeywordsDir, "99-autokeyword")
 
             # remove redundant files
-            if self.bAutoFix:
-                self.__endCheckAndFixEtcDirContent(FmConst.portageCfgAcceptKeywordsDir)
+            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgAcceptKeywordsDir)
 
         # check /etc/portage/package.in_focus directory
         self.__checkAndFixEtcDir(FmConst.portageCfgInFocusDir)
@@ -785,8 +781,7 @@ class FmSysChecker:
                                                    commonDir, "package.in_focus")
 
             # remove redundant files
-            if self.bAutoFix:
-                self.__endCheckAndFixEtcDirContent(FmConst.portageCfgInFocusDir)
+            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgInFocusDir)
 
         # check /etc/portage/package.license directory
         self.__checkAndFixEtcDir(FmConst.portageCfgLicDir)
@@ -798,8 +793,7 @@ class FmSysChecker:
                                                    commonDir, "package.license")
 
             # remove redundant files
-            if self.bAutoFix:
-                self.__endCheckAndFixEtcDirContent(FmConst.portageCfgLicDir)
+            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgLicDir)
 
         # check /etc/portage/package.env directory
         self.__checkAndFixEtcDir(FmConst.portageCfgEnvDir)
@@ -824,8 +818,7 @@ class FmSysChecker:
                     raise FmCheckException("invalid content in %s" % (os.path.join(FmConst.portageCfgEnvDir, "01-base")))
 
             # remove redundant files
-            if self.bAutoFix:
-                self.__endCheckAndFixEtcDirContent(FmConst.portageCfgEnvDir)
+            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgEnvDir)
 
         # check /etc/portage/env directory
         self.__checkAndFixEtcDir(FmConst.portageCfgEnvDataDir)
@@ -843,8 +836,7 @@ class FmSysChecker:
                                                    commonDir, "bbki.kernel_addon.base")
 
             # remove redundant files
-            if self.bAutoFix:
-                self.__endCheckAndFixEtcDirContent(FmConst.bbkiKernelAddonDir)
+            self.__endCheckAndFixEtcDirContent(FmConst.bbkiKernelAddonDir)
 
         # check /etc/portage/bbki.mask directory
         self.__checkAndFixEtcDir(FmConst.bbkiMaskDir)
@@ -856,8 +848,7 @@ class FmSysChecker:
                                                    commonDir, "bbki.mask.not_adapted")
 
             # remove redundant files
-            if self.bAutoFix:
-                self.__endCheckAndFixEtcDirContent(FmConst.bbkiMaskDir)
+            self.__endCheckAndFixEtcDirContent(FmConst.bbkiMaskDir)
 
         # check /etc/portage/bbki.options
         pass
@@ -1449,10 +1440,11 @@ class FmSysChecker:
     def __endCheckAndFixEtcDirContent(self, etcDir):
         assert etcDir == self._etcDir
 
-        for fn in os.listdir(self._etcDir):
-            fullfn = os.path.join(self._etcDir, fn)
-            if os.path.islink(fullfn) and fullfn not in self._etcSymLinkList:
-                os.unlink(fullfn)
+        if self.bAutoFix:
+            for fn in os.listdir(self._etcDir):
+                fullfn = os.path.join(self._etcDir, fn)
+                if os.path.islink(fullfn) and fullfn not in self._etcSymLinkList:
+                    os.unlink(fullfn)
 
         del self._etcSymLinkList
         del self._etcDirContentIndex
