@@ -12,6 +12,7 @@ from fm_util import FmUtil
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
 from helper_rescueos import RescueDiskBuilder
+from helper_bbki import BbkiWrapper
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
 from helper_pkg_warehouse import CloudOverlayDb
@@ -74,6 +75,7 @@ class FmMain:
 
         self.param.sysChecker.basicCheckWithOverlayContent()
 
+        bbki = BbkiWrapper()
         repoman = EbuildRepositories()
         layman = EbuildOverlays()
 
@@ -81,13 +83,14 @@ class FmMain:
             print("WARNING: Running in \"%s\" mode!!!" % (self.param.runMode))
             print("")
 
-        s = "System status: "
-        if self.param.bbki.isStable():
-            s += "stable"
-        else:
-            s += "unstable"
-        print(s)
-        print("")
+        if self.param.runMode in ["normal", "setup"]:
+            s = "System status: "
+            if bbki.isStable():
+                s += "stable"
+            else:
+                s += "unstable"
+            print(s)
+            print("")
 
         print("Hardware:")
         hwInfo = self.param.machineInfoGetter.hwInfo()
@@ -107,21 +110,21 @@ class FmMain:
             assert False
 
         print("Main OS:")
-        be = self.param.bbki.get_pending_boot_entry()
+        be = bbki.get_pending_boot_entry()
         if be is None:
-            be = "None?!"
+            be = "None"
         else:
             be = "Linux (%s)" % (be.postfix)
         print("    %s" % (be))
 
         print("Rescue OS:")
-        if self.param.bbki.isRescueOsInstalled():
+        if bbki.isRescueOsInstalled():
             print("    Installed")
         else:
             print("    Not installed")
 
         if self.param.runMode in ["normal", "setup"]:
-            auxOsInfo = self.param.bbki.getAuxOsInfo()
+            auxOsInfo = bbki.getAuxOsInfo()
             if len(auxOsInfo) > 0:
                 print("Auxillary OSes:")
                 for item in auxOsInfo:
@@ -342,6 +345,7 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
+        bbki = BbkiWrapper()
         layout = strict_hdds.parse_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
@@ -356,7 +360,7 @@ class FmMain:
         else:
             assert False
 
-        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), layout)
+        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), bbki, layout)
 
         return 0
 
@@ -365,6 +369,7 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
+        bbki = BbkiWrapper()
         layout = strict_hdds.parse_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
@@ -382,7 +387,7 @@ class FmMain:
         else:
             assert False
 
-        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), layout)
+        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), bbki, layout)
 
         return 0
 
@@ -555,13 +560,14 @@ class FmMain:
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
-        with self.param.bbki.boot_dir_writer:
+        bbki = BbkiWrapper()
+        with bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
-            self.param.bbki.installOrUpdateRescueOs(self.param.tmpDirOnHdd)
+            bbki.installOrUpdateRescueOs(self.param.tmpDirOnHdd)
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            self.param.bbki.updateBootloaderAfterRescueOsChange()
+            bbki.updateBootloaderAfterRescueOsChange()
             print("")
 
         return 0
@@ -571,19 +577,19 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        self.param.sysChecker.baiscCheckStorage()
-
-        if not self.param.bbki.isRescueOsInstalled():
+        self.param.sysChecker.basicCheckWithOverlayContent()
+        bbki = BbkiWrapper()
+        if not bbki.isRescueOsInstalled():
             print("Rescue OS is not installed.", file=sys.stderr)
             return 1
 
-        with self.param.bbki.boot_dir_writer:
+        with bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
-            self.param.bbki.uninstallRescueOs()
+            bbki.uninstallRescueOs()
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            self.param.bbki.updateBootloaderAfterRescueOsChange()
+            bbki.updateBootloaderAfterRescueOsChange()
             print("")
 
         return 0

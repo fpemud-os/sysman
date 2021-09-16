@@ -15,8 +15,7 @@ from fm_util import ArchLinuxBasedOsBuilder
 
 class FmBbkiWrapper:
 
-    def __init__(self, param):
-        self.param = param
+    def __init__(self):
         self._bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
 
         self.filesDir = os.path.join(FmConst.dataDir, "rescue", "rescueos")

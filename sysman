@@ -181,7 +181,6 @@ try:
 
         param.infoPrinter = InfoPrinter()
         param.machineInfoGetter = FmMachineInfoGetter(param)
-        param.bbki = FmBbkiWrapper(param)
         param.pkgManager = FmPkgman(param)
         param.swapManager = FmSwapManager(param)
         param.logManager = FmLoggingManager(param)

@@ -7,6 +7,7 @@ from fm_util import FmUtil
 from fm_param import FmConst
 from client_build_server import BuildServerSelector
 from helper_dyncfg import DynCfgModifier
+from helper_bbki import BbkiWrapper
 
 
 class FmSysCleaner:
@@ -20,8 +21,6 @@ class FmSysCleaner:
         self.opCleanKcache = os.path.join(FmConst.libexecDir, "op-clean-kcache.py")
 
     def clean(self, bPretend):
-        layout = strict_hdds.parse_storage_layout()
-
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
         if True:
@@ -49,9 +48,10 @@ class FmSysCleaner:
         # clean old kernel files
         self.infoPrinter.printInfo(">> Removing old kernel files...")
         if True:
+            bbki = BbkiWrapper()
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             bFileRemoved = False
-            with self.param.bbki.boot_dir_writer:
+            with bbki.boot_dir_writer:
                 self._exec(buildServer, self.opCleanKernel, "%d" % (bPretend), resultFile)
                 if buildServer is None:
                     with open(resultFile, "r", encoding="iso8859-1") as f:
@@ -71,9 +71,10 @@ class FmSysCleaner:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                     else:
-                        self.param.bbki.updateBootloaderAfterCleaning()
+                        bbki.updateBootloaderAfterCleaning()
                     print("")
 
+            layout = strict_hdds.parse_storage_layout()
             if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
                 src, dstList = layout.get_esp_sync_info()
                 if bFileRemoved and len(dstList) > 0:

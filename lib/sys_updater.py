@@ -8,6 +8,7 @@ from fm_util import FmUtil
 from fm_util import ParallelRunSequencialPrint
 from fm_param import FmConst
 from client_build_server import BuildServerSelector
+from helper_bbki import BbkiWrapper
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import CloudOverlayDb
 from helper_dyncfg import DynCfgModifier
@@ -26,13 +27,14 @@ class FmSysUpdater:
         self.opEmerge9999 = os.path.join(FmConst.libexecDir, "op-emerge-9999.py")
 
     def update(self, bSync, bFetchAndBuild):
+        bbki = BbkiWrapper()
         layout = strict_hdds.parse_storage_layout()
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
 
         # set system to unstable status
-        if self.param.bbki.isStable():
-            self.param.bbki.setStable(False)
+        if bbki.isStable():
+            bbki.setStable(False)
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -68,7 +70,7 @@ class FmSysUpdater:
                 else:
                     startCoro = FmUtil.asyncStartCmdExec
                     waitCoro = FmUtil.asyncWaitCmdExec
-                for repo in self.param.bbki.repositories:
+                for repo in bbki.repositories:
                     prspObj.add_task(
                         startCoro, [self.opSync, "sync-bbki-repo", repo.name],
                         waitCoro,
@@ -175,8 +177,8 @@ class FmSysUpdater:
             kernelCfgRules = json.dumps(self.param.machineInfoGetter.hwInfo().kernelCfgRules)
 
             # install kernel, initramfs and bootloader
-            with self.param.bbki.boot_dir_writer:
-                self.infoPrinter.printInfo(">> Installing kernel-%s..." % (self.param.bbki.get_kernel_atom().ver))
+            with bbki.boot_dir_writer:
+                self.infoPrinter.printInfo(">> Installing kernel-%s..." % (bbki.get_kernel_atom().ver))
                 if True:
                     self._exec(buildServer, self.opInstallKernel, kernelCfgRules, resultFile)
                     # kernelBuilt, postfix = self._parseKernelBuildResult(self._readResultFile(buildServer, resultFile))
@@ -192,14 +194,14 @@ class FmSysUpdater:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT create initramfs!!!" % (self.param.runMode))
                     else:
-                        self.param.bbki.installInitramfs(layout)
+                        bbki.installInitramfs(layout)
                     print("")
 
                 self.infoPrinter.printInfo(">> Updating boot-loader...")
                 if self.param.runMode == "prepare":
                     print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                 else:
-                    self.param.bbki.updateBootloader(layout)
+                    bbki.updateBootloader(layout)
                 print("")
 
             # synchronize boot partitions
@@ -241,10 +243,11 @@ class FmSysUpdater:
             buildServer.dispose()
 
     def stablize(self):
+        bbki = BbkiWrapper()
         layout = strict_hdds.parse_storage_layout()
 
         self.infoPrinter.printInfo(">> Stablizing...")
-        self.param.bbki.setStable(True)
+        bbki.setStable(True)
         print("")
 
         if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
@@ -256,19 +259,19 @@ class FmSysUpdater:
                         layout.sync_esp(src, dst)
                 print("")
 
-    def updateAfterHddAddOrRemove(self, hwInfo, layout):
-        pendingBe = self.param.bbki.get_pending_boot_entry()
+    def updateAfterHddAddOrRemove(self, hwInfo, bbki, layout):
+        pendingBe = bbki.get_pending_boot_entry()
         if pendingBe is None:
             raise Exception("No kernel in /boot, you should build a kernel immediately!")
 
         # re-create initramfs
-        with self.param.bbki.boot_dir_writer:
+        with bbki.boot_dir_writer:
             self.infoPrinter.printInfo(">> Recreating initramfs...")
-            self.param.bbki.installInitramfs(layout)
+            bbki.installInitramfs(layout)
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            self.param.bbki.updateBootloader(layout)
+            bbki.updateBootloader(layout)
             print("")
 
         # synchronize boot partitions

@@ -17,6 +17,7 @@ import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_param import FmConst
+from helper_bbki import BbkiWrapper
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import RepositoryCheckError
 from helper_pkg_warehouse import OverlayCheckError
@@ -89,7 +90,7 @@ class FmSysChecker:
                     self._checkPreMountRootfsLayout()
 
             with self.infoPrinter.printInfoAndIndent("- Check BIOS, bootloader, initramfs and kernel..."):
-                self.param.bbki.check(self.bAutoFix, self.infoPrinter.printError)
+                BbkiWrapper().check(self.bAutoFix, self.infoPrinter.printError)
 
             with self.infoPrinter.printInfoAndIndent(">> Check operating system..."):
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):
