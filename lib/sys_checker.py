@@ -72,6 +72,9 @@ class FmSysChecker:
         self.bAutoFix = bAutoFix
         self.infoPrinter = self.param.infoPrinter
         try:
+            with self.infoPrinter.printInfoAndIndent(">> Prepare..."):
+                self.basicCheck()
+
             with self.infoPrinter.printInfoAndIndent(">> Check hardware..."):
                 self._checkHarddisks(deepHardwareCheck)
                 self._checkCooling()
