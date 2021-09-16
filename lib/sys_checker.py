@@ -789,22 +789,26 @@ class FmSysChecker:
             self.__initCheckAndFixEtcDirContent(FmConst.portageCfgLicDir)
 
             # standard files
-            self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgLicDir, "01-base",               # /etc/portage/package.license/01-base
+            self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgLicDir, "?-base",                # /etc/portage/package.license/01-base
                                                    commonDir, "package.license")
 
             # remove redundant files
             self.__endCheckAndFixEtcDirContent(FmConst.portageCfgLicDir)
 
-        # check /etc/portage/package.env directory
+        # check /etc/portage/package.env and /etc/portage/env directory
         self.__checkAndFixEtcDir(FmConst.portageCfgEnvDir)
+        self.__checkAndFixEtcDir(FmConst.portageCfgEnvDataDir)
         if True:
             self.__initCheckAndFixEtcDirContent(FmConst.portageCfgEnvDir)
-
-            # standard files
             self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgEnvDir, "01-base",               # /etc/portage/package.env/01-base
                                                    commonDir, "package.env")
+            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgEnvDir)
+
+
+            self.__initCheckAndFixEtcDirContent(FmConst.portageCfgEnvDataDir)
             self.__checkAndFixEtcDirContentSymlink(FmConst.portageCfgEnvDataDir, "01-base",           # /etc/portage/env/01-base (directory symlink)
                                                    commonDir, "env.base")
+            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgEnvDataDir)
 
             # /etc/portage/package.env/01-base and /etc/portage/env/01-base should be consistent
             with open(os.path.join(FmConst.portageCfgEnvDir, "01-base"), "r") as f:
@@ -816,12 +820,6 @@ class FmSysChecker:
                 dirList = FmUtil.getFileList(os.path.join(FmConst.portageCfgEnvDataDir, "01-base"), 2, "d")
                 if set(lineList) != set(dirList):
                     raise FmCheckException("invalid content in %s" % (os.path.join(FmConst.portageCfgEnvDir, "01-base")))
-
-            # remove redundant files
-            self.__endCheckAndFixEtcDirContent(FmConst.portageCfgEnvDir)
-
-        # check /etc/portage/env directory
-        self.__checkAndFixEtcDir(FmConst.portageCfgEnvDataDir)
 
         # check /etc/portage/bbki.kernel
         self.__checkAndFixEtcSymlink(FmConst.bbkiKernelFile, os.path.join(commonDir, "bbki.kernel"))
