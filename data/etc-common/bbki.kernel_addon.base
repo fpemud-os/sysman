@@ -1,4 +1,4 @@
-inux-addon/linux-firmware
+linux-addon/linux-firmware
 linux-addon/wireless-regdb
 linux-addon/amdgpu-unofficial-firmware
 linux-addon/vhba-module
