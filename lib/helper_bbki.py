@@ -13,7 +13,7 @@ from fm_util import FmUtil
 from fm_util import ArchLinuxBasedOsBuilder
 
 
-class FmBbkiWrapper:
+class BbkiWrapper:
 
     def __init__(self):
         self._bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))

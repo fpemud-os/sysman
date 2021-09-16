@@ -15,7 +15,6 @@ from fm_util import InfoPrinter
 from fm_util import SingletonProcess
 from fm_param import FmParam
 from sys_machine_info import FmMachineInfoGetter
-from sys_bbki import FmBbkiWrapper
 from sys_pkgman import FmPkgman
 from sys_misc import FmSwapManager
 from sys_misc import FmLoggingManager
