@@ -780,6 +780,7 @@ class FmSysChecker:
         if True:
             self.__initCheckAndFixEtcSymlink()
 
+            # standard files
             self.__checkAndFixEtcSymlink(FmConst.portageCfgInFocusDir, "?-base",            # /etc/portage/package.in_focus/01-base
                                          commonDir, "package.in_focus")
 
@@ -790,6 +791,8 @@ class FmSysChecker:
         # check /etc/portage/package.license directory
         self.__checkAndFixEtcDir(FmConst.portageCfgLicDir)
         if True:
+            self.__initCheckAndFixEtcSymlink()
+
             # standard files
             self.__checkAndFixEtcSymlink(FmConst.portageCfgLicDir, "01-base",               # /etc/portage/package.license/01-base
                                          commonDir, "package.license")
@@ -801,6 +804,8 @@ class FmSysChecker:
         # check /etc/portage/package.env directory
         self.__checkAndFixEtcDir(FmConst.portageCfgEnvDir)
         if True:
+            self.__initCheckAndFixEtcSymlink()
+
             # standard files
             self.__checkAndFixEtcSymlink(FmConst.portageCfgEnvDir, "01-base",               # /etc/portage/package.env/01-base
                                          commonDir, "package.env")
@@ -831,6 +836,8 @@ class FmSysChecker:
         # check /etc/portage/bbki.kernel_addon directory
         self.__checkAndFixEtcDir(FmConst.bbkiKernelAddonDir)
         if True:
+            self.__initCheckAndFixEtcSymlink()
+
             # standard files
             self.__checkAndFixEtcSymlink(FmConst.bbkiKernelAddonDir, "?-base",            # /etc/portage/bbki.kernel_addon/01-base
                                          commonDir, "bbki.kernel_addon.base")
@@ -842,6 +849,8 @@ class FmSysChecker:
         # check /etc/portage/bbki.mask directory
         self.__checkAndFixEtcDir(FmConst.bbkiMaskDir)
         if True:
+            self.__initCheckAndFixEtcSymlink()
+
             # standard files
             self.__checkAndFixEtcSymlink(FmConst.bbkiMaskDir, "?-not_adapted",            # /etc/portage/bbki.mask/01-not_adapted
                                          commonDir, "bbki.mask.not_adapted")
@@ -1410,6 +1419,9 @@ class FmSysChecker:
             fullfn = os.path.join(etcDir, fn)
             if os.path.islink(fullfn) and fullfn not in self._etcSymLinkList:
                 os.unlink(fullfn)
+
+        del self._etcSymLinkList
+        del self._etcSymIndex
 
     def __checkAndFixFile(self, filename, content):
         if os.path.exists(filename):
