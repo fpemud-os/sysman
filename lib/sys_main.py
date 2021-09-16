@@ -3,8 +3,6 @@
 
 import os
 import sys
-import bbki
-import bbki.util
 import pyudev
 import strict_pgs
 import strict_hdds
