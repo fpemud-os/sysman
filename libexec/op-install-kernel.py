@@ -48,10 +48,6 @@ if not kernelBuildNeeded:
     if not bbki.util.compare_kernel_config_files(bootEntry.kernel_config_filepath, kernelBuilder.get_progress().kernel_config_filepath):
         kernelBuildNeeded = True
 
-with PrintLoadAvgThread("        - Building..."):
-    if kernelBuildNeeded:
-        kernelBuilder.build()
-
 with PrintLoadAvgThread("        - Installing..."):
     if kernelBuildNeeded:
         kernelBuilder.install()
