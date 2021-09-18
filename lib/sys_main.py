@@ -101,9 +101,9 @@ class FmMain:
             assert False
 
         print("Boot mode:")
-        if bbki.util.get_boot_mode() == bbkiObj.BootMode.EFI:
+        if bbki.util.get_boot_mode() == bbki.BootMode.EFI:
             print("    UEFI")
-        elif bbki.util.get_boot_mode() == bbkiObj.BootMode.BIOS:
+        elif bbki.util.get_boot_mode() == bbki.BootMode.BIOS:
             print("    BIOS")
         else:
             assert False
