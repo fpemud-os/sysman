@@ -119,6 +119,9 @@ class BbkiWrapper:
     def get_initramfs_atom(self):
         return self._bbkiObj.get_initramfs_atom()
 
+    def fetch(self, atom):
+        return self._bbkiObj.fetch(atom)
+
     def getAuxOsInfo(self):
         ret = []
         for line in FmUtil.cmdCall("/usr/bin/os-prober").split("\n"):
