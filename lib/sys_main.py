@@ -4,6 +4,7 @@
 import os
 import sys
 import pyudev
+import bbki.util
 import strict_pgs
 import strict_hdds
 from fm_util import FmUtil
