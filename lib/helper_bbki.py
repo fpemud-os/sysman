@@ -59,7 +59,7 @@ class BbkiWrapper:
             raise Exception("multiple boot entries")
         self._bbkiObj.install_bootloader(self._bbkiBootMode(layout), self._bbkiStorageInfo(layout), beList[0], self.getAuxOsInfo(), "")
 
-    def isRescurOsInstalled(self):
+    def isRescueOsInstalled(self):
         return os.path.exists(self._bbkiObj.rescue_os_spec.root_dir)
 
     def installOrUpdateRescueOs(self, tmpDir):
