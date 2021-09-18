@@ -3,9 +3,8 @@
 
 import os
 import sys
-import bbki
 sys.path.append('/usr/lib64/fpemud-os-sysman')
-from fm_param import FmConst
+from helper_bbki import BbkiWrapper
 
 
 bPretend = (sys.argv[1] != "0")
@@ -14,7 +13,7 @@ resultFile = sys.argv[2]
 
 
 print("        - Processing...")
-bbkiObj = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
+bbkiObj = BbkiWrapper()
 bootFileList, moduleFileList, firmwareFileList = bbkiObj.clean_boot_entry_files(pretend=bPretend)
 
 # show file list to be removed in boot directory

@@ -79,7 +79,7 @@ class Main:
                     # do real work
                     with _FakeUsrSrcLinuxDirectory(prefix="/mnt/gentoo"):
                         with _CopyResolvConf("/etc/resolv.conf", "/mnt/gentoo"):
-                            subprocess.run("FPEMUD_REFSYSTEM_SETUP=1 /usr/bin/chroot /mnt/gentoo /bin/sh", shell=True)
+                            subprocess.run("FPEMUD_OS_SETUP=1 /usr/bin/chroot /mnt/gentoo /bin/sh", shell=True)
 
         return 0
 

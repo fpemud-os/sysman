@@ -8,23 +8,22 @@ import bbki
 import bbki.util
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import PrintLoadAvgThread
-from fm_param import FmConst
+from helper_bbki import BbkiWrapper
 
 
 kernelCfgRules = json.loads(sys.argv[1])
 resultFile = sys.argv[2]
-
-obj = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
+bbkiObj = BbkiWrapper()
 
 print("        - Fetching...")
-kernelAtom = obj.get_kernel_atom()
-kernelAddonAtoms = obj.get_kernel_addon_atoms()
-initramfsAtom = obj.get_initramfs_atom()
+kernelAtom = bbkiObj.get_kernel_atom()
+kernelAddonAtoms = bbkiObj.get_kernel_addon_atoms()
+initramfsAtom = bbkiObj.get_initramfs_atom()
 for atom in [kernelAtom] + kernelAddonAtoms + [initramfsAtom]:
-    obj.fetch(atom)
+    bbkiObj.fetch(atom)
 
 print("        - Extracting...")
-kernelBuilder = obj.get_kernel_installer(kernelAtom, kernelAddonAtoms, initramfsAtom)
+kernelBuilder = bbkiObj.get_kernel_installer(kernelAtom, kernelAddonAtoms, initramfsAtom)
 kernelBuilder.unpack()
 
 print("        - Patching...")
@@ -33,7 +32,7 @@ kernelBuilder.patch_kernel()
 print("        - Generating .config file...")
 kernelBuilder.generate_kernel_config_file()
 
-bootEntry = obj.get_pending_boot_entry()
+bootEntry = bbkiObj.get_pending_boot_entry()
 kernelBuildNeeded = False
 if not kernelBuildNeeded:
     if bootEntry is None:

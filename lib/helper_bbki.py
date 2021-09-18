@@ -16,7 +16,13 @@ from fm_util import ArchLinuxBasedOsBuilder
 class BbkiWrapper:
 
     def __init__(self):
-        self._bbkiObj = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
+        if "FPEMUD_OS_PREPARE" in os.environ:
+            bSelfBoot = False
+        elif "FPEMUD_OS_SETUP" in os.environ:
+            bSelfBoot = False
+        else:
+            bSelfBoot = True
+        self._bbkiObj = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir), bSelfBoot)
 
         self.filesDir = os.path.join(FmConst.dataDir, "rescue", "rescueos")
         self.pkgListFile = os.path.join(self.filesDir, "packages")

@@ -155,14 +155,14 @@ def getArgParser():
 param = FmParam()
 args = getArgParser().parse_args()
 
-if "FPEMUD_REFSYSTEM_PREPARE" in os.environ:
+if "FPEMUD_OS_PREPARE" in os.environ:
     # prepare mode:
     #   we are running in a chrooted environment in the host machine.
     #   no storage layout
     #   no mount point should be manipulated.
     #   don't create initramfs or install any boot-loader.
     param.runMode = "prepare"
-elif "FPEMUD_REFSYSTEM_SETUP" in os.environ:
+elif "FPEMUD_OS_SETUP" in os.environ:
     # setup mode:
     #   we are running in a chrooted environment in the target machine.
     #   storage layout has been created, storage device has been mounted.
