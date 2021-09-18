@@ -26,6 +26,7 @@ from helper_pkg_merger import PkgMerger
 
 
 # TODO:
+# *. no 512 disk check
 # 1. partition 4k align check
 # 2. disk 2048 reserve check
 # 3. ssd io scheduler check
@@ -73,30 +74,30 @@ class FmSysChecker:
         self.bAutoFix = bAutoFix
         self.infoPrinter = self.param.infoPrinter
         try:
-            with self.infoPrinter.printInfoAndIndent(">> Prepare..."):
+            with self.infoPrinter.printInfoAndIndent(">> Preparing..."):
                 self.basicCheck()
 
-            with self.infoPrinter.printInfoAndIndent(">> Check hardware..."):
+            with self.infoPrinter.printInfoAndIndent(">> Checking hardware..."):
                 self._checkHarddisks(deepHardwareCheck)
                 self._checkCooling()
 
-            with self.infoPrinter.printInfoAndIndent(">> Check storage layout..."):
+            with self.infoPrinter.printInfoAndIndent(">> Checking storage layout..."):
                 self._checkStorageLayout()
 
-            with self.infoPrinter.printInfoAndIndent(">> Check file system layout..."):
+            with self.infoPrinter.printInfoAndIndent(">> Checking file system layout..."):
                 with self.infoPrinter.printInfoAndIndent("- Check rootfs..."):
                     self._checkRootfsLayout(deepFileSystemCheck)
                 with self.infoPrinter.printInfoAndIndent("- Check premount rootfs..."):
                     self._checkPreMountRootfsLayout()
 
-            with self.infoPrinter.printInfoAndIndent("- Check BIOS, bootloader, initramfs and kernel..."):
+            with self.infoPrinter.printInfoAndIndent("- Checking BIOS, bootloader, initramfs and kernel..."):
                 bbkiObj = BbkiWrapper()
                 with self.infoPrinter.printInfoAndIndent("- Check repositories..."):
                     bbkiObj.check_repositories(self.bAutoFix, self.infoPrinter.printError)
                 with self.infoPrinter.printInfoAndIndent("- Check boot entries..."):
                     bbkiObj.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
 
-            with self.infoPrinter.printInfoAndIndent(">> Check operating system..."):
+            with self.infoPrinter.printInfoAndIndent(">> Checking operating system..."):
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):
                     self._checkCpuFreqDriver()              # config in /sys
                     # self._checkMachineInfo()
@@ -122,7 +123,7 @@ class FmSysChecker:
                 with self.infoPrinter.printInfoAndIndent("- Check users and groups..."):
                     self._checkUsersAndGroups()
 
-            with self.infoPrinter.printInfoAndIndent(">> Check software packages..."):
+            with self.infoPrinter.printInfoAndIndent(">> Checking software packages..."):
                 for pkgNameVer in sorted(FmUtil.portageGetInstalledPkgAtomList(FmConst.portageDbDir)):
                     with self.infoPrinter.printInfoAndIndent("- Package %s:" % (pkgNameVer), bRecallable=True):
                         self._checkPackageContentFile(pkgNameVer)
@@ -130,7 +131,7 @@ class FmSysChecker:
                         self._checkPackageMd5(pkgNameVer)
                         self._checkPkgByScript(pkgNameVer)
 
-            with self.infoPrinter.printInfoAndIndent(">> Check cruft files..."):
+            with self.infoPrinter.printInfoAndIndent(">> Checking cruft files..."):
                 self._checkSystemCruft()
         finally:
             self.infoPrinter = None
