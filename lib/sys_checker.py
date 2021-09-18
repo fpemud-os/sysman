@@ -90,11 +90,11 @@ class FmSysChecker:
                     self._checkPreMountRootfsLayout()
 
             with self.infoPrinter.printInfoAndIndent("- Check BIOS, bootloader, initramfs and kernel..."):
-                bbki = BbkiWrapper()
+                bbkiObj = BbkiWrapper()
                 with self.infoPrinter.printInfoAndIndent("- Check repositories..."):
-                    bbki.check_repositories(self.bAutoFix, self.infoPrinter.printError)
+                    bbkiObj.check_repositories(self.bAutoFix, self.infoPrinter.printError)
                 with self.infoPrinter.printInfoAndIndent("- Check boot entries..."):
-                    bbki.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
+                    bbkiObj.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
 
             with self.infoPrinter.printInfoAndIndent(">> Check operating system..."):
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):

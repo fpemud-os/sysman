@@ -16,7 +16,7 @@ from fm_util import ArchLinuxBasedOsBuilder
 class BbkiWrapper:
 
     def __init__(self):
-        self._bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
+        self._bbkiObj = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
 
         self.filesDir = os.path.join(FmConst.dataDir, "rescue", "rescueos")
         self.pkgListFile = os.path.join(self.filesDir, "packages")
@@ -25,45 +25,45 @@ class BbkiWrapper:
 
     @property
     def repositories(self):
-        return self._bbki.repositories
+        return self._bbkiObj.repositories
 
     @property
     def boot_dir_writer(self):
-        return self._bbki.boot_dir_writer
+        return self._bbkiObj.boot_dir_writer
 
     def isStable(self):
-        return self._bbki.get_stable_flag()
+        return self._bbkiObj.get_stable_flag()
 
     def setStable(self, value):
-        self._bbki.set_stable_flag(value)
+        self._bbkiObj.set_stable_flag(value)
 
     def get_current_boot_entry(self):
-        return self._bbki.get_current_boot_entry()
+        return self._bbkiObj.get_current_boot_entry()
 
     def get_pending_boot_entry(self):
-        return self._bbki.get_pending_boot_entry()
+        return self._bbkiObj.get_pending_boot_entry()
 
     def installInitramfs(self, layout):
-        beList = self._bbki.get_boot_entries()
+        beList = self._bbkiObj.get_boot_entries()
         if len(beList) == 0:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        self._bbki.install_initramfs(self._bbki.get_initramfs_atom(), self._bbkiStorageInfo(layout), beList[0])
+        self._bbkiObj.install_initramfs(self._bbkiObj.get_initramfs_atom(), self._bbkiStorageInfo(layout), beList[0])
 
     def updateBootloader(self, layout):
-        beList = self._bbki.get_boot_entries()
+        beList = self._bbkiObj.get_boot_entries()
         if len(beList) == 0:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        self._bbki.install_bootloader(self._bbkiBootMode(layout), self._bbkiStorageInfo(layout), beList[0], self.getAuxOsInfo(), "")
+        self._bbkiObj.install_bootloader(self._bbkiBootMode(layout), self._bbkiStorageInfo(layout), beList[0], self.getAuxOsInfo(), "")
 
     def isRescurOsInstalled(self):
-        return os.path.exists(self._bbki.rescue_os_spec.root_dir)
+        return os.path.exists(self._bbkiObj.rescue_os_spec.root_dir)
 
     def installOrUpdateRescueOs(self, tmpDir):
-        robust_layer.simple_fops.mkdir(self._bbki.rescue_os_spec.root_dir)
+        robust_layer.simple_fops.mkdir(self._bbkiObj.rescue_os_spec.root_dir)
         builder = ArchLinuxBasedOsBuilder(self.mirrorList, FmConst.archLinuxCacheDir, tmpDir)
         try:
             if builder.bootstrapPrepare():
@@ -82,36 +82,36 @@ class BbkiWrapper:
                                  pkgList=FmUtil.readListFile(self.pkgListFile),
                                  localPkgFileList=localPkgFileList, fileList=fileList)
 
-            rootfsFn = os.path.join(self._bbki.rescue_os_spec.root_dir, "airootfs.sfs")
-            rootfsMd5Fn = os.path.join(self._bbki.rescue_os_spec.root_dir, "airootfs.sha512")
-            builder.squashRootfs(rootfsFn, rootfsMd5Fn, self._bbki.rescue_os_spec.kernel_filepath, self._bbki.rescue_os_spec.initrd_filepath)
+            rootfsFn = os.path.join(self._bbkiObj.rescue_os_spec.root_dir, "airootfs.sfs")
+            rootfsMd5Fn = os.path.join(self._bbkiObj.rescue_os_spec.root_dir, "airootfs.sha512")
+            builder.squashRootfs(rootfsFn, rootfsMd5Fn, self._bbkiObj.rescue_os_spec.kernel_filepath, self._bbkiObj.rescue_os_spec.initrd_filepath)
         except Exception:
-            shutil.rmtree(self._bbki.rescue_os_spec.root_dir)
+            shutil.rmtree(self._bbkiObj.rescue_os_spec.root_dir)
             raise
 
     def uninstallRescueOs(self):
-        robust_layer.simple_fops.rm(self._bbki.rescue_os_spec.root_dir)
+        robust_layer.simple_fops.rm(self._bbkiObj.rescue_os_spec.root_dir)
 
     def updateBootloaderAfterRescueOsChange(self):
-        self._bbki.update_bootloader()
+        self._bbkiObj.update_bootloader()
 
     def updateBootloaderAfterCleaning(self):
-        self._bbki.update_bootloader()
+        self._bbkiObj.update_bootloader()
 
     def check_repositories(self, autofix=False, error_callback=None):
-        return self._bbki.check_repositories(autofix, error_callback)
+        return self._bbkiObj.check_repositories(autofix, error_callback)
 
     def check_boot_entry_files(self, autofix=False, error_callback=None):
-        return self._bbki.check_boot_entry_files(autofix, error_callback)
+        return self._bbkiObj.check_boot_entry_files(autofix, error_callback)
 
     def get_kernel_atom(self):
-        return self._bbki.get_kernel_atom()
+        return self._bbkiObj.get_kernel_atom()
 
     def get_kernel_addon_atoms(self):
-        return self._bbki.get_kernel_addon_atoms()
+        return self._bbkiObj.get_kernel_addon_atoms()
 
     def get_initramfs_atom(self):
-        return self._bbki.get_initramfs_atom()
+        return self._bbkiObj.get_initramfs_atom()
 
     def getAuxOsInfo(self):
         ret = []

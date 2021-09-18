@@ -16,8 +16,8 @@ item = sys.argv[1]
 if item == "sync-bbki-repo":
     repoName = sys.argv[2]
     assert repoName == "main"
-    bbki = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
-    repo = bbki.repositories[0]
+    bbkiObj = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir))
+    repo = bbkiObj.repositories[0]
     repo.sync()
     sys.exit(0)
 

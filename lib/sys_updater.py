@@ -27,14 +27,14 @@ class FmSysUpdater:
         self.opEmerge9999 = os.path.join(FmConst.libexecDir, "op-emerge-9999.py")
 
     def update(self, bSync, bFetchAndBuild):
-        bbki = BbkiWrapper()
+        bbkiObj = BbkiWrapper()
         layout = strict_hdds.parse_storage_layout()
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
 
         # set system to unstable status
-        if bbki.isStable():
-            bbki.setStable(False)
+        if bbkiObj.isStable():
+            bbkiObj.setStable(False)
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -70,7 +70,7 @@ class FmSysUpdater:
                 else:
                     startCoro = FmUtil.asyncStartCmdExec
                     waitCoro = FmUtil.asyncWaitCmdExec
-                for repo in bbki.repositories:
+                for repo in bbkiObj.repositories:
                     prspObj.add_task(
                         startCoro, [self.opSync, "sync-bbki-repo", repo.name],
                         waitCoro,
@@ -177,8 +177,8 @@ class FmSysUpdater:
             kernelCfgRules = json.dumps(self.param.machineInfoGetter.hwInfo().kernelCfgRules)
 
             # install kernel, initramfs and bootloader
-            with bbki.boot_dir_writer:
-                self.infoPrinter.printInfo(">> Installing kernel-%s..." % (bbki.get_kernel_atom().ver))
+            with bbkiObj.boot_dir_writer:
+                self.infoPrinter.printInfo(">> Installing kernel-%s..." % (bbkiObj.get_kernel_atom().ver))
                 if True:
                     self._exec(buildServer, self.opInstallKernel, kernelCfgRules, resultFile)
                     # kernelBuilt, postfix = self._parseKernelBuildResult(self._readResultFile(buildServer, resultFile))
@@ -194,14 +194,14 @@ class FmSysUpdater:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT create initramfs!!!" % (self.param.runMode))
                     else:
-                        bbki.installInitramfs(layout)
+                        bbkiObj.installInitramfs(layout)
                     print("")
 
                 self.infoPrinter.printInfo(">> Updating boot-loader...")
                 if self.param.runMode == "prepare":
                     print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                 else:
-                    bbki.updateBootloader(layout)
+                    bbkiObj.updateBootloader(layout)
                 print("")
 
             # synchronize boot partitions
@@ -243,11 +243,11 @@ class FmSysUpdater:
             buildServer.dispose()
 
     def stablize(self):
-        bbki = BbkiWrapper()
+        bbkiObj = BbkiWrapper()
         layout = strict_hdds.parse_storage_layout()
 
         self.infoPrinter.printInfo(">> Stablizing...")
-        bbki.setStable(True)
+        bbkiObj.setStable(True)
         print("")
 
         if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
