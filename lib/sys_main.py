@@ -6,6 +6,7 @@ import sys
 import pyudev
 import strict_pgs
 import strict_hdds
+import bbki.util
 from fm_util import FmUtil
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
@@ -100,9 +101,9 @@ class FmMain:
             assert False
 
         print("Boot mode:")
-        if bbkiObj.util.get_boot_mode() == bbkiObj.BootMode.EFI:
+        if bbki.util.get_boot_mode() == bbkiObj.BootMode.EFI:
             print("    UEFI")
-        elif bbkiObj.util.get_boot_mode() == bbkiObj.BootMode.BIOS:
+        elif bbki.util.get_boot_mode() == bbkiObj.BootMode.BIOS:
             print("    BIOS")
         else:
             assert False

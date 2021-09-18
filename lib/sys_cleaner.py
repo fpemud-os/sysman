@@ -48,10 +48,10 @@ class FmSysCleaner:
         # clean old kernel files
         self.infoPrinter.printInfo(">> Removing old kernel files...")
         if True:
-            bbki = BbkiWrapper()
+            bbkiObj = BbkiWrapper()
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             bFileRemoved = False
-            with bbki.boot_dir_writer:
+            with bbkiObj.boot_dir_writer:
                 self._exec(buildServer, self.opCleanKernel, "%d" % (bPretend), resultFile)
                 if buildServer is None:
                     with open(resultFile, "r", encoding="iso8859-1") as f:
@@ -71,7 +71,7 @@ class FmSysCleaner:
                     if self.param.runMode == "prepare":
                         print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                     else:
-                        bbki.updateBootloaderAfterCleaning()
+                        bbkiObj.updateBootloaderAfterCleaning()
                     print("")
 
             layout = strict_hdds.parse_storage_layout()
