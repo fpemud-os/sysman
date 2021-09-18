@@ -2,5 +2,7 @@ linux-addon/linux-firmware
 linux-addon/wireless-regdb
 linux-addon/bluez-firmware
 linux-addon/amdgpu-unofficial-firmware
+linux-addon/ipw2100-firmware
+linux-addon/ipw2200-firmware
 linux-addon/vhba-module
 linux-addon/virtualbox-modules
