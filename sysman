@@ -134,7 +134,7 @@ def getArgParser():
     parser2 = subparsers.add_parser("uninstall-rescue-os", help="Uninstall rescue operating system")
     parser2.set_defaults(op="uninstall-rescue-os")
 
-    parser2 = subparsers.add_parser("build-rescue-disk", help="Build an rescue disk")
+    parser2 = subparsers.add_parser("build-rescue-disk", help="Build a rescue disk")
     parser2.set_defaults(op="build-rescue-disk")
     parser2.add_argument("devpath")
 
