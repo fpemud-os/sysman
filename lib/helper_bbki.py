@@ -122,6 +122,9 @@ class BbkiWrapper:
     def fetch(self, atom):
         return self._bbkiObj.fetch(atom)
 
+    def get_kernel_installer(self, kernel_atom, kernel_addon_atom_list, initramfs_atom=None):
+        return self._bbkiObj.get_kernel_installer(kernel_atom, kernel_addon_atom_list, initramfs_atom)
+
     def getAuxOsInfo(self):
         ret = []
         for line in FmUtil.cmdCall("/usr/bin/os-prober").split("\n"):
