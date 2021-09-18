@@ -363,10 +363,6 @@ class EbuildRepositories:
     def getRepositoryList(self):
         return list(self._repoInfoDict.keys())
 
-    def isRepoExist(self, repoName):
-        assert repoName in self._repoInfoDict
-        return os.path.exists(os.path.join(FmConst.portageDataDir, "repo-%s" % (repoName)))
-
     def getRepoCfgReposFile(self, repoName):
         # returns /etc/portage/repos.conf/repo-XXXX.conf
         assert repoName in self._repoInfoDict
@@ -375,6 +371,10 @@ class EbuildRepositories:
     def getRepoDir(self, repoName):
         assert repoName in self._repoInfoDict
         return os.path.join(FmConst.portageDataDir, "repo-%s" % (repoName))
+
+    def isRepoExist(self, repoName):
+        assert repoName in self._repoInfoDict
+        return os.path.exists(self.getRepoCfgReposFile(repoName))
 
     def getRepoMetadata(self, repoName, key):
         # meta-data:
