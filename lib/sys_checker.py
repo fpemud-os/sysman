@@ -234,8 +234,6 @@ class FmSysChecker:
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
             if layout.name == "bios-simple":
                 pass
-            elif layout.name == "bios-lvm":
-                pass
             elif layout.name == "efi-simple":
                 pass
             elif layout.name == "efi-lvm":
@@ -261,8 +259,6 @@ class FmSysChecker:
             #         fatFsckCmd = "/usr/sbin/fsck.vfat -n"
 
             #     if isinstance(layout, FmStorageLayoutBiosSimple):
-            #         pass
-            #     elif isinstance(layout, FmStorageLayoutBiosLvm):
             #         pass
             #     elif isinstance(layout, FmStorageLayoutEfiSimple):
             #         FmUtil.shellExec("%s %s" % (fatFsckCmd, layout.hddEspParti))
@@ -315,7 +311,7 @@ class FmSysChecker:
                 if layout.check_swap_size():
                     break
 
-                if layout.name in ["bios-simple", "bios-lvm"]:
+                if layout.name in ["bios-simple", "efi-simple"]:
                     if self.bAutoFix:
                         if bEnabled:
                             self.param.swapManager.disableSwap(layout)
@@ -328,7 +324,7 @@ class FmSysChecker:
                         self.infoPrinter.printError("Swap file has invalid size.")
                     break
 
-                if layout.name in ["efi-simple", "efi-lvm"]:
+                if layout.name == "efi-lvm":
                     if self.bAutoFix:
                         if bEnabled:
                             self.param.swapManager.disableSwap(layout)

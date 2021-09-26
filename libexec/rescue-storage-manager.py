@@ -96,15 +96,6 @@ class Main:
             print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.hdd, swapStr))
             return 0
 
-        if layout.name == "bios-lvm":
-            extraStr = " ("
-            if layout.lvmSwapLv is not None:
-                extraStr += "has swap, "
-            extraStr += "boot disk: %s" % (layout.bootHdd)
-            extraStr += ")"
-            print("Storage layout: %s, LVM PVs: %s%s" % (layout.name, " ".join(layout.lvmPvHddList), extraStr))
-            return 0
-
         if layout.name == "bios-simple":
             if layout.swapFile is not None:
                 swapStr = " (with swap)"
@@ -124,10 +115,6 @@ class Main:
         if self.args.layout_name == "bios-simple":
             print("Root device: %s" % (layout.dev_rootfs))
             print("Swap file: None")
-        elif self.args.layout_name == "bios-lvm":
-            print("Root device: %s" % (layout.get_root_dev()))
-            print("Swap device: None")
-            print("Boot disk: %s" % (layout.get_boot_disk()))
         elif self.args.layout_name == "efi-simple":
             print("Root device: %s" % (layout.get_root_dev()))
             print("Swap file: None")

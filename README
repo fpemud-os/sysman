@@ -150,10 +150,10 @@ Rescue Facility:
 Storage layout:
   there're 5 storage layouts:
     1. bios-simple:
-    2. bios-lvm:
-    3. efi-simple:
-    4. efi-lvm:
-    5. efi-lvm-bcache:
+    2. efi-simple:
+    3. efi-btrfs:
+    4. efi-bcache-btrfs:
+    3. efi-lvm-bcache:
 
 
 Kernel flag:

@@ -23,7 +23,7 @@ class FmSwapManager:
             self._enableSwapService(layout.dev_swap, serviceName)
             return
 
-        if layout.name in ["bios-lvm", "efi-lvm"]:
+        if layout.name == "efi-lvm":
             if layout.dev_swap is None:
                 layout.create_swap_lv()
             serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
@@ -54,7 +54,7 @@ class FmSwapManager:
 
         if layout.name in ["bios-simple", "efi-simple"]:
             layout.remove_swap_file()
-        elif layout.name in ["bios-lvm", "efi-lvm"]:
+        elif layout.name == "efi-lvm":
             layout.remove_swap_lv()
         elif layout.name == "efi-bcache-lvm":
             pass

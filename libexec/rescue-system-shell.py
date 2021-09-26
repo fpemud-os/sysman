@@ -36,7 +36,7 @@ class Main:
             print("Error: Invalid storage layout.")
             return 1
 
-        if layout.name in ["bios-simple", "bios-lvm"]:
+        if layout.name == "bios-simple":
             bootDev = None
         elif layout.name in ["efi-simple", "efi-lvm", "efi-bcache-lvm"]:
             bootDev = layout.get_esp()

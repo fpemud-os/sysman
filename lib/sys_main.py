@@ -156,9 +156,6 @@ class FmMain:
                 if layout.name == "bios-simple":
                     print("    Boot disk: %s" % (layout.get_boot_disk()))
                     print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
-                elif layout.name == "bios-lvm":
-                    print("    Boot disk: %s" % (layout.get_boot_disk()))
-                    print("    LVM PVs: %s (total: %s)" % (" ".join(layout.get_disk_list()), totalSize(layout.get_disk_list(), "1")))
                 elif layout.name == "efi-simple":
                     print("    Boot disk: %s" % (layout.get_boot_disk()))
                     print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
@@ -352,7 +349,7 @@ class FmMain:
 
         if layout.name in ["bios-simple", "efi-simple"]:
             raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
-        elif layout.name in ["bios-lvm", "efi-lvm", "efi-bcache-lvm"]:
+        elif layout.name in ["efi-lvm", "efi-bcache-lvm"]:
             self.infoPrinter.printInfo(">> Adding harddisk...")
             layout.add_disk(devpath)
             print("")
@@ -376,7 +373,7 @@ class FmMain:
 
         if layout.name in ["bios-simple", "efi-simple"]:
             raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
-        elif layout.name in ["bios-lvm", "efi-lvm", "efi-bcache-lvm"]:
+        elif layout.name in ["efi-lvm", "efi-bcache-lvm"]:
             self.infoPrinter.printInfo(">> Move data in %s to other place..." % (devpath))
             layout.release_disk(devpath)
             print("")
@@ -405,7 +402,7 @@ class FmMain:
         if layout.name in ["bios-simple", "efi-simple"]:
             swapSizeStr = FmUtil.formatSize(os.path.getsize(layout.dev_swap))
             print("Swap File: %s (size:%s)" % (layout.dev_swap, swapSizeStr))
-        elif layout.name in ["bios-lvm", "efi-lvm"]:
+        elif layout.name == "efi-lvm":
             uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.dev_swap).get("ID_FS_UUID")
             swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.dev_swap))
             print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.dev_swap, uuid, swapSizeStr))
