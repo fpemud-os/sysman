@@ -11,11 +11,7 @@ try:
     # check
     if re.search("^DynamicUser=true$", buf, re.M) is None:
         raise ValueError()
-    if re.search("^PrivateDevices=true$", buf, re.M) is None:
-        raise ValueError()
     if re.search("^CapabilityBoundingSet=$", buf, re.M) is None:
-        raise ValueError()
-    if re.search("^ProtectClock=true$", buf, re.M) is None:
         raise ValueError()
     if re.search("^ProtectKernelModules=true$", buf, re.M) is None:
         raise ValueError()
@@ -26,9 +22,7 @@ try:
     # 1. /usr/bin/randomx_boost.sh
     # 2. built-in msr operation
     buf = buf.replace("DynamicUser=true", "#DynamicUser=true")
-    buf = buf.replace("PrivateDevices=true", "#PrivateDevices=true")
     buf = buf.replace("CapabilityBoundingSet=", "#CapabilityBoundingSet=")
-    buf = buf.replace("ProtectClock=true", "#ProtectClock=true")
     buf = buf.replace("ProtectKernelModules=true", "#ProtectKernelModules=true")
     buf = buf.replace("PrivateUsers=true", "#PrivateUsers=true")
 
