@@ -52,6 +52,8 @@ class FmConst:
 
     userDefaultPassword = "123456"
 
+    supportOsProber = True
+
     buildServerDefaultPort = 2108
     buildServerConfFile = os.path.join(portageCfgDir, "build-server.conf")
     myCertFile = os.path.join(portageCfgDir, "cert.pem")

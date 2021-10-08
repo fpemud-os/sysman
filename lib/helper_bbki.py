@@ -126,6 +126,9 @@ class BbkiWrapper:
         return self._bbkiObj.get_kernel_installer(kernel_atom, kernel_addon_atom_list, initramfs_atom)
 
     def getAuxOsInfo(self):
+        if not FmConst.supportOsProber:
+            return []
+
         ret = []
         for line in FmUtil.cmdCall("/usr/bin/os-prober").split("\n"):
             itemList = line.split(":")
