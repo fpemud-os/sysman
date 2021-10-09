@@ -7,7 +7,7 @@ import pathlib
 try:
     installMask = """
 ## patched by fpemud-refsystem ####
-rm -f ${D}/etc/initramfs-tools
+rm -rf ${D}/etc/initramfs-tools
 ## end ####"""
     installMask = installMask.replace("\n", "\n\t")
     installMask += "\n"
