@@ -86,17 +86,17 @@
 # don't enable upnp by default
 */*                                                                                                       -upnp
 
-# preference: gstreamer -> alsa, pipewire should not be used directly
+# preference: gstreamer -> pipewire -> alsa
 app-emulation/wine-vanilla                                                                                alsa            # gstreamer support in wine is not an alsa replacement
 app-emulation/wine-staging                                                                                alsa            # gstreamer support in wine is not an alsa replacement
-app-emulation/virtualbox                                                                                  alsa            # does not and should not support gstreamer
-games-emulation/dosbox-staging                                                                            alsa            # doesn't support gstreamer
-media-libs/libsdl                                                                                         alsa            # doesn't support gstreamer
-media-libs/libsdl2                                                                                        alsa            # doesn't support gstreamer
-media-libs/mediastreamer2                                                                                 alsa            # doesn't support gstreamer
-media-sound/mpg123                                                                                        alsa            # doesn't support gstreamer
-media-video/mpv                                                                                           alsa            # doesn't support gstreamer
-net-im/zoom                                                                                               alsa            # doesn't support gstreamer
+app-emulation/virtualbox                                                                                  alsa            # does not and should not support gstreamer?
+games-emulation/dosbox-staging                                                                            alsa            # doesn't support gstreamer and pipewire
+media-libs/libsdl                                                                                         alsa            # doesn't support gstreamer and pipewire
+media-libs/libsdl2                                                                                        pipewire        # doesn't support gstreamer
+media-libs/mediastreamer2                                                                                 alsa            # doesn't support gstreamer and pipewire
+media-sound/mpg123                                                                                        alsa            # doesn't support gstreamer and pipewire
+media-video/mpv                                                                                           alsa            # doesn't support gstreamer and pipewire
+net-im/zoom                                                                                               alsa            # doesn't support gstreamer and pipewire
 
 # use dev-python/python-magic instead
 sys-apps/file                                                                                             -python
