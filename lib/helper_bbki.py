@@ -104,6 +104,9 @@ class BbkiWrapper:
     def updateBootloaderAfterCleaning(self):
         self._bbkiObj.update_bootloader()
 
+    def check_config(self, autofix=False, error_callback=None):
+        return self._bbkiObj.check_config(autofix, error_callback)
+
     def check_repositories(self, autofix=False, error_callback=None):
         return self._bbkiObj.check_repositories(autofix, error_callback)
 
