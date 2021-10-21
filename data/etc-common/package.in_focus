@@ -87,6 +87,8 @@ app-cdr/mirage2iso
 app-editors/hexedit
 app-misc/cpufetch
 app-misc/evtest
+app-misc/htmlq
+app-misc/jq
 app-misc/neofetch
 app-misc/screenfetch
 app-misc/trash-cli
