@@ -14,6 +14,9 @@ sys-devel/libtool          -~x86 -~amd64
 sys-devel/llvm             -~x86 -~amd64
 sys-devel/clang            -~x86 -~amd64
 
+# system utilities
+sys-apps/sandbox           -~x86 -~amd64
+
 # boost library
 dev-libs/boost             -~x86 -~amd64
 dev-util/boost-build       -~x86 -~amd64
