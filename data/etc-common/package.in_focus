@@ -87,6 +87,8 @@ app-cdr/mirage2iso
 app-editors/hexedit
 app-misc/cpufetch
 app-misc/evtest
+app-misc/htmlq
+app-misc/jq
 app-misc/neofetch
 app-misc/screenfetch
 app-misc/trash-cli
@@ -277,9 +279,11 @@ games-board/gnome-chess
 games-board/gnome-mahjongg
 games-board/gnome-mines
 x11-terms/gnome-terminal
+x11-themes/materia-theme                # FIXME
 
 ## desktop environment: KDE ########################################
 kde-apps/konsole
+x11-themes/materia-kde                  # FIXME
 
 ## desktop environment: MATE #######################################
 x11-terms/mate-terminal
