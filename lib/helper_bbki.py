@@ -4,6 +4,7 @@
 import os
 import re
 import bbki
+import bbki.etcdir_cfg
 import glob
 import shutil
 import strict_hdds
@@ -22,7 +23,7 @@ class BbkiWrapper:
             bSelfBoot = False
         else:
             bSelfBoot = True
-        self._bbkiObj = bbki.Bbki(bbki.EtcDirConfig(FmConst.portageCfgDir), bSelfBoot)
+        self._bbkiObj = bbki.Bbki(bbki.etcdir_cfg.Config(FmConst.portageCfgDir), bSelfBoot)
 
         self.filesDir = os.path.join(FmConst.dataDir, "rescue", "rescueos")
         self.pkgListFile = os.path.join(self.filesDir, "packages")
