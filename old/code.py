@@ -27,6 +27,15 @@
         proc = ptyprocess.PtyProcessUnicode.spawn(["/bin/sh", "-c", cmd], env=envDict)
         Util._communicateWithPtyStuckCheck(proc, bQuiet)
 
+    @staticmethod
+    def getMountDeviceForPath(pathname):
+        buf = Util.cmdCall("/bin/mount")
+        for line in buf.split("\n"):
+            m = re.search("^(.*) on (.*) type ", line)
+            if m is not None and m.group(2) == pathname:
+                return m.group(1)
+        return None
+
 
 
     @staticmethod
