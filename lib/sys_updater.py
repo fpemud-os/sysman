@@ -205,13 +205,13 @@ class FmSysUpdater:
                 print("")
 
             # synchronize boot partitions
-            if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm"]:
-                src, dstList = layout.get_esp_sync_info()
+            if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+                dstList = layout.get_pending_esp_list()
                 if len(dstList) > 0:
                     with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
                         for dst in dstList:
-                            self.infoPrinter.printInfo("        - %s to %s..." % (src, dst))
-                            layout.sync_esp(src, dst)
+                            self.infoPrinter.printInfo("        - %s to %s..." % (layout.get_esp(), dst))
+                            layout.sync_esp(layout.get_esp(), dst)
                     print("")
 
             # emerge @world
@@ -250,13 +250,13 @@ class FmSysUpdater:
         bbkiObj.setStable(True)
         print("")
 
-        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm"]:
-            src, dstList = layout.get_esp_sync_info()
+        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+            dstList = layout.get_pending_esp_list()
             if len(dstList) > 0:
                 with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
                     for dst in dstList:
-                        self.infoPrinter.printInfo("        - %s to %s..." % (src, dst))
-                        layout.sync_esp(src, dst)
+                        self.infoPrinter.printInfo("        - %s to %s..." % (layout.get_esp(), dst))
+                        layout.sync_esp(layout.get_esp(), dst)
                 print("")
 
     def updateAfterHddAddOrRemove(self, hwInfo, bbkiObj, layout):
@@ -275,13 +275,13 @@ class FmSysUpdater:
             print("")
 
         # synchronize boot partitions
-        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm"]:
-            src, dstList = layout.get_esp_sync_info()
+        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+            dstList = layout.get_pending_esp_list()
             if len(dstList) > 0:
                 with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
                     for dst in dstList:
-                        self.infoPrinter.printInfo("        - %s to %s..." % (src, dst))
-                        layout.sync_esp(src, dst)
+                        self.infoPrinter.printInfo("        - %s to %s..." % (layout.get_esp(), dst))
+                        layout.sync_esp(dst)
                 print("")
 
     def _exec(self, buildServer, *args, base64=False):

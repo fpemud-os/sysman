@@ -154,15 +154,15 @@ class FmMain:
                 print("    Name: %s" % (layout.name))
                 print("    State: ready")
                 if layout.name == "bios-ext4":
-                    print("    Boot disk: %s" % (layout.get_boot_disk()))
+                    print("    Boot disk: %s" % (layout.boot_disk))
                     print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
                 elif layout.name == "efi-ext4":
-                    print("    Boot disk: %s" % (layout.get_boot_disk()))
+                    print("    Boot disk: %s" % (layout.boot_disk))
                     print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
                 elif layout.name == "efi-lvm-ext4":
-                    print("    Boot disk: %s" % (layout.get_boot_disk()))
+                    print("    Boot disk: %s" % (layout.boot_disk))
                     print("    LVM PVs: %s (total: %s)" % (" ".join(layout.get_disk_list()), totalSize(layout.get_disk_list(), "2")))
-                elif layout.name == "efi-bcache-lvm":
+                elif layout.name == "efi-bcache-lvm-ext4":
                     if layout.get_ssd() is not None:
                         print("    SSD: %s (boot disk)" % (layout.get_ssd()))
                         if layout.get_ssd_swap_partition() is not None:
@@ -172,7 +172,7 @@ class FmMain:
                         print("    Cache partition: %s (%s)" % (layout.get_ssd_cache_partition(), partSize(layout.get_ssd_cache_partition())))
                     else:
                         print("    SSD: None")
-                        print("    Boot disk: %s" % (layout.get_boot_disk()))
+                        print("    Boot disk: %s" % (layout.boot_disk))
                     totalSize = 0
                     pvStrList = []
                     for hddDev, bcacheDev in layout.hddDict.items():
@@ -349,7 +349,7 @@ class FmMain:
 
         if layout.name in ["bios-ext4", "efi-ext4"]:
             raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
-        elif layout.name in ["efi-lvm-ext4", "efi-bcache-lvm"]:
+        elif layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
             self.infoPrinter.printInfo(">> Adding harddisk...")
             layout.add_disk(devpath)
             print("")
@@ -373,7 +373,7 @@ class FmMain:
 
         if layout.name in ["bios-ext4", "efi-ext4"]:
             raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
-        elif layout.name in ["efi-lvm-ext4", "efi-bcache-lvm"]:
+        elif layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
             self.infoPrinter.printInfo(">> Move data in %s to other place..." % (devpath))
             layout.release_disk(devpath)
             print("")
@@ -406,7 +406,7 @@ class FmMain:
             uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.dev_swap).get("ID_FS_UUID")
             swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.dev_swap))
             print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.dev_swap, uuid, swapSizeStr))
-        elif layout.name == "efi-bcache-lvm":
+        elif layout.name == "efi-bcache-lvm-ext4":
             uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.dev_swap).get("ID_FS_UUID")
             swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.dev_swap))
             print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.dev_swap, uuid, swapSizeStr))

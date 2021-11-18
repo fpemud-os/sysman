@@ -75,13 +75,13 @@ class FmSysCleaner:
                     print("")
 
             layout = strict_hdds.get_current_storage_layout()
-            if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm"]:
-                src, dstList = layout.get_esp_sync_info()
+            if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+                dstList = layout.get_pending_esp_list()
                 if bFileRemoved and len(dstList) > 0:
                     with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
                         for dst in dstList:
                             self.infoPrinter.printInfo("        - %s to %s..." % (src, dst))
-                            layout.sync_esp(src, dst)
+                            layout.sync_esp(layout.get_esp(), dst)
                     print("")
 
         # clean kcache

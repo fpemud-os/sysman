@@ -64,10 +64,10 @@ class Main:
             print("Storage layout: empty")
             return 1
 
-        if layout.name == "efi-bcache-lvm":
-            if layout.ssd is not None:
-                ssdStr = layout.ssd
-                if layout.ssdSwapParti is not None:
+        if layout.name == "efi-bcache-lvm-ext4":
+            if layout.get_ssd() is not None:
+                ssdStr = layout.get_ssd()
+                if layout.get_ssd_swap_partition() is not None:
                     swapStr = "(with swap)"
                 else:
                     swapStr = ""
@@ -75,33 +75,33 @@ class Main:
             else:
                 ssdStr = "None"
                 swapStr = ""
-                bootDiskStr = " (boot disk: %s)" % (layout.bootHdd)
-            print("Storage layout: %s, SSD: %s%s, LVM PVs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.lvmPvHddDict.keys()), bootDiskStr))
+                bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
+            print("Storage layout: %s, SSD: %s%s, LVM PVs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
             return 0
 
         if layout.name == "efi-lvm-ext4":
             extraStr = " ("
-            if layout.lvmSwapLv is not None:
+            if layout.dev_swap is not None:
                 extraStr += "has swap, "
-            extraStr += "boot disk: %s" % (layout.bootHdd)
+            extraStr += "boot disk: %s" % (layout.boot_disk)
             extraStr += ")"
-            print("Storage layout: %s, LVM PVs: %s%s" % (layout.name, " ".join(layout.lvmPvHddList), extraStr))
+            print("Storage layout: %s, LVM PVs: %s%s" % (layout.name, " ".join(layout.get_hdd_list()), extraStr))
             return 0
 
         if layout.name == "efi-ext4":
-            if layout.swapFile is not None:
+            if layout.dev_swap is not None:
                 swapStr = " (with swap)"
             else:
                 swapStr = ""
-            print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.hdd, swapStr))
+            print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.boot_disk, swapStr))
             return 0
 
         if layout.name == "bios-ext4":
-            if layout.swapFile is not None:
+            if layout.dev_swap is not None:
                 swapStr = " (with swap)"
             else:
                 swapStr = ""
-            print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.hdd, swapStr))
+            print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.boot_disk, swapStr))
             return 0
 
         assert False
@@ -116,15 +116,15 @@ class Main:
             print("Root device: %s" % (layout.dev_rootfs))
             print("Swap file: None")
         elif self.args.layout_name == "efi-ext4":
-            print("Root device: %s" % (layout.get_root_dev()))
+            print("Root device: %s" % (layout.dev_rootfs))
             print("Swap file: None")
         elif self.args.layout_name == "efi-lvm-ext4":
-            print("Root device: %s" % (layout.get_root_dev()))
+            print("Root device: %s" % (layout.dev_rootfs))
             print("Swap device: None")
             print("Boot disk: %s" % (layout.get_esp()))
         elif self.args.layout_name == "efi-bache-lvm":
-            print("Root device: %s" % (layout.get_root_dev()))
-            print("Swap device: %s" % (layout.swapDevice if layout.swapDevice is not None else "None"))
+            print("Root device: %s" % (layout.dev_rootfs))
+            print("Swap device: %s" % (layout.dev_swap if layout.dev_swap is not None else "None"))
             print("Boot disk: %s" % (layout.get_esp()))
         else:
             assert False
