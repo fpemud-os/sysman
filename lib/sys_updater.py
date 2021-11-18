@@ -28,7 +28,7 @@ class FmSysUpdater:
 
     def update(self, bSync, bFetchAndBuild):
         bbkiObj = BbkiWrapper()
-        layout = strict_hdds.parse_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
 
@@ -205,7 +205,7 @@ class FmSysUpdater:
                 print("")
 
             # synchronize boot partitions
-            if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
+            if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
                 src, dstList = layout.get_esp_sync_info()
                 if len(dstList) > 0:
                     with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
@@ -244,13 +244,13 @@ class FmSysUpdater:
 
     def stablize(self):
         bbkiObj = BbkiWrapper()
-        layout = strict_hdds.parse_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
 
         self.infoPrinter.printInfo(">> Stablizing...")
         bbkiObj.setStable(True)
         print("")
 
-        if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
+        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
             src, dstList = layout.get_esp_sync_info()
             if len(dstList) > 0:
                 with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
@@ -275,7 +275,7 @@ class FmSysUpdater:
             print("")
 
         # synchronize boot partitions
-        if layout.name in ["efi-lvm", "efi-bcache-lvm"]:
+        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
             src, dstList = layout.get_esp_sync_info()
             if len(dstList) > 0:
                 with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):

@@ -31,14 +31,14 @@ class Main:
             return 1
 
         # get storage layout for target system
-        layout = strict_hdds.get_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
         if layout is None:
             print("Error: Invalid storage layout.")
             return 1
 
-        if layout.name == "bios-simple":
+        if layout.name == "bios-ext4":
             bootDev = None
-        elif layout.name in ["efi-simple", "efi-lvm", "efi-bcache-lvm"]:
+        elif layout.name in ["efi-ext4", "efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
             bootDev = layout.get_esp()
         else:
             assert False

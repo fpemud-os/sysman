@@ -11,7 +11,7 @@ class FmSwapManager:
         self.param = param
 
     def enableSwap(self, layout):
-        if layout.name in ["bios-simple", "efi-simple"]:
+        if layout.name in ["bios-ext4", "efi-ext4"]:
             if layout.dev_swap is None:
                 layout.create_swap_file()
             serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
@@ -23,7 +23,7 @@ class FmSwapManager:
             self._enableSwapService(layout.dev_swap, serviceName)
             return
 
-        if layout.name == "efi-lvm":
+        if layout.name == "efi-lvm-ext4":
             if layout.dev_swap is None:
                 layout.create_swap_lv()
             serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
@@ -35,7 +35,7 @@ class FmSwapManager:
             self._enableSwapService(layout.dev_swap, serviceName)
             return
 
-        if layout.name == "efi-bcache-lvm":
+        if layout.name == "efi-bcache-lvm-ext4":
             if layout.dev_swap is None:
                 raise Exception("no swap partition")
             if not layout.check_swap_size():
@@ -52,11 +52,11 @@ class FmSwapManager:
         self._disableSwapService(layout.dev_swap, serviceName)
         self._removeSwapService(layout.dev_swap, serviceName)
 
-        if layout.name in ["bios-simple", "efi-simple"]:
+        if layout.name in ["bios-ext4", "efi-ext4"]:
             layout.remove_swap_file()
-        elif layout.name == "efi-lvm":
+        elif layout.name == "efi-lvm-ext4":
             layout.remove_swap_lv()
-        elif layout.name == "efi-bcache-lvm":
+        elif layout.name == "efi-bcache-lvm-ext4":
             pass
         else:
             assert False

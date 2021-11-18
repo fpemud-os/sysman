@@ -216,7 +216,7 @@ class FmSysChecker:
             self.infoPrinter.printError("No hard disk?!")
             return
 
-        layout = strict_hdds.parse_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
         if layout is None:
             self.infoPrinter.printError("No valid storage layout.")
             return
@@ -234,13 +234,13 @@ class FmSysChecker:
 
         # storage layout check
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
-            if layout.name == "bios-simple":
+            if layout.name == "bios-ext4":
                 pass
-            elif layout.name == "efi-simple":
+            elif layout.name == "efi-ext4":
                 pass
-            elif layout.name == "efi-lvm":
+            elif layout.name == "efi-lvm-ext4":
                 pass
-            elif layout.name == "efi-bcache-lvm":
+            elif layout.name == "efi-bcache-lvm-ext4":
                 if layout.get_ssd() is None:
                     self.infoPrinter.printError("Storage layout \"%s\" should have a cache device." % (layout.name))
                 for fn in glob.glob("/sys/block/bcache*"):
@@ -313,7 +313,7 @@ class FmSysChecker:
                 if layout.check_swap_size():
                     break
 
-                if layout.name in ["bios-simple", "efi-simple"]:
+                if layout.name in ["bios-ext4", "efi-ext4"]:
                     if self.bAutoFix:
                         if bEnabled:
                             self.param.swapManager.disableSwap(layout)
@@ -326,7 +326,7 @@ class FmSysChecker:
                         self.infoPrinter.printError("Swap file has invalid size.")
                     break
 
-                if layout.name == "efi-lvm":
+                if layout.name == "efi-lvm-ext4":
                     if self.bAutoFix:
                         if bEnabled:
                             self.param.swapManager.disableSwap(layout)
@@ -339,7 +339,7 @@ class FmSysChecker:
                         self.infoPrinter.printError("Swap LV has invalid size.")
                     break
 
-                if layout.name == "efi-bcache-lvm":
+                if layout.name == "efi-bcache-lvm-ext4":
                     # no way to auto-fix
                     self.infoPrinter.printError("Swap partition has invalid size.")
                     break
@@ -356,7 +356,7 @@ class FmSysChecker:
             self.infoPrinter.printError("/usr/local should not exist.")
 
     def _checkPreMountRootfsLayout(self):
-        layout = strict_hdds.parse_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
         with TmpMount(layout.dev_rootfs) as mp:
             obj = strict_fsh.PreMountRootFs(mp.mountpoint,
                                             mounted_boot=(layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI),

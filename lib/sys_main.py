@@ -136,7 +136,7 @@ class FmMain:
 
         layout = None
         if self.param.runMode in ["normal", "setup"]:
-            layout = strict_hdds.parse_storage_layout()
+            layout = strict_hdds.get_current_storage_layout()
 
         print("Storage layout:")
         if True:
@@ -153,16 +153,16 @@ class FmMain:
             else:
                 print("    Name: %s" % (layout.name))
                 print("    State: ready")
-                if layout.name == "bios-simple":
+                if layout.name == "bios-ext4":
                     print("    Boot disk: %s" % (layout.get_boot_disk()))
                     print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
-                elif layout.name == "efi-simple":
+                elif layout.name == "efi-ext4":
                     print("    Boot disk: %s" % (layout.get_boot_disk()))
                     print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
-                elif layout.name == "efi-lvm":
+                elif layout.name == "efi-lvm-ext4":
                     print("    Boot disk: %s" % (layout.get_boot_disk()))
                     print("    LVM PVs: %s (total: %s)" % (" ".join(layout.get_disk_list()), totalSize(layout.get_disk_list(), "2")))
-                elif layout.name == "efi-bcache-lvm":
+                elif layout.name == "efi-bcache-lvm-ext4":
                     if layout.get_ssd() is not None:
                         print("    SSD: %s (boot disk)" % (layout.get_ssd()))
                         if layout.get_ssd_swap_partition() is not None:
@@ -342,14 +342,14 @@ class FmMain:
             return 1
 
         bbkiObj = BbkiWrapper()
-        layout = strict_hdds.parse_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
             return 1
 
-        if layout.name in ["bios-simple", "efi-simple"]:
+        if layout.name in ["bios-ext4", "efi-ext4"]:
             raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
-        elif layout.name in ["efi-lvm", "efi-bcache-lvm"]:
+        elif layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
             self.infoPrinter.printInfo(">> Adding harddisk...")
             layout.add_disk(devpath)
             print("")
@@ -366,14 +366,14 @@ class FmMain:
             return 1
 
         bbkiObj = BbkiWrapper()
-        layout = strict_hdds.parse_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
             return 1
 
-        if layout.name in ["bios-simple", "efi-simple"]:
+        if layout.name in ["bios-ext4", "efi-ext4"]:
             raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
-        elif layout.name in ["efi-lvm", "efi-bcache-lvm"]:
+        elif layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
             self.infoPrinter.printInfo(">> Move data in %s to other place..." % (devpath))
             layout.release_disk(devpath)
             print("")
@@ -392,21 +392,21 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = strict_hdds.parse_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
             return 1
 
         self.param.swapManager.enableSwap(layout)
 
-        if layout.name in ["bios-simple", "efi-simple"]:
+        if layout.name in ["bios-ext4", "efi-ext4"]:
             swapSizeStr = FmUtil.formatSize(os.path.getsize(layout.dev_swap))
             print("Swap File: %s (size:%s)" % (layout.dev_swap, swapSizeStr))
-        elif layout.name == "efi-lvm":
+        elif layout.name == "efi-lvm-ext4":
             uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.dev_swap).get("ID_FS_UUID")
             swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.dev_swap))
             print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.dev_swap, uuid, swapSizeStr))
-        elif layout.name == "efi-bcache-lvm":
+        elif layout.name == "efi-bcache-lvm-ext4":
             uuid = pyudev.Device.from_device_file(pyudev.Context(), layout.dev_swap).get("ID_FS_UUID")
             swapSizeStr = FmUtil.formatSize(FmUtil.getBlkDevSize(layout.dev_swap))
             print("Swap Partition: %s (UUID:%s, size:%s)" % (layout.dev_swap, uuid, swapSizeStr))
@@ -420,7 +420,7 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = strict_hdds.parse_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
             return 1

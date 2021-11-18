@@ -59,12 +59,12 @@ class Main:
         return parser
 
     def _cmdShow(self):
-        layout = strict_hdds.parse_storage_layout()
+        layout = strict_hdds.get_current_storage_layout()
         if layout is None:
             print("Storage layout: empty")
             return 1
 
-        if layout.name == "efi-bcache-lvm":
+        if layout.name == "efi-bcache-lvm-ext4":
             if layout.ssd is not None:
                 ssdStr = layout.ssd
                 if layout.ssdSwapParti is not None:
@@ -79,7 +79,7 @@ class Main:
             print("Storage layout: %s, SSD: %s%s, LVM PVs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.lvmPvHddDict.keys()), bootDiskStr))
             return 0
 
-        if layout.name == "efi-lvm":
+        if layout.name == "efi-lvm-ext4":
             extraStr = " ("
             if layout.lvmSwapLv is not None:
                 extraStr += "has swap, "
@@ -88,7 +88,7 @@ class Main:
             print("Storage layout: %s, LVM PVs: %s%s" % (layout.name, " ".join(layout.lvmPvHddList), extraStr))
             return 0
 
-        if layout.name == "efi-simple":
+        if layout.name == "efi-ext4":
             if layout.swapFile is not None:
                 swapStr = " (with swap)"
             else:
@@ -96,7 +96,7 @@ class Main:
             print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.hdd, swapStr))
             return 0
 
-        if layout.name == "bios-simple":
+        if layout.name == "bios-ext4":
             if layout.swapFile is not None:
                 swapStr = " (with swap)"
             else:
@@ -111,14 +111,14 @@ class Main:
             print("Invalid storage layout!")
             return 1
 
-        layout = strict_hdds.create_storage_layout(self.args.layout_name)
-        if self.args.layout_name == "bios-simple":
+        layout = strict_hdds.create_and_mount_storage_layout(self.args.layout_name)
+        if self.args.layout_name == "bios-ext4":
             print("Root device: %s" % (layout.dev_rootfs))
             print("Swap file: None")
-        elif self.args.layout_name == "efi-simple":
+        elif self.args.layout_name == "efi-ext4":
             print("Root device: %s" % (layout.get_root_dev()))
             print("Swap file: None")
-        elif self.args.layout_name == "efi-lvm":
+        elif self.args.layout_name == "efi-lvm-ext4":
             print("Root device: %s" % (layout.get_root_dev()))
             print("Swap device: None")
             print("Boot disk: %s" % (layout.get_esp()))
