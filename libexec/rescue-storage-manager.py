@@ -64,7 +64,7 @@ class Main:
             print("Storage layout: empty")
             return 1
 
-        if layout.name == "efi-bcache-lvm-ext4":
+        if layout.name == "efi-bcache-lvm":
             if layout.ssd is not None:
                 ssdStr = layout.ssd
                 if layout.ssdSwapParti is not None:

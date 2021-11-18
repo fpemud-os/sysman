@@ -205,7 +205,7 @@ class FmSysUpdater:
                 print("")
 
             # synchronize boot partitions
-            if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+            if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm"]:
                 src, dstList = layout.get_esp_sync_info()
                 if len(dstList) > 0:
                     with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
@@ -250,7 +250,7 @@ class FmSysUpdater:
         bbkiObj.setStable(True)
         print("")
 
-        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm"]:
             src, dstList = layout.get_esp_sync_info()
             if len(dstList) > 0:
                 with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
@@ -259,23 +259,23 @@ class FmSysUpdater:
                         layout.sync_esp(src, dst)
                 print("")
 
-    def updateAfterHddAddOrRemove(self, hwInfo, bbki, layout):
-        pendingBe = bbki.get_pending_boot_entry()
+    def updateAfterHddAddOrRemove(self, hwInfo, bbkiObj, layout):
+        pendingBe = bbkiObj.get_pending_boot_entry()
         if pendingBe is None:
             raise Exception("No kernel in /boot, you should build a kernel immediately!")
 
         # re-create initramfs
-        with bbki.boot_dir_writer:
+        with bbkiObj.boot_dir_writer:
             self.infoPrinter.printInfo(">> Recreating initramfs...")
-            bbki.installInitramfs(layout)
+            bbkiObj.installInitramfs(layout)
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            bbki.updateBootloader(layout)
+            bbkiObj.updateBootloader(layout)
             print("")
 
         # synchronize boot partitions
-        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+        if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm"]:
             src, dstList = layout.get_esp_sync_info()
             if len(dstList) > 0:
                 with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):

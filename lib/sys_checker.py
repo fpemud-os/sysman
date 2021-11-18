@@ -240,7 +240,7 @@ class FmSysChecker:
                 pass
             elif layout.name == "efi-lvm-ext4":
                 pass
-            elif layout.name == "efi-bcache-lvm-ext4":
+            elif layout.name == "efi-bcache-lvm":
                 if layout.get_ssd() is None:
                     self.infoPrinter.printError("Storage layout \"%s\" should have a cache device." % (layout.name))
                 for fn in glob.glob("/sys/block/bcache*"):
@@ -339,7 +339,7 @@ class FmSysChecker:
                         self.infoPrinter.printError("Swap LV has invalid size.")
                     break
 
-                if layout.name == "efi-bcache-lvm-ext4":
+                if layout.name == "efi-bcache-lvm":
                     # no way to auto-fix
                     self.infoPrinter.printError("Swap partition has invalid size.")
                     break

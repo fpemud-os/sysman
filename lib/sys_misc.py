@@ -35,7 +35,7 @@ class FmSwapManager:
             self._enableSwapService(layout.dev_swap, serviceName)
             return
 
-        if layout.name == "efi-bcache-lvm-ext4":
+        if layout.name == "efi-bcache-lvm":
             if layout.dev_swap is None:
                 raise Exception("no swap partition")
             if not layout.check_swap_size():
@@ -56,7 +56,7 @@ class FmSwapManager:
             layout.remove_swap_file()
         elif layout.name == "efi-lvm-ext4":
             layout.remove_swap_lv()
-        elif layout.name == "efi-bcache-lvm-ext4":
+        elif layout.name == "efi-bcache-lvm":
             pass
         else:
             assert False
