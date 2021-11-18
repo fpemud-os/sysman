@@ -145,25 +145,3 @@ class _InterProcessCounter:
 
     def decr(self):
         pass
-
-
-
-
-
-
-class BootDirWriter:
-
-    def __init__(self, bootdir_rw_controller):
-        self._ctrl = bootdir_rw_controller
-        self._origIsWritable = None
-
-    def __enter__(self):
-        self._origIsWritable = self._ctrl.is_writable
-        if not self._ctrl.is_writable:
-            self._ctrl.to_read_write()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        if not self._origIsWritable:
-            self._ctrl.to_read_only()
-
