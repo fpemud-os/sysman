@@ -2853,4 +2853,3 @@ class BootDirWriter:
     def __exit__(self, type, value, traceback):
         if not self._origIsWritable:
             self._ctrl.to_read_only()
-

@@ -211,7 +211,7 @@ class FmSysUpdater:
                     with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
                         for dst in dstList:
                             self.infoPrinter.printInfo("        - %s to %s..." % (layout.get_esp(), dst))
-                            layout.sync_esp(layout.get_esp(), dst)
+                            layout.sync_esp(dst)
                     print("")
 
             # emerge @world
@@ -256,7 +256,7 @@ class FmSysUpdater:
                 with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
                     for dst in dstList:
                         self.infoPrinter.printInfo("        - %s to %s..." % (layout.get_esp(), dst))
-                        layout.sync_esp(layout.get_esp(), dst)
+                        layout.sync_esp(dst)
                 print("")
 
     def updateAfterHddAddOrRemove(self, hwInfo, bbkiObj, layout):
