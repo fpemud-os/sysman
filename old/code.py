@@ -145,3 +145,40 @@ class _InterProcessCounter:
 
     def decr(self):
         pass
+
+
+
+
+
+# def findSwapFiles():
+#     ret = []
+#     for d in ["/var", "/"]:
+#         for f in os.listdir(d):
+#             fullf = os.path.join(d, f)
+#             if fullf.endswith(".swap"):
+#                 if FmUtil.cmdCallTestSuccess("/sbin/swaplabel", fullf):
+#                     ret.append(fullf)
+#     return ret
+
+# def getSystemSwapInfo():
+#     # return (swap-total, swap-free), unit: byte
+#     buf = ""
+#     with open("/proc/meminfo") as f:
+#         buf = f.read()
+#     m = re.search("^SwapTotal: +([0-9]+) kB$", buf, re.M)
+#     if m is None:
+#         raise Exception("get system \"SwapTotal\" from /proc/meminfo failed")
+#     m2 = re.search("^SwapFree: +([0-9]+) kB$", buf, re.M)
+#     if m is None:
+#         raise Exception("get system \"SwapFree\" from /proc/meminfo failed")
+#     return (int(m.group(1)) * 1024, int(m2.group(1)) * 1024)
+
+# def systemdFindAllSwapServices():
+#     # get all the swap service name
+#     ret = []
+#     for f in os.listdir("/etc/systemd/system"):
+#         fullf = os.path.join("/etc/systemd/system", f)
+#         if not os.path.isfile(fullf) or not fullf.endswith(".swap"):
+#             continue
+#         ret.append(f)
+#     return ret
