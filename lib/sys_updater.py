@@ -6,6 +6,7 @@ import json
 import strict_hdds
 from fm_util import FmUtil
 from fm_util import ParallelRunSequencialPrint
+from fm_util import BootDirWriter
 from fm_param import FmConst
 from client_build_server import BuildServerSelector
 from helper_bbki import BbkiWrapper
@@ -27,8 +28,8 @@ class FmSysUpdater:
         self.opEmerge9999 = os.path.join(FmConst.libexecDir, "op-emerge-9999.py")
 
     def update(self, bSync, bFetchAndBuild):
-        bbkiObj = BbkiWrapper()
         layout = strict_hdds.get_current_storage_layout()
+        bbkiObj = BbkiWrapper()
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
 
@@ -177,7 +178,7 @@ class FmSysUpdater:
             kernelCfgRules = json.dumps(self.param.machineInfoGetter.hwInfo().kernelCfgRules)
 
             # install kernel, initramfs and bootloader
-            with bbkiObj.boot_dir_writer:
+            with BootDirWriter(layout):
                 self.infoPrinter.printInfo(">> Installing %s-%s..." % (bbkiObj.get_kernel_atom().fullname, bbkiObj.get_kernel_atom().ver))
                 if True:
                     self._exec(buildServer, self.opInstallKernel, kernelCfgRules, resultFile)
@@ -259,13 +260,13 @@ class FmSysUpdater:
                         layout.sync_esp(dst)
                 print("")
 
-    def updateAfterHddAddOrRemove(self, hwInfo, bbkiObj, layout):
+    def updateAfterHddAddOrRemove(self, hwInfo, layout, bbkiObj):
         pendingBe = bbkiObj.get_pending_boot_entry()
         if pendingBe is None:
             raise Exception("No kernel in /boot, you should build a kernel immediately!")
 
         # re-create initramfs
-        with bbkiObj.boot_dir_writer:
+        with BootDirWriter(layout):
             self.infoPrinter.printInfo(">> Recreating initramfs...")
             bbkiObj.installInitramfs(layout)
             print("")

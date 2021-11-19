@@ -34,10 +34,6 @@ class BbkiWrapper:
     def repositories(self):
         return self._bbkiObj.repositories
 
-    @property
-    def boot_dir_writer(self):
-        return self._bbkiObj.boot_dir_writer
-
     def isStable(self):
         return self._bbkiObj.get_stable_flag()
 

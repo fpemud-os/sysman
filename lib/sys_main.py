@@ -7,7 +7,7 @@ import pyudev
 import strict_pgs
 import strict_hdds
 import bbki.util
-from fm_util import FmUtil
+from fm_util import BootDirWriter, FmUtil
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
 from helper_rescueos import RescueDiskBuilder
@@ -341,7 +341,6 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        bbkiObj = BbkiWrapper()
         layout = strict_hdds.get_current_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
@@ -356,7 +355,7 @@ class FmMain:
         else:
             assert False
 
-        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), bbkiObj, layout)
+        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), layout, BbkiWrapper())
 
         return 0
 
@@ -365,7 +364,6 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        bbkiObj = BbkiWrapper()
         layout = strict_hdds.get_current_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
@@ -383,7 +381,7 @@ class FmMain:
         else:
             assert False
 
-        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), bbkiObj, layout)
+        self.param.sysUpdater.updateAfterHddAddOrRemove(self.param.machineInfoGetter.hwInfo(), layout, BbkiWrapper())
 
         return 0
 
@@ -556,8 +554,9 @@ class FmMain:
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
         print("")
 
+        layout = strict_hdds.get_current_storage_layout()
         bbkiObj = BbkiWrapper()
-        with bbkiObj.boot_dir_writer:
+        with BootDirWriter(layout):
             self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
             bbkiObj.installOrUpdateRescueOs(self.param.tmpDirOnHdd)
             print("")
@@ -574,12 +573,15 @@ class FmMain:
             return 1
 
         self.param.sysChecker.basicCheckWithOverlayContent()
+
+        layout = strict_hdds.get_current_storage_layout()
         bbkiObj = BbkiWrapper()
+
         if not bbkiObj.isRescueOsInstalled():
             print("Rescue OS is not installed.", file=sys.stderr)
             return 1
 
-        with bbkiObj.boot_dir_writer:
+        with BootDirWriter(layout):
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
             bbkiObj.uninstallRescueOs()
             print("")

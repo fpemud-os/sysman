@@ -3,7 +3,7 @@
 
 import os
 import strict_hdds
-from fm_util import FmUtil
+from fm_util import BootDirWriter, FmUtil
 from fm_param import FmConst
 from client_build_server import BuildServerSelector
 from helper_dyncfg import DynCfgModifier
@@ -48,10 +48,12 @@ class FmSysCleaner:
         # clean old kernel files
         self.infoPrinter.printInfo(">> Removing old kernel files...")
         if True:
+            layout = strict_hdds.get_current_storage_layout()
             bbkiObj = BbkiWrapper()
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             bFileRemoved = False
-            with bbkiObj.boot_dir_writer:
+
+            with BootDirWriter(layout):
                 self._exec(buildServer, self.opCleanKernel, "%d" % (bPretend), resultFile)
                 if buildServer is None:
                     with open(resultFile, "r", encoding="iso8859-1") as f:
@@ -74,7 +76,6 @@ class FmSysCleaner:
                         bbkiObj.updateBootloaderAfterCleaning()
                     print("")
 
-            layout = strict_hdds.get_current_storage_layout()
             if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
                 dstList = layout.get_pending_esp_list()
                 if bFileRemoved and len(dstList) > 0:
