@@ -15,7 +15,7 @@ class FmSwapManager:
             if layout.dev_swap is None:
                 layout.create_swap_file()
             serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
-            if not layout.check_swap_size():
+            if FmUtil.getBlkDevSize(layout.dev_swap) < layout.get_suggestted_swap_size():
                 self._disableSwapService(layout.dev_swap, serviceName)
                 layout.remove_swap_file()
                 layout.create_swap_file()
@@ -27,7 +27,7 @@ class FmSwapManager:
             if layout.dev_swap is None:
                 layout.create_swap_lv()
             serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
-            if not layout.check_swap_size():
+            if FmUtil.getBlkDevSize(layout.dev_swap) < layout.get_suggestted_swap_size():
                 self._disableSwapService(layout.dev_swap, serviceName)
                 layout.remove_swap_lv()
                 layout.create_swap_lv()
@@ -38,7 +38,7 @@ class FmSwapManager:
         if layout.name == "efi-bcache-lvm-ext4":
             if layout.dev_swap is None:
                 raise Exception("no swap partition")
-            if not layout.check_swap_size():
+            if FmUtil.getBlkDevSize(layout.dev_swap) < layout.get_suggestted_swap_size():
                 raise Exception("swap partition is too small")
             serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
             self._createSwapService(layout.dev_swap, serviceName)
