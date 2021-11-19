@@ -4,15 +4,19 @@
 import os
 import sys
 import json
+import strict_hdds
 import bbki
 import bbki.util
+
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import PrintLoadAvgThread
+from fm_util import BootDirWriter
 from helper_bbki import BbkiWrapper
 
 
 kernelCfgRules = json.loads(sys.argv[1])
 resultFile = sys.argv[2]
+layout = strict_hdds.get_current_storage_layout()
 bbkiObj = BbkiWrapper()
 
 print("        - Fetching...")
@@ -49,7 +53,8 @@ if not kernelBuildNeeded:
 
 with PrintLoadAvgThread("        - Installing..."):
     if kernelBuildNeeded:
-        kernelBuilder.install()
+        with BootDirWriter(layout):
+            kernelBuilder.install()
 
 if kernelBuildNeeded:
     kernelBuilder.dispose()

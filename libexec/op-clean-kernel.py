@@ -3,7 +3,10 @@
 
 import os
 import sys
+import strict_hdds
+
 sys.path.append('/usr/lib64/fpemud-os-sysman')
+from fm_util import BootDirWriter
 from helper_bbki import BbkiWrapper
 
 
@@ -12,9 +15,16 @@ pretendPrefix = "to be " if bPretend else ""
 resultFile = sys.argv[2]
 
 
+# do clean
 print("        - Processing...")
+layout = strict_hdds.get_current_storage_layout()
 bbkiObj = BbkiWrapper()
-bootFileList, moduleFileList, firmwareFileList = bbkiObj.clean_boot_entry_files(pretend=bPretend)
+bootFileList, moduleFileList, firmwareFileList = [], [], []
+if not bPretend:
+    with BootDirWriter(layout):
+        bootFileList, moduleFileList, firmwareFileList = bbkiObj.clean_boot_entry_files(pretend=bPretend)
+else:
+    bootFileList, moduleFileList, firmwareFileList = bbkiObj.clean_boot_entry_files(pretend=bPretend)
 
 # show file list to be removed in boot directory
 print("            Items %sremoved in \"/boot\":" % (pretendPrefix))

@@ -16,6 +16,7 @@ import configparser
 import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import TmpMount
+from fm_util import BootDirWriter
 from fm_param import FmConst
 from helper_bbki import BbkiWrapper
 from helper_pkg_warehouse import PkgWarehouse
@@ -98,7 +99,11 @@ class FmSysChecker:
                 with self.infoPrinter.printInfoAndIndent("- Check repositories..."):
                     bbkiObj.check_repositories(self.bAutoFix, self.infoPrinter.printError)
                 with self.infoPrinter.printInfoAndIndent("- Check boot entries..."):
-                    bbkiObj.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
+                    if self.bAutoFix:
+                        with BootDirWriter(strict_hdds.get_current_storage_layout()):
+                            bbkiObj.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
+                    else:
+                        bbkiObj.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
 
             with self.infoPrinter.printInfoAndIndent(">> Checking operating system..."):
                 with self.infoPrinter.printInfoAndIndent("- Check system configuration..."):

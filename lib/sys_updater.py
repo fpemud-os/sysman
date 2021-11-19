@@ -35,7 +35,8 @@ class FmSysUpdater:
 
         # set system to unstable status
         if bbkiObj.isStable():
-            bbkiObj.setStable(False)
+            with BootDirWriter(layout):
+                bbkiObj.setStable(False)
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Refreshing system configuration...")
@@ -248,7 +249,8 @@ class FmSysUpdater:
         layout = strict_hdds.get_current_storage_layout()
 
         self.infoPrinter.printInfo(">> Stablizing...")
-        bbkiObj.setStable(True)
+        with BootDirWriter(layout):
+            bbkiObj.setStable(True)
         print("")
 
         if layout.name in ["efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
