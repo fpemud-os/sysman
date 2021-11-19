@@ -221,7 +221,6 @@ class FmSysChecker:
             self.infoPrinter.printError("No valid storage layout.")
             return
 
-        # partition table check
         obj = _DiskPartitionTableChecker()
         for hdd in tlist:
             with self.infoPrinter.printInfoAndIndent("- Checking partition table for %s(%s)" % (hdd, FmUtil.getBlkDevModel(hdd))):
@@ -232,7 +231,6 @@ class FmSysChecker:
                 if len(glob.glob(hdd + "*")) == 1:
                     self.infoPrinter.printError("Harddisk %s has no partition." % (hdd))
 
-        # storage layout check
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
             if layout.name == "bios-ext4":
                 pass
@@ -247,6 +245,17 @@ class FmSysChecker:
                     devPath = os.path.join("/dev", os.path.basename(fn))
                     if FmUtil.bcacheDeviceGetMode(devPath) != "writeback":
                         self.infoPrinter.printError("BCACHE device %s should be configured as writeback mode." % (devPath))
+            else:
+                assert False
+
+        with self.infoPrinter.printInfoAndIndent("- Checking ESP partition"):
+            if layout.name == "bios-ext4":
+                pass
+            elif layout.name in ["efi-ext4", "efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+                if layout.get_esp() is None:
+                    self.infoPrinter.printError("Storage layout \"%s\" has no ESP partition?!" % (layout.name))
+                if FmUtil.getBlkDevSize(layout.get_esp()) != layout.get_suggestted_esp_size():
+                    self.infoPrinter.printError("ESP partition \"%s\" has invalid size." % (layout.get_esp()))
             else:
                 assert False
 
