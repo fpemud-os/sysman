@@ -2841,7 +2841,7 @@ class SysfsHwMon:
 class BootDirWriter:
 
     def __init__(self, layout):
-        self._ctrl = layout.bootdir_rw_controller
+        self._ctrl = layout.get_bootdir_rw_controller()
         self._origIsWritable = None
 
     def __enter__(self):
