@@ -175,7 +175,8 @@ class FmMain:
                         print("    Boot disk: %s" % (layout.boot_disk))
                     totalSize = 0
                     pvStrList = []
-                    for hddDev, bcacheDev in layout.hddDict.items():
+                    for hddDev in layout.get_hdd_list():
+                        bcacheDev = layout.get_hdd_bcache_dev(hddDev)
                         pvStrList.append("%s,%s" % (hddDev, bcacheDev.replace("/dev/", "")))
                         totalSize += FmUtil.getBlkDevSize(bcacheDev)
                     print("    LVM PVs: %s (total: %s)" % (" ".join(pvStrList), FmUtil.formatSize(totalSize)))
