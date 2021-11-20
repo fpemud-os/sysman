@@ -175,10 +175,10 @@ class FmMain:
                         print("    Boot disk: %s" % (layout.boot_disk))
                     totalSize = 0
                     pvStrList = []
-                    for hddDev in layout.get_hdd_list():
-                        bcacheDev = layout.get_hdd_bcache_dev(hddDev)
-                        pvStrList.append("%s,%s" % (hddDev, bcacheDev.replace("/dev/", "")))
-                        totalSize += FmUtil.getBlkDevSize(bcacheDev)
+                    for hddDevPath in layout.get_hdd_list():
+                        bcacheDevPath = layout.get_hdd_bcache_dev(hddDevPath)
+                        pvStrList.append("%s,%s" % (hddDevPath, bcacheDevPath.replace("/dev/", "")))
+                        totalSize += FmUtil.getBlkDevSize(bcacheDevPath)
                     print("    LVM PVs: %s (total: %s)" % (" ".join(pvStrList), FmUtil.formatSize(totalSize)))
                 else:
                     assert False
@@ -197,7 +197,11 @@ class FmMain:
             elif layout.dev_swap is None or not FmUtil.systemdIsServiceEnabled(FmUtil.path2SwapServiceName(layout.dev_swap)):
                 print("    Disabled")
             else:
-                print("    Enabled (%s)" % (FmUtil.formatSize(os.path.getsize(layout.dev_swap))))
+                if layout.dev_swap.startswith("/dev/"):
+                    sz = FmUtil.getBlkDevSize(layout.dev_swap)
+                else:
+                    sz = os.path.getsize(layout.dev_swap)
+                print("    Enabled (%s)" % (FmUtil.formatSize(sz)))
         else:
             assert False
 
