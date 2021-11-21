@@ -48,6 +48,7 @@ from helper_pkg_merger import PkgMerger
 #       do nothing
 # *. no virtual-printer is allowed. virtual-printer is a mis-use of print framework, they should be implemented as other form
 # *. no abstract unix domain socket should exist (https://utcc.utoronto.ca/~cks/space/blog/linux/SocketAbstractNamespace?showcomments, comment's from Lennart)
+# *. no direcotry is mounted more than once
 #
 # exception rules:
 # 1. use "printError" than "raise exception" if possible
