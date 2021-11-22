@@ -238,7 +238,6 @@ class FmSysChecker:
                     self.infoPrinter.printError("Harddisk %s has no partition." % (hdd))
 
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
-            # check by layout itself
             def __errCb(self, checkCode, message):
                 if checkCode == strict_hdds.CheckCode.SWAP_SIZE_TOO_SMALL:
                     if self.bAutoFix:
@@ -246,14 +245,12 @@ class FmSysChecker:
                         self.param.swapManager.enableSwap(layout)
                         return
                 self.infoPrinter.printError(message)
-            layout.check(self.bAutoFix, __errCb)
 
-            # check
+            layout.check(self.bAutoFix, __errCb)
+            if layout.name in ["bios-ext4", "efi-ext4", "efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+                layout.opt_check("swap", self.bAutoFix, __errCb)
             if layout.name == "efi-bcache-lvm-ext4":
-                for fn in glob.glob("/sys/block/bcache*"):
-                    devPath = os.path.join("/dev", os.path.basename(fn))
-                    if FmUtil.bcacheDeviceGetMode(devPath) != "writeback":
-                        self.infoPrinter.printError("BCACHE device %s should be configured as writeback mode." % (devPath))
+                layout.opt_check("bcache-write-mode", "writeback", self.bAutoFix, __errCb)
 
         with self.infoPrinter.printInfoAndIndent("- Checking swap service"):
             # swap service should only exist in /etc
