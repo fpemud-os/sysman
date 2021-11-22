@@ -71,12 +71,14 @@ media-fonts/vlgothic
 ## fonts: korean ###################################################
 media-fonts/baekmuk-fonts
 
-## utility: userspace file systems #################################
+## utility: userspace file systems and utilities ###################
 gnome-base/gvfs
+sys-fs/e2fsprogs
 sys-fs/fuseiso
 sys-fs/fuse-exfat
 sys-fs/fuse-zip
 sys-fs/hfsfuse
+sys-fs/hfsutils
 sys-fs/ntfs3g
 sys-fs/xfsprogs
 sys-fs/vdfuse
