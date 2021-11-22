@@ -238,120 +238,31 @@ class FmSysChecker:
                     self.infoPrinter.printError("Harddisk %s has no partition." % (hdd))
 
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
-            if layout.name == "bios-ext4":
-                pass
-            elif layout.name == "efi-ext4":
-                pass
-            elif layout.name == "efi-lvm-ext4":
-                pass
-            elif layout.name == "efi-bcache-lvm-ext4":
-                if layout.get_ssd() is None:
-                    self.infoPrinter.printError("Storage layout \"%s\" should have a cache device." % (layout.name))
+            # check by layout itself
+            if True:
+                def __errCb(self, checkCode, message):
+                    if checkCode == strict_hdds.CheckCode.SWAP_SIZE_TOO_SMALL:
+                        if self.bAutoFix:
+                            self.param.swapManager.disableSwap(layout)
+                            self.param.swapManager.enableSwap(layout)
+                            return
+                    self.infoPrinter.printError(message)
+
+                layout.check(self.bAutoFix, __errCb)
+
+            # check
+            if layout.name == "efi-bcache-lvm-ext4":
                 for fn in glob.glob("/sys/block/bcache*"):
                     devPath = os.path.join("/dev", os.path.basename(fn))
                     if FmUtil.bcacheDeviceGetMode(devPath) != "writeback":
                         self.infoPrinter.printError("BCACHE device %s should be configured as writeback mode." % (devPath))
-            else:
-                assert False
 
-        with self.infoPrinter.printInfoAndIndent("- Checking ESP partition"):
-            if layout.name == "bios-ext4":
-                pass
-            elif layout.name in ["efi-ext4", "efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
-                if layout.get_esp() is None:
-                    self.infoPrinter.printError("Storage layout \"%s\" has no ESP partition?!" % (layout.name))
-                if FmUtil.getBlkDevSize(layout.get_esp()) != layout.get_suggestted_esp_size():
-                    self.infoPrinter.printError("ESP partition \"%s\" has invalid size." % (layout.get_esp()))
-            else:
-                assert False
-
-        with self.infoPrinter.printInfoAndIndent("- Checking file systems"):
-            # if True:
-            #     # what we can check is very limited:
-            #     # 1. no way to fsck ext4 root partition when it's on-line
-            #     # 2. fscking vfat partition when it's on-line always finds dirty-bit
-            #     if self.bAutoFix:
-            #         fatFsckCmd = "/usr/sbin/fsck.vfat -a"
-            #     else:
-            #         fatFsckCmd = "/usr/sbin/fsck.vfat -n"
-
-            #     if isinstance(layout, FmStorageLayoutBiosSimple):
-            #         pass
-            #     elif isinstance(layout, FmStorageLayoutEfiSimple):
-            #         FmUtil.shellExec("%s %s" % (fatFsckCmd, layout.hddEspParti))
-            #     elif isinstance(layout, FmStorageLayoutEfiLvm):
-            #         for hdd in layout.lvmPvHddList:
-            #             FmUtil.shellExec("%s %s" % (fatFsckCmd, FmUtil.devPathDiskToPartition(hdd, 1)))
-            #     elif isinstance(layout, FmStorageLayoutEfiBcacheLvm):
-            #         if layout.ssd is not None:
-            #             FmUtil.shellExec("%s %s" % (fatFsckCmd, layout.ssdEspParti))
-            #         for hdd in layout.lvmPvHddDict:
-            #             FmUtil.shellExec("%s %s" % (fatFsckCmd, FmUtil.devPathDiskToPartition(hdd, 1)))
-            #     else:
-            #         assert False
-            pass
-
-        with self.infoPrinter.printInfoAndIndent("- Checking swap"):
-            dirname = "/etc/systemd/system"
-            bEnabled = None                     # assigned by __checkAndGetSwapEnablement()
-
-            def __checkRedundantSwapService():
-                # only standard swap service should exist
-                for sname in FmUtil.systemdFindAllSwapServicesInDirectory(dirname):
-                    if layout.dev_swap is not None and sname == FmUtil.path2SwapServiceName(layout.dev_swap):
-                        continue
-                    self.infoPrinter.printError("Swap service \"%s\" should not exist." % (os.path.join(dirname, sname)))
-
-            def __checkAndGetSwapEnablement():
-                # swap should be enabled
-                if layout.dev_swap is None:
-                    self.infoPrinter.printError("Swap is not enabled.")
-                    bEnabled = False
-                    return
-                serviceName = FmUtil.systemdFindSwapServiceInDirectory(dirname, layout.dev_swap)
-                if serviceName is None:
-                    self.infoPrinter.printError("Swap is not enabled.")
-                    bEnabled = False
-                    return
-                if self.param.runMode == "normal":
-                    if not FmUtil.systemdIsServiceEnabled(serviceName):
-                        self.infoPrinter.printError("Swap is not enabled.")
-                        bEnabled = False
-                        return
-                bEnabled = True
-                return
-
-            def __checkSwapFileSize():
-                assert bEnabled is not None
-                if layout.dev_swap is not None and FmUtil.getBlkDevSize(layout.dev_swap) < layout.get_suggestted_swap_size():
-                    if self.bAutoFix:
-                        if bEnabled:
-                            self.param.swapManager.disableSwap(layout)
-                            self.param.swapManager.enableSwap(layout)
-                        else:
-                            layout.remove_swap_file()
-                            layout.create_swap_file()
-                    else:
-                        self.infoPrinter.printError("Swap file has invalid size.")
-
-            def __checkSwapLvSize():
-                assert bEnabled is not None
-                if layout.dev_swap is not None and FmUtil.getBlkDevSize(layout.dev_swap) < layout.get_suggestted_swap_size():
-                    if self.bAutoFix:
-                        if bEnabled:
-                            self.param.swapManager.disableSwap(layout)
-                            self.param.swapManager.enableSwap(layout)
-                        else:
-                            layout.remove_swap_lv()
-                            layout.create_swap_lv()
-                    else:
-                        self.infoPrinter.printError("Swap LV has invalid size.")
-
-            def __checkSwapPartiSize():
-                assert bEnabled is not None
-                if layout.dev_swap is not None and FmUtil.getBlkDevSize(layout.dev_swap) < layout.get_suggestted_swap_size():
-                    # no way to auto-fix
-                    self.infoPrinter.printError("Swap partition has invalid size.")
+        with self.infoPrinter.printInfoAndIndent("- Checking swap service"):
+            # only standard swap service should exist
+            for sname in FmUtil.systemdFindAllSwapServicesInDirectory("/etc/systemd/system"):
+                if layout.dev_swap is not None and sname == FmUtil.path2SwapServiceName(layout.dev_swap):
+                    continue
+                self.infoPrinter.printError("Swap service \"%s\" should not exist." % (os.path.join("/etc/systemd/system", sname)))
 
             # swap service should only exist in /etc
             for td in ["/usr/lib/systemd/system", "/lib/systemd/system"]:
@@ -359,25 +270,18 @@ class FmSysChecker:
                     for sname in FmUtil.systemdFindAllSwapServicesInDirectory(td):
                         self.infoPrinter.printError("Swap service \"%s\" should not exist." % (os.path.join(td, sname)))
 
-            # check by layout
-            if layout.name == "bios-ext4":
-                __checkRedundantSwapService()
-                __checkAndGetSwapEnablement()
-                __checkSwapFileSize()
-            elif layout.name == "efi-ext4":
-                __checkRedundantSwapService()
-                __checkAndGetSwapEnablement()
-                __checkSwapFileSize()
-            elif layout.name == "efi-lvm-ext4":
-                __checkRedundantSwapService()
-                __checkAndGetSwapEnablement()
-                __checkSwapLvSize()
-            elif layout.name == "efi-bcache-lvm-ext4":
-                __checkRedundantSwapService()
-                __checkAndGetSwapEnablement()
-                __checkSwapPartiSize()
-            else:
-                assert False
+            # swap should be enabled
+            while layout.name in ["bios-ext4", "efi-ext4", "efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+                if layout.dev_swap is not None:
+                    serviceName = FmUtil.systemdFindSwapServiceInDirectory("/etc/systemd/system", layout.dev_swap)
+                    if serviceName is None:
+                        self.infoPrinter.printError("Swap is not enabled.")
+                        break
+                    if self.param.runMode == "normal":
+                        if not FmUtil.systemdIsServiceEnabled(serviceName):
+                            self.infoPrinter.printError("Swap is not enabled.")
+                            break
+                break
 
     def _checkRootfsLayout(self, deepCheck):
         # general check

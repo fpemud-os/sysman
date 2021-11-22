@@ -182,3 +182,33 @@ class _InterProcessCounter:
 #             continue
 #         ret.append(f)
 #     return ret
+
+
+
+
+
+        with self.infoPrinter.printInfoAndIndent("- Checking file systems"):
+            # if True:
+            #     # what we can check is very limited:
+            #     # 1. no way to fsck ext4 root partition when it's on-line
+            #     # 2. fscking vfat partition when it's on-line always finds dirty-bit
+            #     if self.bAutoFix:
+            #         fatFsckCmd = "/usr/sbin/fsck.vfat -a"
+            #     else:
+            #         fatFsckCmd = "/usr/sbin/fsck.vfat -n"
+
+            #     if isinstance(layout, FmStorageLayoutBiosSimple):
+            #         pass
+            #     elif isinstance(layout, FmStorageLayoutEfiSimple):
+            #         FmUtil.shellExec("%s %s" % (fatFsckCmd, layout.hddEspParti))
+            #     elif isinstance(layout, FmStorageLayoutEfiLvm):
+            #         for hdd in layout.lvmPvHddList:
+            #             FmUtil.shellExec("%s %s" % (fatFsckCmd, FmUtil.devPathDiskToPartition(hdd, 1)))
+            #     elif isinstance(layout, FmStorageLayoutEfiBcacheLvm):
+            #         if layout.ssd is not None:
+            #             FmUtil.shellExec("%s %s" % (fatFsckCmd, layout.ssdEspParti))
+            #         for hdd in layout.lvmPvHddDict:
+            #             FmUtil.shellExec("%s %s" % (fatFsckCmd, FmUtil.devPathDiskToPartition(hdd, 1)))
+            #     else:
+            #         assert False
+            pass
