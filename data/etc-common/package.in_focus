@@ -73,13 +73,14 @@ media-fonts/baekmuk-fonts
 
 ## utility: userspace file systems #################################
 gnome-base/gvfs
-net-fs/sshfs
 sys-fs/fuseiso
 sys-fs/fuse-exfat
 sys-fs/fuse-zip
+sys-fs/hfsfuse
 sys-fs/ntfs3g
 sys-fs/xfsprogs
 sys-fs/vdfuse
+net-fs/sshfs
 
 ## utility: small tools ############################################
 app-arch/rar
