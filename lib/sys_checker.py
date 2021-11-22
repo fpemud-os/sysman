@@ -239,16 +239,14 @@ class FmSysChecker:
 
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
             # check by layout itself
-            if True:
-                def __errCb(self, checkCode, message):
-                    if checkCode == strict_hdds.CheckCode.SWAP_SIZE_TOO_SMALL:
-                        if self.bAutoFix:
-                            self.param.swapManager.disableSwap(layout)
-                            self.param.swapManager.enableSwap(layout)
-                            return
-                    self.infoPrinter.printError(message)
-
-                layout.check(self.bAutoFix, __errCb)
+            def __errCb(self, checkCode, message):
+                if checkCode == strict_hdds.CheckCode.SWAP_SIZE_TOO_SMALL:
+                    if self.bAutoFix:
+                        self.param.swapManager.disableSwap(layout)
+                        self.param.swapManager.enableSwap(layout)
+                        return
+                self.infoPrinter.printError(message)
+            layout.check(self.bAutoFix, __errCb)
 
             # check
             if layout.name == "efi-bcache-lvm-ext4":
@@ -258,30 +256,30 @@ class FmSysChecker:
                         self.infoPrinter.printError("BCACHE device %s should be configured as writeback mode." % (devPath))
 
         with self.infoPrinter.printInfoAndIndent("- Checking swap service"):
-            # only standard swap service should exist
-            for sname in FmUtil.systemdFindAllSwapServicesInDirectory("/etc/systemd/system"):
-                if layout.dev_swap is not None and sname == FmUtil.path2SwapServiceName(layout.dev_swap):
-                    continue
-                self.infoPrinter.printError("Swap service \"%s\" should not exist." % (os.path.join("/etc/systemd/system", sname)))
-
             # swap service should only exist in /etc
             for td in ["/usr/lib/systemd/system", "/lib/systemd/system"]:
                 if os.path.exists(td):
                     for sname in FmUtil.systemdFindAllSwapServicesInDirectory(td):
                         self.infoPrinter.printError("Swap service \"%s\" should not exist." % (os.path.join(td, sname)))
 
-            # swap should be enabled
-            while layout.name in ["bios-ext4", "efi-ext4", "efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+            if layout.name in ["bios-ext4", "efi-ext4", "efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+                # only standard swap service should exist
+                for sname in FmUtil.systemdFindAllSwapServicesInDirectory("/etc/systemd/system"):
+                    if layout.dev_swap is not None and sname == FmUtil.path2SwapServiceName(layout.dev_swap):
+                        continue
+                    self.infoPrinter.printError("Swap service \"%s\" should not exist." % (os.path.join("/etc/systemd/system", sname)))
+
+                # swap should be enabled
                 if layout.dev_swap is not None:
                     serviceName = FmUtil.systemdFindSwapServiceInDirectory("/etc/systemd/system", layout.dev_swap)
-                    if serviceName is None:
-                        self.infoPrinter.printError("Swap is not enabled.")
-                        break
-                    if self.param.runMode == "normal":
-                        if not FmUtil.systemdIsServiceEnabled(serviceName):
-                            self.infoPrinter.printError("Swap is not enabled.")
-                            break
-                break
+                    if serviceName is not None:
+                        if self.param.runMode == "normal":
+                            if FmUtil.systemdIsServiceEnabled(serviceName):
+                                pass
+                            else:
+                                self.infoPrinter.printError("Swap serivce is not enabled.")
+                    else:
+                        self.infoPrinter.printError("Swap service not found.")
 
     def _checkRootfsLayout(self, deepCheck):
         # general check
