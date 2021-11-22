@@ -212,3 +212,13 @@ class _InterProcessCounter:
             #     else:
             #         assert False
             pass
+
+
+
+    @staticmethod
+    def getBlkDevCapacity(devPath):
+        ret = FmUtil.cmdCall("/bin/df", "-BM", devPath)
+        m = re.search("%s +(\\d+)M +(\\d+)M +\\d+M", ret, re.M)
+        total = int(m.group(1))
+        used = int(m.group(2))
+        return (total, used)        # unit: MB

@@ -493,25 +493,6 @@ class FmUtil:
         return ret
 
     @staticmethod
-    def bcacheDeviceGetMode(devPath):
-        assert re.fullmatch("/dev/bcache[0-9]+", devPath)
-        buf = pathlib.Path(os.path.join("/sys", "block", os.path.basename(devPath), "bcache", "cache_mode")).read_text()
-        return re.search("\\[(.*)\\]", buf).group(1)
-
-    @staticmethod
-    def isBlkDevSsdOrHdd(devPath):
-        bn = os.path.basename(devPath)
-        with open("/sys/block/%s/queue/rotational" % (bn), "r") as f:
-            buf = f.read().strip("\n")
-            if buf == "1":
-                return False
-        return True
-
-    @staticmethod
-    def isBlkDevCdrom(devPath):
-        assert False
-
-    @staticmethod
     def isBlkDevUsbStick(devPath):
         devName = os.path.basename(devPath)
 
@@ -596,35 +577,6 @@ class FmUtil:
         return None
 
     @staticmethod
-    def getBlkDevCapacity(devPath):
-        ret = FmUtil.cmdCall("/bin/df", "-BM", devPath)
-        m = re.search("%s +(\\d+)M +(\\d+)M +\\d+M", ret, re.M)
-        total = int(m.group(1))
-        used = int(m.group(2))
-        return (total, used)        # unit: MB
-
-    @staticmethod
-    def syncBlkDev(devPath1, devPath2, mountPoint1=None, mountPoint2=None):
-        if FmUtil.getBlkDevSize(devPath1) != FmUtil.getBlkDevSize(devPath2):
-            raise Exception("%s and %s have different size" % (devPath1, devPath2))
-        if FmUtil.getBlkDevFsType(devPath1) != FmUtil.getBlkDevFsType(devPath2):
-            raise Exception("%s and %s have different filesystem" % (devPath1, devPath2))
-
-        cmd = "/usr/bin/rsync -q -a --delete \"%s/\" \"%s\""        # SRC parameter has "/" postfix so that whole directory is synchronized
-        if mountPoint1 is not None and mountPoint2 is not None:
-            FmUtil.shellExec(cmd % (mountPoint1, mountPoint2))
-        elif mountPoint1 is not None and mountPoint2 is None:
-            with TmpMount(devPath2) as mp2:
-                FmUtil.shellExec(cmd % (mountPoint1, mp2.mountpoint))
-        elif mountPoint1 is None and mountPoint2 is not None:
-            with TmpMount(devPath1, "ro") as mp1:
-                FmUtil.shellExec(cmd % (mp1.mountpoint, mountPoint2))
-        else:
-            with TmpMount(devPath1, "ro") as mp1:
-                with TmpMount(devPath2) as mp2:
-                    FmUtil.shellExec(cmd % (mp1.mountpoint, mp2.mountpoint))
-
-    @staticmethod
     def scsiGetHostControllerPath(devPath):
         ctx = pyudev.Context()
         dev = pyudev.Device.from_device_file(ctx, devPath)
@@ -637,16 +589,6 @@ class FmUtil:
             hostPath = os.path.dirname(hostPath)
             assert hostPath != "/"
         return hostPath
-
-    @staticmethod
-    def lvmGetSlaveDevPathList(vgName):
-        ret = []
-        out = FmUtil.cmdCall("/sbin/lvm", "pvdisplay", "-c")
-        for m in re.finditer("^\\s*(\\S+):%s:.*" % (vgName), out, re.M):
-            if m.group(1) == "[unknown]":
-                raise Exception("volume group %s not fully loaded" % (vgName))
-            ret.append(m.group(1))
-        return ret
 
     @staticmethod
     def isValidKernelArch(archStr):
