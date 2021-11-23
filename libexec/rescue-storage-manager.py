@@ -79,15 +79,6 @@ class Main:
             print("Storage layout: %s, SSD: %s%s, LVM PVs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
             return 0
 
-        if layout.name == "efi-lvm-ext4":
-            extraStr = " ("
-            if layout.dev_swap is not None:
-                extraStr += "has swap, "
-            extraStr += "boot disk: %s" % (layout.boot_disk)
-            extraStr += ")"
-            print("Storage layout: %s, LVM PVs: %s%s" % (layout.name, " ".join(layout.get_hdd_list()), extraStr))
-            return 0
-
         if layout.name == "efi-ext4":
             if layout.dev_swap is not None:
                 swapStr = " (with swap)"
@@ -118,10 +109,6 @@ class Main:
         elif self.args.layout_name == "efi-ext4":
             print("Root device: %s" % (layout.dev_rootfs))
             print("Swap file: None")
-        elif self.args.layout_name == "efi-lvm-ext4":
-            print("Root device: %s" % (layout.dev_rootfs))
-            print("Swap device: None")
-            print("Boot disk: %s" % (layout.get_esp()))
         elif self.args.layout_name == "efi-bache-lvm":
             print("Root device: %s" % (layout.dev_rootfs))
             print("Swap device: %s" % (layout.dev_swap if layout.dev_swap is not None else "None"))

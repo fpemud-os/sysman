@@ -38,7 +38,7 @@ class Main:
 
         if layout.name == "bios-ext4":
             bootDev = None
-        elif layout.name in ["efi-ext4", "efi-lvm-ext4", "efi-bcache-lvm-ext4"]:
+        elif layout.name in ["efi-ext4", "efi-bcache-lvm-ext4"]:
             bootDev = layout.get_esp()
         else:
             assert False
