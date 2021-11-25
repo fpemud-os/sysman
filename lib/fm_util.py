@@ -555,28 +555,6 @@ class FmUtil:
             return ""
 
     @staticmethod
-    def getBlkDevLvmInfo(devPath):
-        """Returns (vg-name, lv-name)
-           Returns None if the device is not lvm"""
-
-        rc, out = FmUtil.shellCallWithRetCode("/sbin/dmsetup info %s" % (devPath))
-        if rc == 0:
-            m = re.search("^Name: *(\\S+)$", out, re.M)
-            assert m is not None
-            ret = m.group(1).split(".")
-            if len(ret) == 2:
-                return ret
-            ret = m.group(1).split("-")         # compatible with old lvm version
-            if len(ret) == 2:
-                return ret
-
-        m = re.fullmatch("(/dev/mapper/\\S+)-(\\S+)", devPath)          # compatible with old lvm version
-        if m is not None:
-            return FmUtil.getBlkDevLvmInfo("%s-%s" % (m.group(1), m.group(2)))
-
-        return None
-
-    @staticmethod
     def scsiGetHostControllerPath(devPath):
         ctx = pyudev.Context()
         dev = pyudev.Device.from_device_file(ctx, devPath)
