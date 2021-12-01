@@ -11,6 +11,7 @@ import pathlib
 import fileinput
 import configparser
 import lxml.etree
+import urllib.request
 import robust_layer.git
 import robust_layer.simple_git
 import robust_layer.subversion
@@ -1156,6 +1157,119 @@ class OverlayCheckError(Exception):
 
 class PrivateOverlayNotAccessiableError(Exception):
     pass
+
+
+class CloudStage3Urls:
+
+    def __init__(self, arch, **kwargs):
+        self._arch = arch
+        self._kwargs = kwargs
+
+        if self._arch == "alpha":
+            assert False
+        elif self._arch == "amd64":
+            assert self._kwargs["sys_type"] in ["musl", "no-multilib-openrc", "no-multilib-systemd", "openrc", "systemd"]
+        elif self._arch == "arm":
+            assert False
+        elif self._arch == "arm64":
+            assert False
+        elif self._arch == "hppa":
+            assert False
+        elif self._arch == "ia64":
+            assert False
+        elif self._arch == "m68k":
+            assert False
+        elif self._arch == "ppc":
+            assert False
+        elif self._arch == "riscv":
+            assert False
+        elif self._arch == "s390":
+            assert False
+        elif self._arch == "sh":
+            assert False
+        elif self._arch == "sparc":
+            assert False
+        elif self._arch == "x86":
+            assert False
+        else:
+            assert False
+
+    def communicate(self):
+        self.stage3FileUrl = None
+        self.stage3ContentGzUrl = None
+        self.stage3DigestUrl = None
+        self.stage3DigestAscUrl = None
+
+        if self._arch == "alpha":
+            assert False
+        elif self._arch == "amd64":
+            indexFileName = "latest-stage3-amd64-%s.txt" % (self._kwargs["sys_type"])
+        elif self._arch == "arm":
+            assert False
+        elif self._arch == "arm64":
+            assert False
+        elif self._arch == "hppa":
+            assert False
+        elif self._arch == "ia64":
+            assert False
+        elif self._arch == "m68k":
+            assert False
+        elif self._arch == "ppc":
+            assert False
+        elif self._arch == "riscv":
+            assert False
+        elif self._arch == "s390":
+            assert False
+        elif self._arch == "sh":
+            assert False
+        elif self._arch == "sparc":
+            assert False
+        elif self._arch == "x86":
+            assert False
+        else:
+            assert False
+
+        baseUrl = "https://mirrors.tuna.tsinghua.edu.cn/gentoo"
+        autoBuildsUrl = os.path.join(baseUrl, "releases", self._arch, "autobuilds")
+
+        with urllib.request.urlopen(os.path.join(autoBuildsUrl, indexFileName), timeout=robust_layer.TIMEOUT) as resp:
+            m = re.search(r'^(\S+) [0-9]+', resp.read(), re.M)
+            self.stage3FileUrl = os.path.join(autoBuildsUrl, m.group(1))
+
+        self.stage3ContentGzUrl = self.stage3FileUrl + ".CONTENTS.gz"
+        self.stage3DigestUrl = self.stage3FileUrl + ".DIGESTS"
+        self.stage3DigestAscUrl = self.stage3FileUrl + ".DIGESTS.asc"
+
+    def dispose(self):
+        if hasattr(self, "stage3FileUrl"):
+            del self.stage3FileUrl
+        if hasattr(self, "stage3ContentGzUrl"):
+            del self.stage3ContentGzUrl
+        if hasattr(self, "stage3DigestUrl"):
+            del self.stage3DigestUrl
+        if hasattr(self, "stage3DigestAscUrl"):
+            del self.stage3DigestAscUrl
+
+
+class CloudSnapshotUrls:
+
+    def __init__(self, name):
+        self._name = name
+
+    def communicate(self):
+        baseUrl = "https://mirrors.tuna.tsinghua.edu.cn/gentoo"
+
+        self.snapshotUrl = os.path.join(baseUrl, "snapshots", "%s-latest.tar.xz" % (self._name))
+        self.snapshotGpgUrl = self.snapshotUrl + ".gpgsig"
+        self.snapshotMd5Url = self.snapshotUrl + ".md5sum"
+
+    def dispose(self):
+        if hasattr(self, "snapshotUrl"):
+            del self.snapshotUrl
+        if hasattr(self, "snapshotGpgUrl"):
+            del self.snapshotGpgUrl
+        if hasattr(self, "snapshotMd5Url"):
+            del self.snapshotMd5Url
 
 
 class CloudOverlayDb:
