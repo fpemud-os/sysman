@@ -599,7 +599,7 @@ class FmMain:
         print("")
 
         self.infoPrinter.printInfo(">> Build rescue disk image...")
-        builder.build(self.param.tmpDirOnHdd)
+        builder.build(self.param.machineInfoGetter.hwInfo(), self.param.tmpDirOnHdd)
         print("")
 
         # make target

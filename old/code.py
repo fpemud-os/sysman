@@ -246,3 +246,25 @@ class _InterProcessCounter:
 
         return None
 
+
+
+
+
+# def _standardMountList(rootfsDir):
+#     mountList = []
+#     if True:
+#         tstr = os.path.join(rootfsDir, "proc")
+#         mountList.append((tstr, "-t proc -o nosuid,noexec,nodev proc %s" % (tstr)))
+#     if True:
+#         tstr = os.path.join(rootfsDir, "sys")
+#         mountList.append((tstr, "--rbind /sys %s" % (tstr), "--make-rslave %s" % (tstr)))
+#     if True:
+#         tstr = os.path.join(rootfsDir, "dev")
+#         mountList.append((tstr, "--rbind /dev %s" % (tstr), "--make-rslave %s" % (tstr)))
+#     if True:
+#         tstr = os.path.join(rootfsDir, "run")
+#         mountList.append((tstr, "--bind /run %s" % (tstr)))
+#     if True:
+#         tstr = os.path.join(rootfsDir, "tmp")
+#         mountList.append((tstr, "-t tmpfs -o mode=1777,strictatime,nodev,nosuid tmpfs %s" % (tstr)))
+#     return mountList
