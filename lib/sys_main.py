@@ -592,7 +592,8 @@ class FmMain:
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()
 
-        builder = RescueDiskBuilder(devPath, self.param.tmpDirOnHdd)
+        # FIXME
+        builder = RescueDiskBuilder("amd64", "amd64", devPath, self.param.tmpDirOnHdd)
 
         self.infoPrinter.printInfo(">> Checking...")
         builder.checkDevice()
