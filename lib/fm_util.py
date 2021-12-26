@@ -2867,12 +2867,13 @@ class CloudCacheGentoo:
         assert self._bSynced
         return os.listdir(os.path.join(self._releasesDir, arch, self.get_release_variant_list(arch)[0]))
 
-    def get_or_download_stage3(self, arch, release_variant, release_version):
+    def get_or_download_stage3(self, arch, stage3_release_variant, release_version):
         assert self._bSynced
 
-        fn, fnDigest = self._getFn(release_variant, release_version)
+        releaseVariant = self._stage3GetReleaseVariant(arch, stage3_release_variant)
+        fn, fnDigest = self._getFn(releaseVariant, release_version)
 
-        myDir = os.path.join(self._releasesDir, arch, release_variant, release_version)
+        myDir = os.path.join(self._releasesDir, arch, releaseVariant, release_version)
         fullfn = os.path.join(myDir, fn)
         fullfnDigest = os.path.join(myDir, fnDigest)
 
@@ -2894,15 +2895,17 @@ class CloudCacheGentoo:
         FmUtil.wgetDownload(urlDigest, fullfnDigest)
         return (fullfn, fullfnDigest)
 
-    def get_or_download_latest_stage3(self, arch, release_variant):
+    def get_or_download_latest_stage3(self, arch, stage3_release_variant):
         assert self._bSynced
+
+        releaseVariant = self._stage3GetReleaseVariant(arch, stage3_release_variant)
 
         if self._bConnectToCloud:
             self.sync()
 
-        variantDir = os.path.join(self._releasesDir, arch, release_variant)
+        variantDir = os.path.join(self._releasesDir, arch, releaseVariant)
         for ver in sorted(os.listdir(variantDir), reverse=True):
-            fn, fnDigest = self._getFn(release_variant, ver)
+            fn, fnDigest = self._getFn(releaseVariant, ver)
 
             myDir = os.path.join(variantDir, ver)
             fullfn = os.path.join(myDir, fn)
@@ -2925,7 +2928,10 @@ class CloudCacheGentoo:
     def _getAutoBuildsUrl(self, arch):
         return os.path.join(self._baseUrl, "releases", arch, "autobuilds")
 
-    def _getFn(self, release_variant, release_version):
-        fn = release_variant + "-" + release_version + ".tar.xz"
+    def _stage3GetReleaseVariant(self, arch, stage3ReleaseVariant):
+        return "stage3-%s-%s" % (arch, stage3ReleaseVariant)
+
+    def _getFn(self, releaseVariant, releaseVersion):
+        fn = releaseVariant + "-" + releaseVersion + ".tar.xz"
         fnDigest = fn + ".DIGESTS"
         return (fn, fnDigest)

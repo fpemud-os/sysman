@@ -19,13 +19,43 @@ from fm_param import FmConst
 
 class RescueDiskBuilder:
 
-    def __init__(self, devPath, tmpDir):
+    def __init__(self, arch, devPath, tmpDir):
         self._filesDir = os.path.join(FmConst.dataDir, "rescue", "rescuedisk")
         self._pkgListFile = os.path.join(self._filesDir, "packages.x86_64")
         self._grubCfgSrcFile = os.path.join(self._filesDir, "grub.cfg.in")
         self._pkgDir = os.path.join(FmConst.dataDir, "rescue", "pkg")
 
         self._mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
+
+        self._arch = arch
+        if self._arch == "alpha":
+            assert False
+        elif self._arch == "amd64":
+            self._variant = "systemd"
+        elif self._arch == "arm":
+            assert False
+        elif self._arch == "arm64":
+            assert False
+        elif self._arch == "hppa":
+            assert False
+        elif self._arch == "ia64":
+            assert False
+        elif self._arch == "m68k":
+            assert False
+        elif self._arch == "ppc":
+            assert False
+        elif self._arch == "riscv":
+            assert False
+        elif self._arch == "s390":
+            assert False
+        elif self._arch == "sh":
+            assert False
+        elif self._arch == "sparc":
+            assert False
+        elif self._arch == "x86":
+            assert False
+        else:
+            assert False
 
         self._devPath = devPath
         if self._devPath.endswith(".iso"):
@@ -37,7 +67,6 @@ class RescueDiskBuilder:
         else:
             raise Exception("device not supported")
 
-        self._cache = CloudCacheGentoo(FmConst.gentooCacheDir, True)
         self._stage3Files = None
 
         self._tmpRootfsDir = gstage4.WorkDir(os.path.join(tmpDir, "rootfs"))
@@ -67,8 +96,11 @@ class RescueDiskBuilder:
             assert False
 
     def downloadFiles(self):
-        self._cache.sync()
-        self._stage3Files = self._cache.get_or_download_latest_stage3()
+        cache = CloudCacheGentoo(FmConst.gentooCacheDir, True)
+        cache.sync()
+        if self._arch not in cache.get_arch_list():
+            raise Exception("arch \"%s\" is not supported" % (self._arch))
+        self._stage3Files = cache.get_or_download_latest_stage3(self._arch, "systemd")
 
     def startBuild(self, hwInfo):
         s = gstage4.Settings()
