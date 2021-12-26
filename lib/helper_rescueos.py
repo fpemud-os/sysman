@@ -52,7 +52,8 @@ class RescueDiskBuilder:
 
     def checkDevice(self):
         if self._devType == "iso":
-            assert False
+            # FIXME
+            pass
         elif self._devType == "usb":
             if not FmUtil.isBlkDevUsbStick(self._devPath):
                 raise Exception("device %s does not seem to be an usb-stick." % (self._devPath))
@@ -133,6 +134,18 @@ class RescueDiskBuilder:
         self._builder.action_cleanup()
 
     def installIntoDevice(self):
+        if self._devType == "iso":
+            # FIXME
+            assert False
+        elif self._devType == "usb":
+            self._installIntoUsbStick()
+        elif self._devType == "cdrom":
+            # FIXME
+            assert False
+        else:
+            assert False
+
+    def _installIntoUsbStick(self):
         # create partitions
         FmUtil.initializeDisk(self._devPath, "mbr", [
             ("*", "vfat"),
