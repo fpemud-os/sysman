@@ -105,7 +105,7 @@ class RescueDiskBuilder:
         if self._subarch not in cache.get_subarch_list(self._arch):
             raise Exception("subarch \"%s\" is not supported" % (self._subarch))
         self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant)
-        self._snapshotFile = cache.get_latest_sapshot()
+        self._snapshotFile = cache.get_latest_snapshot()
 
     def startBuild(self, hwInfo):
         s = gstage4.Settings()
