@@ -10,9 +10,10 @@ import gstage4
 import gstage4.seed_stages
 import gstage4.repositories
 import gstage4.target_features
-from fm_util import CloudCacheGentoo, FmUtil
+from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_util import TempChdir
+from fm_util import CloudCacheGentoo
 from fm_param import FmConst
 
 
