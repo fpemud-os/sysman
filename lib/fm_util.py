@@ -49,6 +49,16 @@ from gi.repository import GLib
 class FmUtil:
 
     @staticmethod
+    def syncDirs(srcList, dstDir):
+        for fn in os.listdir(dstDir):
+            if fn not in srcList:
+                robust_layer.simple_fops.rm(os.path.join(dstDir, fn))
+        for fn in srcList:
+            fullfn = os.path.join(dstDir, fn)
+            if not os.path.exists(fullfn):
+                os.mkdir(fullfn)
+
+    @staticmethod
     def strListMaxLen(strList):
         maxLen = 0
         for lname in strList:
@@ -2773,3 +2783,137 @@ class BootDirWriter:
     def __exit__(self, type, value, traceback):
         if not self._origIsWritable:
             self._ctrl.to_read_only()
+
+
+class CloudCacheGentoo:
+
+    def __init__(self, cacheDir, connectToCloud):
+        self._baseUrl = "https://mirrors.tuna.tsinghua.edu.cn/gentoo"
+
+        self._dir = cacheDir
+        self._releasesDir = os.path.join(self._dir, "releases")
+        self._snapshotsDir = os.path.join(self._dir, "snapshots")
+
+        self._bConnectToCloud = connectToCloud
+        self._bSynced = (os.path.exists(self._releasesDir) and len(os.listdir(self._releasesDir)) > 0)
+
+    def sync(self):
+        assert self._bConnectToCloud
+
+        os.makedirs(self._releasesDir, exists_ok=True)
+        os.makedirs(self._snapshotsDir, exists_ok=True)
+
+        # fill arch directories
+        if True:
+            archList = []
+            with urllib.request.urlopen(os.path.join(self._baseUrl, "releases"), timeout=robust_layer.TIMEOUT) as resp:
+                root = lxml.html.parse(resp)
+                for elem in root.xpath(".//a"):
+                    if elem.text is None:
+                        continue
+                    m = re.fullmatch("(\\S+)/", elem.text)
+                    if m is None:
+                        continue
+                    archList.add(m.group(1))
+
+            # fill arch directories
+            FmUtil.syncDirs(archList, self._releasesDir)
+
+        # fill variant and release directories
+        for arch in archList:
+            variantList = []
+            releaseList = []
+            with urllib.request.urlopen(self._getAutoBuildsUrl(arch), timeout=robust_layer.TIMEOUT) as resp:
+                for elem in lxml.html.parse(resp).xpath(".//a"):
+                    if elem.text is not None:
+                        m = re.fullmatch("current-(\\S+)/", elem.text)
+                        if m is not None:
+                            variantList.add(m.group(1))
+                        m = re.fullmatch("([0-9]+T[0-9]+Z)/", elem.text)
+                        if m is not None:
+                            releaseList.add(m.group(1))
+
+            # fill variant directories
+            archDir = os.path.join(self._releasesDir, arch)
+            FmUtil.syncDirs(variantList, archDir)
+
+            # fill release directories in variant directories
+            for rel in releaseList:
+                FmUtil.syncDirs(releaseList, os.path.join(archDir, rel))
+
+        self._bSynced = True
+
+    def get_arch_list(self):
+        assert self._bSynced
+        return os.listdir(self._releasesDir)
+
+    def get_release_variant_list(self, arch):
+        assert self._bSynced
+        return os.listdir(os.path.join(self._releasesDir, arch))
+
+    def get_release_version_list(self, arch):
+        assert self._bSynced
+        return os.listdir(os.path.join(self._releasesDir, arch, self.get_release_variant_list(arch)[0]))
+
+    def get_or_download_stage3(self, arch, release_variant, release_version):
+        assert self._bSynced
+
+        fn, fnDigest = self._getFn(release_variant, release_version)
+
+        myDir = os.path.join(self._releasesDir, arch, release_variant, release_version)
+        fullfn = os.path.join(myDir, fn)
+        fullfnDigest = os.path.join(myDir, fnDigest)
+
+        url = os.path.join(self._getAutoBuildsUrl(arch), release_version, fn)
+        urlDigest = os.path.join(self._getAutoBuildsUrl(arch), release_version, fnDigest)
+
+        if os.path.exists(fullfn) and os.path.exists(fullfnDigest):
+            print("Files already downloaded.")
+            return (fullfn, fullfnDigest)
+
+        if not self._bConnectToCloud:
+            raise FileNotFoundError("the specified stage3 does not exist")
+
+        self.sync()
+        if not os.path.exists(myDir):
+            raise FileNotFoundError("the specified stage3 does not exist")
+
+        FmUtil.wgetDownload(url, fullfn)
+        FmUtil.wgetDownload(urlDigest, fullfnDigest)
+        return (fullfn, fullfnDigest)
+
+    def get_or_download_latest_stage3(self, arch, release_variant):
+        assert self._bSynced
+
+        if self._bConnectToCloud:
+            self.sync()
+
+        variantDir = os.path.join(self._releasesDir, arch, release_variant)
+        for ver in sorted(os.listdir(variantDir), reverse=True):
+            fn, fnDigest = self._getFn(release_variant, ver)
+
+            myDir = os.path.join(variantDir, ver)
+            fullfn = os.path.join(myDir, fn)
+            fullfnDigest = os.path.join(myDir, fnDigest)
+
+            url = os.path.join(self._getAutoBuildsUrl(arch), ver, fn)
+            urlDigest = os.path.join(self._getAutoBuildsUrl(arch), ver, fnDigest)
+
+            if os.path.exists(fullfn) and os.path.exists(fullfnDigest):
+                print("Files already downloaded.")
+                return (fullfn, fullfnDigest)
+
+            if self._bConnectToCloud:
+                FmUtil.wgetDownload(url, fullfn)
+                FmUtil.wgetDownload(urlDigest, fullfnDigest)
+                return (fullfn, fullfnDigest)
+
+        raise FileNotFoundError("the specified stage3 does not exist")
+
+    def _getAutoBuildsUrl(self, arch):
+        return os.path.join(self._baseUrl, "releases", arch, "autobuilds")
+
+    def _getFn(self, release_variant, release_version):
+        fn = release_variant + "-" + release_version + ".tar.xz"
+        fnDigest = fn + ".DIGESTS"
+        return (fn, fnDigest)

@@ -41,6 +41,7 @@ class FmConst:
     distDir = os.path.join(portageCacheDir, "distfiles")
     kcacheDir = os.path.join(portageCacheDir, "kcache")
     archLinuxCacheDir = os.path.join(portageCacheDir, "archlinux")
+    gentooCacheDir = os.path.join(portageCacheDir, "gentoo")
 
     bbkiKernelFile = os.path.join(portageCfgDir, "bbki.kernel")
     bbkiKernelAddonDir = os.path.join(portageCfgDir, "bbki.kernel_addon")

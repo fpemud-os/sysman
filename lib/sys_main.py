@@ -595,16 +595,48 @@ class FmMain:
         builder = RescueDiskBuilder(devPath, self.param.tmpDirOnHdd)
 
         self.infoPrinter.printInfo(">> Checking...")
-        builder.checkUsbDevice()
+        builder.checkDevice()
         print("")
 
-        self.infoPrinter.printInfo(">> Build rescue disk image...")
-        builder.build(self.param.machineInfoGetter.hwInfo())
+        self.infoPrinter.printInfo(">> Downloading seed stage files...")
+        builder.downloadFiles()
+        print("")
+
+        self.infoPrinter.printInfo(">> Creating building environment...")
+        builder.startBuild(self.param.machineInfoGetter.hwInfo())
+        print("")
+
+        self.infoPrinter.printInfo(">> Unpacking seed stage...")
+        builder.unpack()
+        print("")
+
+        self.infoPrinter.printInfo(">> Initializing repositories...")
+        builder.init_repo_list()
+        print("")
+
+        self.infoPrinter.printInfo(">> Initializing configuration files...")
+        builder.init_conf_dir()
+        print("")
+
+        self.infoPrinter.printInfo(">> Installing and updating packages...")
+        builder.install_packages_and_update_world()
+        print("")
+
+        self.infoPrinter.printInfo(">> Installing kernel...")
+        builder.install_kernel()
+        print("")
+
+        self.infoPrinter.printInfo(">> Cusomizing...")
+        builder.customize_system()
+        print("")
+
+        self.infoPrinter.printInfo(">> Cleaning up...")
+        builder.cleanup()
         print("")
 
         # make target
         self.infoPrinter.printInfo(">> Installing into USB stick...")
-        builder.installIntoUsbDevice()
+        builder.installIntoTargetDevice()
         print("")
 
         return 0
