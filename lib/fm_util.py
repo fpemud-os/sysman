@@ -2828,7 +2828,7 @@ class CloudCacheGentoo:
         # fill variant and release directories
         for arch in archList:
             variantList = []
-            releaseList = []
+            versionList = []
             while True:
                 try:
                     with urllib.request.urlopen(self._getAutoBuildsUrl(arch), timeout=robust_layer.TIMEOUT) as resp:
@@ -2839,7 +2839,7 @@ class CloudCacheGentoo:
                                     variantList.append(m.group(1))
                                 m = re.fullmatch("([0-9]+T[0-9]+Z)/", elem.text)
                                 if m is not None:
-                                    releaseList.append(m.group(1))
+                                    versionList.append(m.group(1))
                         break
                 except Exception:
                     print("Failed, retrying...")
@@ -2850,8 +2850,8 @@ class CloudCacheGentoo:
             FmUtil.syncDirs(variantList, archDir)
 
             # fill release directories in variant directories
-            for rel in releaseList:
-                FmUtil.syncDirs(releaseList, os.path.join(archDir, rel))
+            for variant in variantList:
+                FmUtil.syncDirs(versionList, os.path.join(archDir, variant))
 
         self._bSynced = True
 
