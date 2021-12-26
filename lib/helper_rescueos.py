@@ -69,6 +69,7 @@ class RescueDiskBuilder:
             raise Exception("device not supported")
 
         self._stage3Files = None
+        self._snapshotFile = None
 
         self._tmpRootfsDir = gstage4.WorkDir(os.path.join(tmpDir, "rootfs"))
         self._tmpStageDir = gstage4.WorkDir(os.path.join(tmpDir, "tmpstage"))
@@ -103,7 +104,8 @@ class RescueDiskBuilder:
             raise Exception("arch \"%s\" is not supported" % (self._arch))
         if self._subarch not in cache.get_subarch_list(self._arch):
             raise Exception("subarch \"%s\" is not supported" % (self._subarch))
-        self._stage3Files = cache.get_or_download_latest_stage3(self._arch, self._subarch, self._stage3Variant)
+        self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant)
+        self._snapshotFile = cache.get_latest_sapshot()
 
     def startBuild(self, hwInfo):
         s = gstage4.Settings()
@@ -128,8 +130,7 @@ class RescueDiskBuilder:
 
     def initRepoList(self):
         repos = [
-            # gentooRepo = gstage4.repositories.GentooRsync(),
-            gstage4.repositories.GentooFromHost("/root/gentoo"),
+            gstage4.repositories.GentooSnapshotArchive(self._snapshotFile),
         ]
         self._builder.action_init_repositories(repos)
 

@@ -2853,6 +2853,25 @@ class CloudCacheGentoo:
             for variant in variantList:
                 FmUtil.syncDirs(versionList, os.path.join(archDir, variant))
 
+        # fill snapshots directory
+        if True:
+            versionList = []
+            while True:
+                try:
+                    with urllib.request.urlopen(os.path.join(self._baseUrl, "snapshots", "squashfs"), timeout=robust_layer.TIMEOUT) as resp:
+                        for elem in lxml.html.parse(resp).xpath(".//a"):
+                            if elem.text is not None:
+                                m = re.fullmatch("gentoo-([0-9]+).xz.sqfs", elem.text)
+                                if m is not None:
+                                    versionList.append(m.group(1))
+                        break
+                except Exception:
+                    print("Failed, retrying...")
+                    time.sleep(robust_layer.RETRY_WAIT)
+
+            # fill snapshots directories
+            FmUtil.syncDirs(versionList, self._snapshotsDir)
+
         self._bSynced = True
 
     def get_arch_list(self):
@@ -2874,7 +2893,11 @@ class CloudCacheGentoo:
         assert self._bSynced
         return os.listdir(os.path.join(self._releasesDir, arch, self.get_release_variant_list(arch)[0]))
 
-    def get_or_download_stage3(self, arch, subarch, stage3_release_variant, release_version):
+    def get_snapshot_version_list(self):
+        assert self._bSynced
+        return os.listdir(self._snapshotsDir)
+
+    def get_stage3(self, arch, subarch, stage3_release_variant, release_version):
         assert self._bSynced
 
         releaseVariant = self._stage3GetReleaseVariant(subarch, stage3_release_variant)
@@ -2902,7 +2925,7 @@ class CloudCacheGentoo:
         FmUtil.wgetDownload(urlDigest, fullfnDigest)
         return (fullfn, fullfnDigest)
 
-    def get_or_download_latest_stage3(self, arch, subarch, stage3_release_variant):
+    def get_latest_stage3(self, arch, subarch, stage3_release_variant):
         assert self._bSynced
 
         releaseVariant = self._stage3GetReleaseVariant(subarch, stage3_release_variant)
@@ -2930,7 +2953,51 @@ class CloudCacheGentoo:
                 FmUtil.wgetDownload(urlDigest, fullfnDigest)
                 return (fullfn, fullfnDigest)
 
-        raise FileNotFoundError("the specified stage3 does not exist")
+        raise FileNotFoundError("no stage3 found")
+
+    def get_snapshot(self, snapshot_version):
+        assert self._bSynced
+
+        myDir = os.path.join(self._snapshotsDir, snapshot_version)
+        fn = "gentoo-%s.xz.sqfs" % (snapshot_version)
+        fullfn = os.path.join(myDir, fn)
+        url = os.path.join(self._baseUrl, "snapshots", "squashfs", fn)
+
+        if os.path.exists(fullfn):
+            print("Files already downloaded.")
+            return fullfn
+
+        if not self._bConnectToCloud:
+            raise FileNotFoundError("the specified snapshot does not exist")
+
+        self.sync()
+        if not os.path.exists(myDir):
+            raise FileNotFoundError("the specified snapshot does not exist")
+
+        FmUtil.wgetDownload(url, fullfn)
+        return fullfn
+
+    def get_latest_snapshot(self):
+        assert self._bSynced
+
+        if self._bConnectToCloud:
+            self.sync()
+
+        for ver in sorted(os.listdir(self._snapshotsDir), reverse=True):
+            myDir = os.path.join(self._snapshotsDir, ver)
+            fn = "gentoo-%s.xz.sqfs" % (ver)
+            fullfn = os.path.join(myDir, fn)
+            url = os.path.join(self._baseUrl, "snapshots", "squashfs", fn)
+
+            if os.path.exists(fullfn):
+                print("Files already downloaded.")
+                return fullfn
+
+            if self._bConnectToCloud:
+                FmUtil.wgetDownload(url, fullfn)
+                return fullfn
+
+        raise FileNotFoundError("no snapshot found")
 
     def _getAutoBuildsUrl(self, arch):
         return os.path.join(self._baseUrl, "releases", arch, "autobuilds")
