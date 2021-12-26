@@ -19,7 +19,7 @@ from fm_param import FmConst
 
 class RescueDiskBuilder:
 
-    def __init__(self, arch, devPath, tmpDir):
+    def __init__(self, arch, subarch, devPath, tmpDir):
         self._filesDir = os.path.join(FmConst.dataDir, "rescue", "rescuedisk")
         self._pkgListFile = os.path.join(self._filesDir, "packages.x86_64")
         self._grubCfgSrcFile = os.path.join(self._filesDir, "grub.cfg.in")
@@ -28,10 +28,11 @@ class RescueDiskBuilder:
         self._mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
 
         self._arch = arch
+        self._subarch = subarch
         if self._arch == "alpha":
             assert False
         elif self._arch == "amd64":
-            self._variant = "systemd"
+            self._stage3Variant = "systemd"
         elif self._arch == "arm":
             assert False
         elif self._arch == "arm64":
@@ -100,7 +101,9 @@ class RescueDiskBuilder:
         cache.sync()
         if self._arch not in cache.get_arch_list():
             raise Exception("arch \"%s\" is not supported" % (self._arch))
-        self._stage3Files = cache.get_or_download_latest_stage3(self._arch, "systemd")
+        if self._subarch not in cache.get_subarch_list(self._arch):
+            raise Exception("subarch \"%s\" is not supported" % (self._subarch))
+        self._stage3Files = cache.get_or_download_latest_stage3(self._arch, self._subarch, self._stage3Variant)
 
     def startBuild(self, hwInfo):
         s = gstage4.Settings()

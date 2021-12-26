@@ -2859,6 +2859,13 @@ class CloudCacheGentoo:
         assert self._bSynced
         return os.listdir(self._releasesDir)
 
+    def get_subarch_list(self, arch):
+        assert self._bSynced
+        ret = set()
+        for d in os.listdir(os.path.join(self._releasesDir, arch)):
+            ret.add(d.split("-")[1])
+        return sorted(list(ret))
+
     def get_release_variant_list(self, arch):
         assert self._bSynced
         return os.listdir(os.path.join(self._releasesDir, arch))
@@ -2867,10 +2874,10 @@ class CloudCacheGentoo:
         assert self._bSynced
         return os.listdir(os.path.join(self._releasesDir, arch, self.get_release_variant_list(arch)[0]))
 
-    def get_or_download_stage3(self, arch, stage3_release_variant, release_version):
+    def get_or_download_stage3(self, arch, subarch, stage3_release_variant, release_version):
         assert self._bSynced
 
-        releaseVariant = self._stage3GetReleaseVariant(arch, stage3_release_variant)
+        releaseVariant = self._stage3GetReleaseVariant(subarch, stage3_release_variant)
         fn, fnDigest = self._getFn(releaseVariant, release_version)
 
         myDir = os.path.join(self._releasesDir, arch, releaseVariant, release_version)
@@ -2895,10 +2902,10 @@ class CloudCacheGentoo:
         FmUtil.wgetDownload(urlDigest, fullfnDigest)
         return (fullfn, fullfnDigest)
 
-    def get_or_download_latest_stage3(self, arch, stage3_release_variant):
+    def get_or_download_latest_stage3(self, arch, subarch, stage3_release_variant):
         assert self._bSynced
 
-        releaseVariant = self._stage3GetReleaseVariant(arch, stage3_release_variant)
+        releaseVariant = self._stage3GetReleaseVariant(subarch, stage3_release_variant)
 
         if self._bConnectToCloud:
             self.sync()
@@ -2928,10 +2935,10 @@ class CloudCacheGentoo:
     def _getAutoBuildsUrl(self, arch):
         return os.path.join(self._baseUrl, "releases", arch, "autobuilds")
 
-    def _stage3GetReleaseVariant(self, arch, stage3ReleaseVariant):
-        ret = "stage3-%s" % (arch)
+    def _stage3GetReleaseVariant(self, subarch, stage3ReleaseVariant):
+        ret = "stage3-%s" % (subarch)
         if stage3ReleaseVariant != "":
-            ret += "-%s" % (arch, stage3ReleaseVariant)
+            ret += "-%s" % (stage3ReleaseVariant)
         return ret
 
     def _getFn(self, releaseVariant, releaseVersion):
