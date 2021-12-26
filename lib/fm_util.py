@@ -2819,8 +2819,8 @@ class CloudCacheGentoo:
                             archList.append(m.group(1))
                         break
                 except Exception:
-                    print("Failed, retry in 1 minute...")
-                    time.sleep(robust_layer.RETRY_INTERVAL)
+                    print("Failed, retrying...")
+                    time.sleep(robust_layer.RETRY_WAIT)
 
             # fill arch directories
             FmUtil.syncDirs(archList, self._releasesDir)
@@ -2842,8 +2842,8 @@ class CloudCacheGentoo:
                                     releaseList.append(m.group(1))
                         break
                 except Exception:
-                    print("Failed, retry in 1 minute...")
-                    time.sleep(robust_layer.RETRY_INTERVAL)
+                    print("Failed, retrying...")
+                    time.sleep(robust_layer.RETRY_WAIT)
 
             # fill variant directories
             archDir = os.path.join(self._releasesDir, arch)
