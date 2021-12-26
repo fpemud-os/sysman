@@ -611,23 +611,23 @@ class FmMain:
         print("")
 
         self.infoPrinter.printInfo(">> Initializing repositories...")
-        builder.init_repo_list()
+        builder.initRepoList()
         print("")
 
         self.infoPrinter.printInfo(">> Initializing configuration files...")
-        builder.init_conf_dir()
+        builder.initConfDir()
         print("")
 
         self.infoPrinter.printInfo(">> Installing and updating packages...")
-        builder.install_packages_and_update_world()
+        builder.installAndUpdatePackages()
         print("")
 
         self.infoPrinter.printInfo(">> Installing kernel...")
-        builder.install_kernel()
+        builder.installKernel()
         print("")
 
         self.infoPrinter.printInfo(">> Cusomizing...")
-        builder.customize_system()
+        builder.customizeSystem()
         print("")
 
         self.infoPrinter.printInfo(">> Cleaning up...")
@@ -636,7 +636,7 @@ class FmMain:
 
         # make target
         self.infoPrinter.printInfo(">> Installing into USB stick...")
-        builder.installIntoTargetDevice()
+        builder.installIntoDevice()
         print("")
 
         return 0
