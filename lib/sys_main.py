@@ -592,19 +592,19 @@ class FmMain:
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()
 
-        builder = RescueDiskBuilder()
+        builder = RescueDiskBuilder(devPath, self.param.tmpDirOnHdd)
 
         self.infoPrinter.printInfo(">> Checking...")
-        builder.checkUsbDevice(devPath)
+        builder.checkUsbDevice()
         print("")
 
         self.infoPrinter.printInfo(">> Build rescue disk image...")
-        builder.build(self.param.machineInfoGetter.hwInfo(), self.param.tmpDirOnHdd)
+        builder.build(self.param.machineInfoGetter.hwInfo())
         print("")
 
         # make target
         self.infoPrinter.printInfo(">> Installing into USB stick...")
-        builder.installIntoUsbDevice(devPath)
+        builder.installIntoUsbDevice()
         print("")
 
         return 0
