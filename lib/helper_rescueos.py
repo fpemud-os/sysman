@@ -56,10 +56,10 @@ class RescueDiskBuilder:
             "*/*": "*",
         }
 
-        ft1 = gstage4.target_features.SshServer()
-        ft2 = gstage4.target_features.ChronyDaemon()
-        ft3 = gstage4.target_features.NetworkManager()
-        ft4 = gstage4.target_features.GettyAutoLogin()
+        ftSshServer = gstage4.target_features.SshServer()
+        ftChronyDaemon = gstage4.target_features.ChronyDaemon()
+        ftNetworkManager = gstage4.target_features.NetworkManager()
+        ftGettyAutoLogin = gstage4.target_features.GettyAutoLogin()
 
         self.tmpDir.initialize()
 
@@ -88,9 +88,9 @@ class RescueDiskBuilder:
             "sys-apps/portage",
             "sys-apps/systemd",
         ]
-        ft1.update_world_set(worldSet)
-        ft2.update_world_set(worldSet)
-        ft3.update_world_set(worldSet)
+        ftSshServer.update_world_set(worldSet)
+        ftChronyDaemon.update_world_set(worldSet)
+        ftNetworkManager.update_world_set(worldSet)
         b.action_update_world(world_set=worldSet)
 
         print("step5")
@@ -98,14 +98,14 @@ class RescueDiskBuilder:
 
         print("step6")
         serviceList = []
-        ft1.update_service_list(serviceList)
-        ft2.update_service_list(serviceList)
-        ft3.update_service_list(serviceList)
+        ftSshServer.update_service_list(serviceList)
+        ftChronyDaemon.update_service_list(serviceList)
+        ftNetworkManager.update_service_list(serviceList)
         b.action_enable_services(serviceList)
 
         print("step8")
         scriptList = []
-        ft4.update_custom_script_list(scriptList)
+        ftGettyAutoLogin.update_custom_script_list(scriptList)
         b.action_customize_system(scriptList)
 
         print("step9")
