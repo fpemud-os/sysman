@@ -2800,8 +2800,8 @@ class CloudCacheGentoo:
     def sync(self):
         assert self._bConnectToCloud
 
-        os.makedirs(self._releasesDir, exists_ok=True)
-        os.makedirs(self._snapshotsDir, exists_ok=True)
+        os.makedirs(self._releasesDir, exist_ok=True)
+        os.makedirs(self._snapshotsDir, exist_ok=True)
 
         # fill arch directories
         if True:
