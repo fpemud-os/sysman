@@ -2929,7 +2929,10 @@ class CloudCacheGentoo:
         return os.path.join(self._baseUrl, "releases", arch, "autobuilds")
 
     def _stage3GetReleaseVariant(self, arch, stage3ReleaseVariant):
-        return "stage3-%s-%s" % (arch, stage3ReleaseVariant)
+        ret = "stage3-%s" % (arch)
+        if stage3ReleaseVariant != "":
+            ret += "-%s" % (arch, stage3ReleaseVariant)
+        return ret
 
     def _getFn(self, releaseVariant, releaseVersion):
         fn = releaseVariant + "-" + releaseVersion + ".tar.xz"
