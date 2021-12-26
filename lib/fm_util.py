@@ -2816,7 +2816,7 @@ class CloudCacheGentoo:
                             m = re.fullmatch("(\\S+)/", elem.text)
                             if m is None:
                                 continue
-                            archList.add(m.group(1))
+                            archList.append(m.group(1))
                         break
                 except Exception:
                     print("Failed, retry in 1 minute...")
@@ -2836,10 +2836,10 @@ class CloudCacheGentoo:
                             if elem.text is not None:
                                 m = re.fullmatch("current-(\\S+)/", elem.text)
                                 if m is not None:
-                                    variantList.add(m.group(1))
+                                    variantList.append(m.group(1))
                                 m = re.fullmatch("([0-9]+T[0-9]+Z)/", elem.text)
                                 if m is not None:
-                                    releaseList.add(m.group(1))
+                                    releaseList.append(m.group(1))
                         break
                 except Exception:
                     print("Failed, retry in 1 minute...")
