@@ -2806,15 +2806,21 @@ class CloudCacheGentoo:
         # fill arch directories
         if True:
             archList = []
-            with urllib.request.urlopen(os.path.join(self._baseUrl, "releases"), timeout=robust_layer.TIMEOUT) as resp:
-                root = lxml.html.parse(resp)
-                for elem in root.xpath(".//a"):
-                    if elem.text is None:
-                        continue
-                    m = re.fullmatch("(\\S+)/", elem.text)
-                    if m is None:
-                        continue
-                    archList.add(m.group(1))
+            while True:
+                try:
+                    with urllib.request.urlopen(os.path.join(self._baseUrl, "releases"), timeout=robust_layer.TIMEOUT) as resp:
+                        root = lxml.html.parse(resp)
+                        for elem in root.xpath(".//a"):
+                            if elem.text is None:
+                                continue
+                            m = re.fullmatch("(\\S+)/", elem.text)
+                            if m is None:
+                                continue
+                            archList.add(m.group(1))
+                        break
+                except Exception:
+                    print("Failed, retry in 1 minute...")
+                    time.sleep(robust_layer.RETRY_INTERVAL)
 
             # fill arch directories
             FmUtil.syncDirs(archList, self._releasesDir)
@@ -2823,15 +2829,21 @@ class CloudCacheGentoo:
         for arch in archList:
             variantList = []
             releaseList = []
-            with urllib.request.urlopen(self._getAutoBuildsUrl(arch), timeout=robust_layer.TIMEOUT) as resp:
-                for elem in lxml.html.parse(resp).xpath(".//a"):
-                    if elem.text is not None:
-                        m = re.fullmatch("current-(\\S+)/", elem.text)
-                        if m is not None:
-                            variantList.add(m.group(1))
-                        m = re.fullmatch("([0-9]+T[0-9]+Z)/", elem.text)
-                        if m is not None:
-                            releaseList.add(m.group(1))
+            while True:
+                try:
+                    with urllib.request.urlopen(self._getAutoBuildsUrl(arch), timeout=robust_layer.TIMEOUT) as resp:
+                        for elem in lxml.html.parse(resp).xpath(".//a"):
+                            if elem.text is not None:
+                                m = re.fullmatch("current-(\\S+)/", elem.text)
+                                if m is not None:
+                                    variantList.add(m.group(1))
+                                m = re.fullmatch("([0-9]+T[0-9]+Z)/", elem.text)
+                                if m is not None:
+                                    releaseList.add(m.group(1))
+                        break
+                except Exception:
+                    print("Failed, retry in 1 minute...")
+                    time.sleep(robust_layer.RETRY_INTERVAL)
 
             # fill variant directories
             archDir = os.path.join(self._releasesDir, arch)
