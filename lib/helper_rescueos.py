@@ -79,15 +79,15 @@ class RescueDiskBuilder:
         b.action_init_confdir()
 
         print("step4")
-        worldSet = [
-            "app-admin/eselect",
+        worldSet = {
+            "app-admin/eselec",
             "app-eselect/eselect-timezone",
             "app-editors/nano",
             "sys-kernel/gentoo-sources",
             "sys-kernel/genkernel",
             "sys-apps/portage",
             "sys-apps/systemd",
-        ]
+        }
         ftSshServer.update_world_set(worldSet)
         ftChronyDaemon.update_world_set(worldSet)
         ftNetworkManager.update_world_set(worldSet)
