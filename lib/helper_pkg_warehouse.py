@@ -62,7 +62,8 @@ class PkgWarehouse:
         return ret
 
     def getKeywordList(self):
-        arch = FmUtil.portageGetArch()
+        chost = FmUtil.portageGetChost()
+        arch = chost[:chost.index("-")]
         if arch == "x86":
             return ["x86"]
         elif arch == "x86_64":
