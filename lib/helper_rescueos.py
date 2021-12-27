@@ -19,7 +19,7 @@ from fm_param import FmConst
 
 class RescueDiskBuilder:
 
-    def __init__(self, arch, subarch, devPath, tmpDir):
+    def __init__(self, arch, subarch, devPath, tmpDir, hwInfo):
         self._filesDir = os.path.join(FmConst.dataDir, "rescue", "rescuedisk")
         self._pkgListFile = os.path.join(self._filesDir, "packages.x86_64")
         self._grubCfgSrcFile = os.path.join(self._filesDir, "grub.cfg.in")
@@ -68,6 +68,10 @@ class RescueDiskBuilder:
         else:
             raise Exception("device not supported")
 
+        self._cp = gstage4.ComputingPower.new(hwInfo.hwDict["cpu"]["cores"],
+                                              hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
+                                              10 if "fan" in hwInfo.hwDict else 1)
+
         self._stage3Files = None
         self._snapshotFile = None
 
@@ -105,12 +109,12 @@ class RescueDiskBuilder:
         self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant)
         self._snapshotFile = cache.get_latest_snapshot()
 
-    def buildTargetSystem(self, hwInfo):
+    def buildTargetSystem(self):
+        self._tmpRootfsDir.initialize()
+
         s = gstage4.Settings()
         s.program_name = "fpemud-os-sysman"
-        s.host_computing_power = gstage4.ComputingPower.new(hwInfo.hwDict["cpu"]["cores"],
-                                                            hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
-                                                            10 if "fan" in hwInfo.hwDict else 1)
+        s.host_computing_power = self._cp
         s.host_distfiles_dir = FmConst.distDir
 
         ts = gstage4.TargetSettings()
@@ -118,13 +122,12 @@ class RescueDiskBuilder:
             "*/*": "*",
         }
 
-        self._tmpRootfsDir.initialize()
-
         builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
 
         print("Extract seed stage")
         with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
             builder.action_unpack(ss)
+        print("")
 
         repos = [
             gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
@@ -161,6 +164,39 @@ class RescueDiskBuilder:
         builder.action_customize_system(scriptList)
 
         builder.action_cleanup()
+
+    def buildWorkerSystem(self):
+        self._tmpRootfsDir.initialize()
+
+        s = gstage4.Settings()
+        s.program_name = "fpemud-os-sysman"
+        s.host_computing_power = self._cp
+        s.host_distfiles_dir = FmConst.distDir
+
+        ts = gstage4.TargetSettings()
+        ts.pkg_license = {
+            "*/*": "*",
+        }
+
+        builder = gstage4.Builder(s, ts, self._tmpStageDir)
+
+        print("Extract seed stage")
+        with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
+            builder.action_unpack(ss)
+        print("")
+
+        repos = [
+            gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
+        ]
+        builder.action_init_repositories(repos)
+
+        builder.action_init_confdir()
+
+        worldSet = {
+            "sys-apps/portage",
+            "sys-apps/systemd",
+        }
+        builder.action_update_world(world_set=worldSet)
 
     def installIntoDevice(self):
         if self._devType == "iso":

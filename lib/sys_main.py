@@ -593,7 +593,7 @@ class FmMain:
         self.param.sysChecker.basicCheckWithOverlayContent()
 
         arch, subarch = FmUtil.portageGetArchAndSubArch()
-        builder = RescueDiskBuilder(arch, subarch, devPath, self.param.tmpDirOnHdd)
+        builder = RescueDiskBuilder(arch, subarch, devPath, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
 
         self.infoPrinter.printInfo(">> Checking...")
         builder.checkDevice()
@@ -604,27 +604,11 @@ class FmMain:
         print("")
 
         self.infoPrinter.printInfo(">> Building target system...")
-        builder.buildTargetSystem(self.param.machineInfoGetter.hwInfo())
+        builder.buildTargetSystem()
         print("")
 
-        self.infoPrinter.printInfo(">> Installing and updating packages...")
-        builder.installAndUpdatePackages()
-        print("")
-
-        self.infoPrinter.printInfo(">> Installing kernel...")
-        builder.installKernel()
-        print("")
-
-        self.infoPrinter.printInfo(">> Cusomizing...")
-        builder.customizeSystem()
-        print("")
-
-        self.infoPrinter.printInfo(">> Cleaning up...")
-        builder.cleanup()
-        print("")
-
-        self.infoPrinter.printInfo(">> Building temporary stage...")
-        # builder.startBuild(self.param.machineInfoGetter.hwInfo())
+        self.infoPrinter.printInfo(">> Creatig worker system...")
+        builder.buildWorkerSystem()
         print("")
 
         # make target
