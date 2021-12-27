@@ -124,17 +124,14 @@ class RescueDiskBuilder:
 
         self._builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
 
-    def unpack(self):
         with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
             self._builder.action_unpack(ss)
 
-    def initRepoList(self):
         repos = [
-            gstage4.repositories.GentooSnapshotArchive(self._snapshotFile),
+            gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
         ]
         self._builder.action_init_repositories(repos)
 
-    def initConfDir(self):
         self._builder.action_init_confdir()
 
     def installAndUpdatePackages(self):

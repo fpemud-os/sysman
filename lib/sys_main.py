@@ -599,24 +599,12 @@ class FmMain:
         builder.checkDevice()
         print("")
 
-        self.infoPrinter.printInfo(">> Downloading seed stage files...")
+        self.infoPrinter.printInfo(">> Downloading files...")
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Creating building environment...")
+        self.infoPrinter.printInfo(">> Initializing target system...")
         builder.startBuild(self.param.machineInfoGetter.hwInfo())
-        print("")
-
-        self.infoPrinter.printInfo(">> Unpacking seed stage...")
-        builder.unpack()
-        print("")
-
-        self.infoPrinter.printInfo(">> Initializing repositories...")
-        builder.initRepoList()
-        print("")
-
-        self.infoPrinter.printInfo(">> Initializing configuration files...")
-        builder.initConfDir()
         print("")
 
         self.infoPrinter.printInfo(">> Installing and updating packages...")
@@ -633,6 +621,10 @@ class FmMain:
 
         self.infoPrinter.printInfo(">> Cleaning up...")
         builder.cleanup()
+        print("")
+
+        self.infoPrinter.printInfo(">> Building temporary stage...")
+        # builder.startBuild(self.param.machineInfoGetter.hwInfo())
         print("")
 
         # make target
