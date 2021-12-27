@@ -1,5 +1,6 @@
 ## system service ##################################################
 net-misc/chrony
+net-misc/frr
 net-vpn/i2pd
 net-vpn/tor
 net-wireless/bluez
