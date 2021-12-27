@@ -79,8 +79,6 @@ class RescueDiskBuilder:
         self._ftNetworkManager = gstage4.target_features.NetworkManager()
         self._ftGettyAutoLogin = gstage4.target_features.GettyAutoLogin()
 
-        self._builder = None
-
     def checkDevice(self):
         if self._devType == "iso":
             # FIXME
@@ -107,7 +105,7 @@ class RescueDiskBuilder:
         self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant)
         self._snapshotFile = cache.get_latest_snapshot()
 
-    def startBuild(self, hwInfo):
+    def buildTargetSystem(self, hwInfo):
         s = gstage4.Settings()
         s.program_name = "fpemud-os-sysman"
         s.host_computing_power = gstage4.ComputingPower.new(hwInfo.hwDict["cpu"]["cores"],
@@ -122,19 +120,19 @@ class RescueDiskBuilder:
 
         self._tmpRootfsDir.initialize()
 
-        self._builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
+        builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
 
+        print("extract seed stage")
         with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
-            self._builder.action_unpack(ss)
+            builder.action_unpack(ss)
 
         repos = [
             gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
         ]
-        self._builder.action_init_repositories(repos)
+        builder.action_init_repositories(repos)
 
-        self._builder.action_init_confdir()
+        builder.action_init_confdir()
 
-    def installAndUpdatePackages(self):
         worldSet = {
             "app-admin/eselec",
             "app-eselect/eselect-timezone",
@@ -147,24 +145,22 @@ class RescueDiskBuilder:
         self._ftSshServer.update_world_set(worldSet)
         self._ftChronyDaemon.update_world_set(worldSet)
         self._ftNetworkManager.update_world_set(worldSet)
-        self._builder.action_update_world(world_set=worldSet)
+        builder.action_update_world(world_set=worldSet)
 
-    def installKernel(self):
-        self._builder.action_install_kernel()
+        print("build kernel")
+        builder.action_install_kernel()
 
-    def customizeSystem(self):
         serviceList = []
         self._ftSshServer.update_service_list(serviceList)
         self._ftChronyDaemon.update_service_list(serviceList)
         self._ftNetworkManager.update_service_list(serviceList)
-        self._builder.action_enable_services(serviceList)
+        builder.action_enable_services(serviceList)
 
         scriptList = []
         self._ftGettyAutoLogin.update_custom_script_list(scriptList)
-        self._builder.action_customize_system(scriptList)
+        builder.action_customize_system(scriptList)
 
-    def cleanup(self):
-        self._builder.action_cleanup()
+        builder.action_cleanup()
 
     def installIntoDevice(self):
         if self._devType == "iso":

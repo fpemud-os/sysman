@@ -592,8 +592,8 @@ class FmMain:
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()
 
-        # FIXME
-        builder = RescueDiskBuilder("amd64", "amd64", devPath, self.param.tmpDirOnHdd)
+        arch, subarch = FmUtil.portageGetArchAndSubArch()
+        builder = RescueDiskBuilder(arch, subarch, devPath, self.param.tmpDirOnHdd)
 
         self.infoPrinter.printInfo(">> Checking...")
         builder.checkDevice()
@@ -603,8 +603,8 @@ class FmMain:
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Initializing target system...")
-        builder.startBuild(self.param.machineInfoGetter.hwInfo())
+        self.infoPrinter.printInfo(">> Building target system...")
+        builder.buildTargetSystem(self.param.machineInfoGetter.hwInfo())
         print("")
 
         self.infoPrinter.printInfo(">> Installing and updating packages...")

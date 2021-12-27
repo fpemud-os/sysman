@@ -1244,7 +1244,8 @@ class FmUtil:
         # run pkg_extra_files(), get the result
         # FIXME: not the context only have CHOST, it lacks a lot
         funcContent = "\n".join(lineList[startIdx:endIdx+1])
-        ret = FmUtil.cmdCall("/bin/bash", "-c", "%s\nexport CHOST=%s\npkg_extra_files" % (funcContent, FmUtil.portageGetChost()))
+        chost = FmUtil.shellCall("/usr/bin/portageq envvar CHOST 2>/dev/null").rstrip("\n")
+        ret = FmUtil.cmdCall("/bin/bash", "-c", "%s\nexport CHOST=%s\npkg_extra_files" % (funcContent, chost))
 
         # convert the result to wildcards
         wildcards = []
@@ -1578,8 +1579,13 @@ class FmUtil:
         return (ret, ["firmware/%s" % (fn) for fn in filesWanted])
 
     @staticmethod
-    def portageGetChost():
-        return FmUtil.shellCall("/usr/bin/portageq envvar CHOST 2>/dev/null").rstrip("\n")
+    def portageGetArch():
+        return "amd64"
+
+    @staticmethod
+    def portageGetArchAndSubArch():
+        # FIXME
+        return ("amd64", "amd64")
 
     @staticmethod
     def portageGetJobCount(makeConf):
