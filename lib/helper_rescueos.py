@@ -122,7 +122,7 @@ class RescueDiskBuilder:
 
         builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
 
-        print("extract seed stage")
+        print("Extract seed stage")
         with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
             builder.action_unpack(ss)
 
@@ -147,7 +147,7 @@ class RescueDiskBuilder:
         self._ftNetworkManager.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
-        print("build kernel")
+        print("Build kernel")
         builder.action_install_kernel()
 
         serviceList = []
