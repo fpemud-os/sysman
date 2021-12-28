@@ -78,12 +78,6 @@ class RescueDiskBuilder:
         self._tmpRootfsDir = gstage4.WorkDir(os.path.join(tmpDir, "rootfs"))
         self._tmpStageDir = gstage4.WorkDir(os.path.join(tmpDir, "tmpstage"))
 
-        self._ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
-        self._ftSshServer = gstage4.target_features.SshServer()
-        self._ftChronyDaemon = gstage4.target_features.ChronyDaemon()
-        self._ftNetworkManager = gstage4.target_features.NetworkManager()
-        self._ftGettyAutoLogin = gstage4.target_features.GettyAutoLogin()
-
     def checkDevice(self):
         if self._devType == "iso":
             # FIXME
@@ -101,16 +95,29 @@ class RescueDiskBuilder:
             assert False
 
     def downloadFiles(self):
-        cache = CloudCacheGentoo(FmConst.gentooCacheDir, True)
+        cache = CloudCacheGentoo(FmConst.gentooCacheDir)
+
         cache.sync()
         if self._arch not in cache.get_arch_list():
             raise Exception("arch \"%s\" is not supported" % (self._arch))
         if self._subarch not in cache.get_subarch_list(self._arch):
             raise Exception("subarch \"%s\" is not supported" % (self._subarch))
-        self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant)
-        self._snapshotFile = cache.get_latest_snapshot()
+
+        self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant, cached_only=True)
+        if self._stage3Files is None:
+            self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant)
+
+        self._snapshotFile = cache.get_latest_snapshot(cached_only=True)
+        if self._snapshotFile is None:
+            self._snapshotFile = cache.get_latest_snapshot()
 
     def buildTargetSystem(self):
+        ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
+        ftSshServer = gstage4.target_features.SshServer()
+        ftChronyDaemon = gstage4.target_features.ChronyDaemon()
+        ftNetworkManager = gstage4.target_features.NetworkManager()
+        ftGettyAutoLogin = gstage4.target_features.GettyAutoLogin()
+
         self._tmpRootfsDir.initialize()
 
         s = gstage4.Settings()
@@ -119,7 +126,7 @@ class RescueDiskBuilder:
         s.host_distfiles_dir = FmConst.distDir
 
         ts = gstage4.TargetSettings()
-        self._ftNoDeprecate.update_target_settings(ts)
+        ftNoDeprecate.update_target_settings(ts)
 
         builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
 
@@ -144,27 +151,29 @@ class RescueDiskBuilder:
             "sys-apps/portage",
             "sys-apps/systemd",
         }
-        self._ftSshServer.update_world_set(worldSet)
-        self._ftChronyDaemon.update_world_set(worldSet)
-        self._ftNetworkManager.update_world_set(worldSet)
+        ftSshServer.update_world_set(worldSet)
+        ftChronyDaemon.update_world_set(worldSet)
+        ftNetworkManager.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
         print("Build kernel")
         builder.action_install_kernel()
 
         serviceList = []
-        self._ftSshServer.update_service_list(serviceList)
-        self._ftChronyDaemon.update_service_list(serviceList)
-        self._ftNetworkManager.update_service_list(serviceList)
+        ftSshServer.update_service_list(serviceList)
+        ftChronyDaemon.update_service_list(serviceList)
+        ftNetworkManager.update_service_list(serviceList)
         builder.action_enable_services(serviceList)
 
         scriptList = []
-        self._ftGettyAutoLogin.update_custom_script_list(scriptList)
+        ftGettyAutoLogin.update_custom_script_list(scriptList)
         builder.action_customize_system(scriptList)
 
         builder.action_cleanup()
 
     def buildWorkerSystem(self):
+        ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
+
         self._tmpRootfsDir.initialize()
 
         s = gstage4.Settings()
@@ -173,19 +182,7 @@ class RescueDiskBuilder:
         s.host_distfiles_dir = FmConst.distDir
 
         ts = gstage4.TargetSettings()
-
-
-
-
-
-        ts.pkg_use = {
-            "*/*": "-deprecated",
-            "*/*": "-fallback",
-            "net-misc/networkmanager": "iwd",
-        }
-        ts.pkg_license = {
-            "*/*": "*",
-        }
+        ftNoDeprecate.update_target_settings(ts)
 
         builder = gstage4.Builder(s, ts, self._tmpStageDir)
 

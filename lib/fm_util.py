@@ -2796,19 +2796,16 @@ class BootDirWriter:
 
 class CloudCacheGentoo:
 
-    def __init__(self, cacheDir, connectToCloud):
+    def __init__(self, cacheDir):
         self._baseUrl = "https://mirrors.tuna.tsinghua.edu.cn/gentoo"
 
         self._dir = cacheDir
         self._releasesDir = os.path.join(self._dir, "releases")
         self._snapshotsDir = os.path.join(self._dir, "snapshots")
 
-        self._bConnectToCloud = connectToCloud
         self._bSynced = (os.path.exists(self._releasesDir) and len(os.listdir(self._releasesDir)) > 0)
 
     def sync(self):
-        assert self._bConnectToCloud
-
         os.makedirs(self._releasesDir, exist_ok=True)
         os.makedirs(self._snapshotsDir, exist_ok=True)
 
@@ -2906,13 +2903,16 @@ class CloudCacheGentoo:
         assert self._bSynced
         return os.listdir(self._snapshotsDir)
 
-    def get_stage3(self, arch, subarch, stage3_release_variant, release_version):
+    def get_stage3(self, arch, subarch, stage3_release_variant, release_version, cached_only=False):
         assert self._bSynced
 
         releaseVariant = self._stage3GetReleaseVariant(subarch, stage3_release_variant)
-        fn, fnDigest = self._getFn(releaseVariant, release_version)
 
         myDir = os.path.join(self._releasesDir, arch, releaseVariant, release_version)
+        if not os.path.exists(myDir):
+            raise FileNotFoundError("the specified stage3 does not exist")
+
+        fn, fnDigest = self._getFn(releaseVariant, release_version)
         fullfn = os.path.join(myDir, fn)
         fullfnDigest = os.path.join(myDir, fnDigest)
 
@@ -2923,30 +2923,23 @@ class CloudCacheGentoo:
             print("Files already downloaded.")
             return (fullfn, fullfnDigest)
 
-        if not self._bConnectToCloud:
-            raise FileNotFoundError("the specified stage3 does not exist")
-
-        self.sync()
-        if not os.path.exists(myDir):
+        if cached_only:
             raise FileNotFoundError("the specified stage3 does not exist")
 
         FmUtil.wgetDownload(url, fullfn)
         FmUtil.wgetDownload(urlDigest, fullfnDigest)
         return (fullfn, fullfnDigest)
 
-    def get_latest_stage3(self, arch, subarch, stage3_release_variant):
+    def get_latest_stage3(self, arch, subarch, stage3_release_variant, cached_only=False):
         assert self._bSynced
 
         releaseVariant = self._stage3GetReleaseVariant(subarch, stage3_release_variant)
 
-        if self._bConnectToCloud:
-            self.sync()
-
         variantDir = os.path.join(self._releasesDir, arch, releaseVariant)
         for ver in sorted(os.listdir(variantDir), reverse=True):
-            fn, fnDigest = self._getFn(releaseVariant, ver)
-
             myDir = os.path.join(variantDir, ver)
+
+            fn, fnDigest = self._getFn(releaseVariant, ver)
             fullfn = os.path.join(myDir, fn)
             fullfnDigest = os.path.join(myDir, fnDigest)
 
@@ -2957,17 +2950,20 @@ class CloudCacheGentoo:
                 print("Files already downloaded.")
                 return (fullfn, fullfnDigest)
 
-            if self._bConnectToCloud:
+            if not cached_only:
                 FmUtil.wgetDownload(url, fullfn)
                 FmUtil.wgetDownload(urlDigest, fullfnDigest)
                 return (fullfn, fullfnDigest)
 
         raise FileNotFoundError("no stage3 found")
 
-    def get_snapshot(self, snapshot_version):
+    def get_snapshot(self, snapshot_version, cached_only=False):
         assert self._bSynced
 
         myDir = os.path.join(self._snapshotsDir, snapshot_version)
+        if not os.path.exists(myDir):
+            raise FileNotFoundError("the specified snapshot does not exist")
+
         fn = "gentoo-%s.xz.sqfs" % (snapshot_version)
         fullfn = os.path.join(myDir, fn)
         url = os.path.join(self._baseUrl, "snapshots", "squashfs", fn)
@@ -2976,21 +2972,14 @@ class CloudCacheGentoo:
             print("Files already downloaded.")
             return fullfn
 
-        if not self._bConnectToCloud:
-            raise FileNotFoundError("the specified snapshot does not exist")
-
-        self.sync()
-        if not os.path.exists(myDir):
+        if cached_only:
             raise FileNotFoundError("the specified snapshot does not exist")
 
         FmUtil.wgetDownload(url, fullfn)
         return fullfn
 
-    def get_latest_snapshot(self):
+    def get_latest_snapshot(self, cached_only=False):
         assert self._bSynced
-
-        if self._bConnectToCloud:
-            self.sync()
 
         for ver in sorted(os.listdir(self._snapshotsDir), reverse=True):
             myDir = os.path.join(self._snapshotsDir, ver)
@@ -3002,7 +2991,7 @@ class CloudCacheGentoo:
                 print("Files already downloaded.")
                 return fullfn
 
-            if self._bConnectToCloud:
+            if not cached_only:
                 FmUtil.wgetDownload(url, fullfn)
                 return fullfn
 
