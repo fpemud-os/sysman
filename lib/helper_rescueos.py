@@ -78,6 +78,7 @@ class RescueDiskBuilder:
         self._tmpRootfsDir = gstage4.WorkDir(os.path.join(tmpDir, "rootfs"))
         self._tmpStageDir = gstage4.WorkDir(os.path.join(tmpDir, "tmpstage"))
 
+        self._ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         self._ftSshServer = gstage4.target_features.SshServer()
         self._ftChronyDaemon = gstage4.target_features.ChronyDaemon()
         self._ftNetworkManager = gstage4.target_features.NetworkManager()
@@ -118,9 +119,7 @@ class RescueDiskBuilder:
         s.host_distfiles_dir = FmConst.distDir
 
         ts = gstage4.TargetSettings()
-        ts.pkg_license = {
-            "*/*": "*",
-        }
+        self._ftNoDeprecate.update_target_settings(ts)
 
         builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
 
@@ -174,6 +173,16 @@ class RescueDiskBuilder:
         s.host_distfiles_dir = FmConst.distDir
 
         ts = gstage4.TargetSettings()
+
+
+
+
+
+        ts.pkg_use = {
+            "*/*": "-deprecated",
+            "*/*": "-fallback",
+            "net-misc/networkmanager": "iwd",
+        }
         ts.pkg_license = {
             "*/*": "*",
         }
