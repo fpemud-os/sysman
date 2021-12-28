@@ -56,15 +56,6 @@
 */*                                                        -deprecated
 */*                                                        -fallback
 
-# sys-auth/consolekit is deprecated
-*/*                                                        -consolekit
-
-# ssh1 protocol is deprecated
-*/*                                                        -ssh1
-
-# don't use media-video/libav
-*/*                                                                                                       -libav
-
 # media-libs/libquvi depends on dev-lang/lua[deprecated]
 */*                                                                                                       -quvi
 
