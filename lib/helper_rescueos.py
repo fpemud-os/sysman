@@ -3,16 +3,11 @@
 
 import os
 import re
-import glob
-import shutil
-import pathlib
 import gstage4
 import gstage4.seed_stages
 import gstage4.repositories
 import gstage4.target_features
 from fm_util import FmUtil
-from fm_util import TmpMount
-from fm_util import TempChdir
 from fm_util import CloudCacheGentoo
 from fm_param import FmConst
 
@@ -173,6 +168,14 @@ class RescueDiskBuilder:
 
     def buildWorkerSystem(self):
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
+        if self._devType == "iso":
+            assert False
+        elif self._devType == "usb":
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia()
+        elif self._devType == "cdrom":
+            assert False
+        else:
+            assert False
 
         self._tmpStageDir.initialize()
 
@@ -183,6 +186,7 @@ class RescueDiskBuilder:
 
         ts = gstage4.TargetSettings()
         ftNoDeprecate.update_target_settings(ts)
+        ftCreateLiveCd.update_target_settings(ts)
 
         builder = gstage4.Builder(s, ts, self._tmpStageDir)
 
@@ -206,58 +210,17 @@ class RescueDiskBuilder:
 
     def installIntoDevice(self):
         if self._devType == "iso":
-            # FIXME
             assert False
         elif self._devType == "usb":
-            self._installIntoUsbStick()
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia()
         elif self._devType == "cdrom":
-            # FIXME
             assert False
         else:
             assert False
 
-    def _installIntoUsbStick(self):
-        # create partitions
-        FmUtil.initializeDisk(self._devPath, "mbr", [
-            ("*", "vfat"),
-        ])
-        partDevPath = self._devPath + "1"
-
-        # format the new partition and get its UUID
-        FmUtil.cmdCall("/usr/sbin/mkfs.vfat", "-F", "32", "-n", "SYSRESC", partDevPath)
-        uuid = FmUtil.getBlkDevUuid(partDevPath)
-        if uuid == "":
-            raise Exception("can not get FS-UUID for %s" % (partDevPath))
-
-        with TmpMount(partDevPath) as mp:
-            # we need a fresh partition
-            assert len(os.listdir(mp.mountpoint)) == 0
-
-            os.makedirs(os.path.join(mp.mountpoint, "rescuedisk", "x86_64"))
-
-            srcDir = self._tmpRootfsDir.get_old_chroot_dir_names()[-1]
-            rootfsFn = os.path.join(mp.mountpoint, "rescuedisk", "x86_64", "airootfs.sfs")
-            rootfsMd5Fn = os.path.join(mp.mountpoint, "rescuedisk", "x86_64", "airootfs.sha512")
-            kernelFn = os.path.join(mp.mountpoint, "rescuedisk", "x86_64", "vmlinuz")
-            initrdFn = os.path.join(mp.mountpoint, "rescuedisk", "x86_64", "initcpio.img")
-
-            FmUtil.cmdCall("/bin/mv", glob.glob(os.path.join(srcDir, "boot", "vmlinuz-*"))[0], kernelFn)
-            FmUtil.cmdCall("/bin/mv", glob.glob(os.path.join(srcDir, "boot", "initramfs-*"))[0], initrdFn)
-            shutil.rmtree(os.path.join(srcDir, "boot"))
-
-            FmUtil.cmdExec("/usr/bin/mksquashfs", srcDir, rootfsFn, "-no-progress", "-noappend", "-quiet")
-            with TempChdir(os.path.dirname(rootfsFn)):
-                FmUtil.shellExec("/usr/bin/sha512sum \"%s\" > \"%s\"" % (os.path.basename(rootfsFn), rootfsMd5Fn))
-
-            # generate grub.cfg
-            FmUtil.cmdCall("/usr/sbin/grub-install", "--removable", "--target=x86_64-efi", "--boot-directory=%s" % (os.path.join(mp.mountpoint, "boot")), "--efi-directory=%s" % (mp.mountpoint), "--no-nvram")
-            FmUtil.cmdCall("/usr/sbin/grub-install", "--removable", "--target=i386-pc", "--boot-directory=%s" % (os.path.join(mp.mountpoint, "boot")), self._devPath)
-            with open(os.path.join(mp.mountpoint, "boot", "grub", "grub.cfg"), "w") as f:
-                buf = pathlib.Path(self._grubCfgSrcFile).read_text()
-                buf = buf.replace("%UUID%", uuid)
-                buf = buf.replace("%BASEDIR%", "/rescuedisk")
-                buf = buf.replace("%PREFIX%", "/rescuedisk/x86_64")
-                f.write(buf)
+        workerScript = ftCreateLiveCd.get_worker_script(self._tmpRootfsDir.get_old_chroot_dir_names()[-1], self._devPath, "SYSREC", "SystemRescueDisk")
+        with gstage4.WorkDirChrooter(self._tmpStageDir) as wc:
+            wc.script_exec(workerScript)
 
 
 devMinSizeInGb = 1                        # 1Gib
