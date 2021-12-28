@@ -92,19 +92,20 @@ class RescueDiskBuilder:
     def downloadFiles(self):
         cache = CloudCacheGentoo(FmConst.gentooCacheDir)
 
+        # sync
         cache.sync()
         if self._arch not in cache.get_arch_list():
             raise Exception("arch \"%s\" is not supported" % (self._arch))
         if self._subarch not in cache.get_subarch_list(self._arch):
             raise Exception("subarch \"%s\" is not supported" % (self._subarch))
 
+        # prefer local stage3 file
         self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant, cached_only=True)
         if self._stage3Files is None:
             self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant)
 
-        self._snapshotFile = cache.get_latest_snapshot(cached_only=True)
-        if self._snapshotFile is None:
-            self._snapshotFile = cache.get_latest_snapshot()
+        # always use newest snapshot
+        self._snapshotFile = cache.get_latest_snapshot()
 
     def buildTargetSystem(self):
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
