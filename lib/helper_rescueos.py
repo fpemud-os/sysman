@@ -163,18 +163,18 @@ class RescueDiskBuilder:
         ftSshServer.update_service_list(serviceList)
         ftChronyDaemon.update_service_list(serviceList)
         ftNetworkManager.update_service_list(serviceList)
-        builder.action_enable_services(serviceList)
+        builder.action_enable_services(service_list=serviceList)
 
         scriptList = []
         ftGettyAutoLogin.update_custom_script_list(scriptList)
-        builder.action_customize_system(scriptList)
+        builder.action_customize_system(custom_script_list=scriptList)
 
         builder.action_cleanup()
 
     def buildWorkerSystem(self):
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
 
-        self._tmpRootfsDir.initialize()
+        self._tmpStageDir.initialize()
 
         s = gstage4.Settings()
         s.program_name = "fpemud-os-sysman"
