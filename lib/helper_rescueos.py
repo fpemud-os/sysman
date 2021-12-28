@@ -151,8 +151,15 @@ class RescueDiskBuilder:
         # ftNetworkManager.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
-        print("Build kernel")
-        builder.action_install_kernel()
+        # print("Build kernel")
+        # builder.action_install_kernel()
+
+        p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names[-1])
+        p = os.path.join(p, "boot")
+        with open(os.path.join(p, "vmlinuz"), "w") as f:
+            f.write("")
+        with open(os.path.join(p, "initramfs.img"), "w") as f:
+            f.write("")
 
         serviceList = []
         # ftSshServer.update_service_list(serviceList)
