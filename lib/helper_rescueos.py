@@ -146,18 +146,18 @@ class RescueDiskBuilder:
             "sys-apps/portage",
             "sys-apps/systemd",
         }
-        ftSshServer.update_world_set(worldSet)
-        ftChronyDaemon.update_world_set(worldSet)
-        ftNetworkManager.update_world_set(worldSet)
+        # ftSshServer.update_world_set(worldSet)
+        # ftChronyDaemon.update_world_set(worldSet)
+        # ftNetworkManager.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
         print("Build kernel")
         builder.action_install_kernel()
 
         serviceList = []
-        ftSshServer.update_service_list(serviceList)
-        ftChronyDaemon.update_service_list(serviceList)
-        ftNetworkManager.update_service_list(serviceList)
+        # ftSshServer.update_service_list(serviceList)
+        # ftChronyDaemon.update_service_list(serviceList)
+        # ftNetworkManager.update_service_list(serviceList)
         builder.action_enable_services(service_list=serviceList)
 
         scriptList = []
