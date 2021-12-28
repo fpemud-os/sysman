@@ -155,7 +155,7 @@ class RescueDiskBuilder:
         # print("Build kernel")
         # builder.action_install_kernel()
 
-        p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names[-1])
+        p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names()[-1])
         p = os.path.join(p, "boot")
         with open(os.path.join(p, "vmlinuz"), "w") as f:
             f.write("")
