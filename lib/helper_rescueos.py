@@ -111,6 +111,9 @@ class RescueDiskBuilder:
         self._snapshotFile = cache.get_latest_snapshot()
 
     def buildTargetSystem(self):
+        ftPortage = gstage4.target_features.Portage()
+        # ftGenkernel = gstage4.target_features.Genkernel()
+        # ftSystemd = gstage4.target_features.Systemd()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         ftSshServer = gstage4.target_features.SshServer()
         ftChronyDaemon = gstage4.target_features.ChronyDaemon()
@@ -126,6 +129,9 @@ class RescueDiskBuilder:
 
         ts = gstage4.TargetSettings()
         ts.arch = "amd64"
+        ftPortage.update_target_settings(ts)
+        # ftGenkernel.update_target_settings(ts)
+        # ftSystemd.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
 
         builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
@@ -147,17 +153,17 @@ class RescueDiskBuilder:
             # "app-eselect/eselect-timezone",
             # "app-editors/nano",
             # "sys-kernel/gentoo-sources",
-            # "sys-kernel/genkernel",
-            "sys-apps/portage",
-            "sys-apps/systemd",
         }
+        ftPortage.update_world_set(worldSet)
+        # ftGenkernel.update_world_set(worldSet)
+        # ftSystemd.update_world_set(worldSet)
         # ftSshServer.update_world_set(worldSet)
         # ftChronyDaemon.update_world_set(worldSet)
         # ftNetworkManager.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
-        # print("Build kernel")
-        # builder.action_install_kernel()
+        print("Build kernel")
+        builder.action_install_kernel()
 
         p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names()[-1])
         p = os.path.join(p, "boot")
