@@ -143,18 +143,18 @@ class RescueDiskBuilder:
         builder.action_init_confdir()
 
         worldSet = {
-            "app-admin/eselec",
-            "app-eselect/eselect-timezone",
-            "app-editors/nano",
-            "sys-kernel/gentoo-sources",
-            "sys-kernel/genkernel",
+            # "app-admin/eselec",
+            # "app-eselect/eselect-timezone",
+            # "app-editors/nano",
+            # "sys-kernel/gentoo-sources",
+            # "sys-kernel/genkernel",
             "sys-apps/portage",
             "sys-apps/systemd",
         }
         # ftSshServer.update_world_set(worldSet)
         # ftChronyDaemon.update_world_set(worldSet)
         # ftNetworkManager.update_world_set(worldSet)
-        # builder.action_update_world(world_set=worldSet)
+        builder.action_update_world(world_set=worldSet)
 
         # print("Build kernel")
         # builder.action_install_kernel()
@@ -181,7 +181,7 @@ class RescueDiskBuilder:
     def buildWorkerSystem(self):
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         if self._devType == "iso":
-            assert False
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile(self._ts.arch, self._diskName, self._diskLabel)
         elif self._devType == "usb":
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
         elif self._devType == "cdrom":
@@ -223,7 +223,7 @@ class RescueDiskBuilder:
 
     def installIntoDevice(self):
         if self._devType == "iso":
-            assert False
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile(self._ts.arch, self._diskName, self._diskLabel)
         elif self._devType == "usb":
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
         elif self._devType == "cdrom":
