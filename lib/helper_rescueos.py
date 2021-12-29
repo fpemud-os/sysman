@@ -185,6 +185,7 @@ class RescueDiskBuilder:
         builder.action_cleanup()
 
     def buildWorkerSystem(self):
+        ftPortage = gstage4.target_features.Portage()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         if self._devType == "iso":
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
@@ -204,6 +205,7 @@ class RescueDiskBuilder:
 
         ts = gstage4.TargetSettings()
         ts.arch = "amd64"
+        ftPortage.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
 
         builder = gstage4.Builder(s, ts, self._tmpStageDir)
@@ -220,10 +222,8 @@ class RescueDiskBuilder:
 
         builder.action_init_confdir()
 
-        worldSet = {
-            "sys-apps/portage",
-            "sys-apps/systemd",
-        }
+        worldSet = set()
+        ftPortage.update_world_set(worldSet)
         ftCreateLiveCd.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
