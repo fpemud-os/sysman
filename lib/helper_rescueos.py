@@ -238,7 +238,7 @@ class RescueDiskBuilder:
             assert False
 
         workerScript = ftCreateLiveCd.get_worker_script(self._tmpRootfsDir.get_old_chroot_dir_names()[-1], self._devPath)
-        with gstage4.Chrooter(self._tmpStageDir) as wc:
+        with gstage4.Chrooter(self._tmpStageDir.chroot_dir_path) as wc:
             wc.script_exec(workerScript)
 
 
