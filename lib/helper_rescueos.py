@@ -151,7 +151,7 @@ class RescueDiskBuilder:
         worldSet = {
             # "app-admin/eselec",
             # "app-eselect/eselect-timezone",
-            # "app-editors/nano",
+            "app-editors/nano",
             # "sys-kernel/gentoo-sources",
         }
         ftPortage.update_world_set(worldSet)
