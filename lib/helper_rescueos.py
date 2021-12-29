@@ -205,7 +205,6 @@ class RescueDiskBuilder:
         ts = gstage4.TargetSettings()
         ts.arch = "amd64"
         ftNoDeprecate.update_target_settings(ts)
-        ftCreateLiveCd.update_target_settings(ts)
 
         builder = gstage4.Builder(s, ts, self._tmpStageDir)
 
@@ -225,6 +224,7 @@ class RescueDiskBuilder:
             "sys-apps/portage",
             "sys-apps/systemd",
         }
+        ftCreateLiveCd.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
     def installIntoDevice(self):
