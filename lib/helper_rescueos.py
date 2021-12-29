@@ -237,8 +237,11 @@ class RescueDiskBuilder:
         else:
             assert False
 
-        workerScript = ftCreateLiveCd.get_worker_script(self._tmpRootfsDir.get_old_chroot_dir_names()[-1], self._devPath)
-        with gstage4.Chrooter(self._tmpStageDir.chroot_dir_path) as wc:
+        p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names()[-1])
+        workerScript = ftCreateLiveCd.get_worker_script(p, self._devPath)
+
+        p = self._tmpStageDir.get_old_chroot_dir_path(self._tmpStageDir.get_old_chroot_dir_names()[-1])
+        with gstage4.Chrooter(p) as wc:
             wc.script_exec(workerScript)
 
 
