@@ -185,7 +185,7 @@ class RescueDiskBuilder:
         elif self._devType == "usb":
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
         elif self._devType == "cdrom":
-            assert False
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom(self._ts.arch, self._diskName, self._diskLabel)
         else:
             assert False
 
@@ -227,7 +227,7 @@ class RescueDiskBuilder:
         elif self._devType == "usb":
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
         elif self._devType == "cdrom":
-            assert False
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom(self._ts.arch, self._diskName, self._diskLabel)
         else:
             assert False
 
