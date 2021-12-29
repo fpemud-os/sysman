@@ -125,6 +125,7 @@ class RescueDiskBuilder:
         s.host_distfiles_dir = FmConst.distDir
 
         ts = gstage4.TargetSettings()
+        ts.arch = "amd64"
         ftNoDeprecate.update_target_settings(ts)
 
         builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
@@ -196,6 +197,7 @@ class RescueDiskBuilder:
         s.host_distfiles_dir = FmConst.distDir
 
         ts = gstage4.TargetSettings()
+        ts.arch = "amd64"
         ftNoDeprecate.update_target_settings(ts)
         ftCreateLiveCd.update_target_settings(ts)
 
