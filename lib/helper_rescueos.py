@@ -162,15 +162,15 @@ class RescueDiskBuilder:
         with open(os.path.join(p, "initramfs.img"), "w") as f:
             f.write("")
 
-        serviceList = []
+        # serviceList = []
         # ftSshServer.update_service_list(serviceList)
         # ftChronyDaemon.update_service_list(serviceList)
         # ftNetworkManager.update_service_list(serviceList)
-        builder.action_enable_services(service_list=serviceList)
+        # builder.action_enable_services(service_list=serviceList)
 
-        scriptList = []
-        ftGettyAutoLogin.update_custom_script_list(scriptList)
-        builder.action_customize_system(custom_script_list=scriptList)
+        # scriptList = []
+        # ftGettyAutoLogin.update_custom_script_list(scriptList)
+        # builder.action_customize_system(custom_script_list=scriptList)
 
         builder.action_cleanup()
 
