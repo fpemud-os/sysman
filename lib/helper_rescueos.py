@@ -15,6 +15,9 @@ from fm_param import FmConst
 class RescueDiskBuilder:
 
     def __init__(self, arch, subarch, devPath, tmpDir, hwInfo):
+        self._diskName = "SystemRescueDisk"
+        self._diskLabel = "SYSREC"
+
         self._filesDir = os.path.join(FmConst.dataDir, "rescue", "rescuedisk")
         self._pkgListFile = os.path.join(self._filesDir, "packages.x86_64")
         self._grubCfgSrcFile = os.path.join(self._filesDir, "grub.cfg.in")
@@ -179,7 +182,7 @@ class RescueDiskBuilder:
         if self._devType == "iso":
             assert False
         elif self._devType == "usb":
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia()
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
         elif self._devType == "cdrom":
             assert False
         else:
@@ -220,13 +223,13 @@ class RescueDiskBuilder:
         if self._devType == "iso":
             assert False
         elif self._devType == "usb":
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia()
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
         elif self._devType == "cdrom":
             assert False
         else:
             assert False
 
-        workerScript = ftCreateLiveCd.get_worker_script(self._tmpRootfsDir.get_old_chroot_dir_names()[-1], self._devPath, "SYSREC", "SystemRescueDisk")
+        workerScript = ftCreateLiveCd.get_worker_script(self._tmpRootfsDir.get_old_chroot_dir_names()[-1], self._devPath)
         with gstage4.WorkDirChrooter(self._tmpStageDir) as wc:
             wc.script_exec(workerScript)
 
