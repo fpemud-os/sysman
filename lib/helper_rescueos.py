@@ -187,11 +187,11 @@ class RescueDiskBuilder:
     def buildWorkerSystem(self):
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         if self._devType == "iso":
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile(self._ts.arch, self._diskName, self._diskLabel)
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
         elif self._devType == "usb":
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
         elif self._devType == "cdrom":
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom(self._ts.arch, self._diskName, self._diskLabel)
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom("amd64", self._diskName, self._diskLabel)
         else:
             assert False
 
@@ -229,11 +229,11 @@ class RescueDiskBuilder:
 
     def installIntoDevice(self):
         if self._devType == "iso":
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile(self._ts.arch, self._diskName, self._diskLabel)
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
         elif self._devType == "usb":
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
         elif self._devType == "cdrom":
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom(self._ts.arch, self._diskName, self._diskLabel)
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom("amd64", self._diskName, self._diskLabel)
         else:
             assert False
 
