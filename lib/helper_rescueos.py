@@ -14,7 +14,11 @@ from fm_param import FmConst
 
 class RescueDiskBuilder:
 
-    def __init__(self, arch, subarch, devPath, tmpDir, hwInfo):
+    DEV_TYPE_ISO = "iso"
+    DEV_TYPE_CDROM = "cdrom"
+    DEV_TYPE_REMOVABLE_MEDIA = "removable-media"
+
+    def __init__(self, arch, subarch, devType, devPath, tmpDir, hwInfo):
         self._diskName = "SystemRescueDisk"
         self._diskLabel = "SYSREC"
 
@@ -56,15 +60,9 @@ class RescueDiskBuilder:
         else:
             assert False
 
+        assert devType in [self.DEV_TYPE_ISO, self.DEV_TYPE_CDROM, self.DEV_TYPE_REMOVABLE_MEDIA]
+        self._devType = devType
         self._devPath = devPath
-        if self._devPath.endswith(".iso"):
-            self._devType = "iso"
-        elif re.fullmatch("/dev/sd.*", self._devPath) is not None:
-            self._devType = "usb"
-        elif re.fullmatch("/dev/sr.*", self._devPath) is not None:
-            self._devType = "cdrom"
-        else:
-            raise Exception("device not supported")
 
         self._cp = gstage4.ComputingPower.new(hwInfo.hwDict["cpu"]["cores"],
                                               hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
@@ -77,17 +75,17 @@ class RescueDiskBuilder:
         self._tmpStageDir = gstage4.WorkDir(os.path.join(tmpDir, "tmpstage"))
 
     def checkDevice(self):
-        if self._devType == "iso":
+        if self._devType == self.DEV_TYPE_ISO:
             # FIXME
             pass
-        elif self._devType == "usb":
+        elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
             if not FmUtil.isBlkDevUsbStick(self._devPath):
                 raise Exception("device %s does not seem to be an usb-stick." % (self._devPath))
             if FmUtil.getBlkDevSize(self._devPath) < devMinSize:
                 raise Exception("device %s needs to be at least %d GB." % (self._devPath, devMinSizeInGb))
             if FmUtil.isMountPoint(self._devPath):
                 raise Exception("device %s or any of its partitions is already mounted, umount it first." % (self._devPath))
-        elif self._devType == "cdrom":
+        elif self._devType == self.DEV_TYPE_CDROM:
             assert False
         else:
             assert False
@@ -148,13 +146,13 @@ class RescueDiskBuilder:
 
         builder.action_init_confdir()
 
-        worldSet = {
-            # "app-admin/eselec",
-            # "app-eselect/eselect-timezone",
-            "app-editors/nano",
-            # "sys-kernel/gentoo-sources",
-        }
-        ftPortage.update_world_set(worldSet)
+        # worldSet = {
+        #     "app-admin/eselec",
+        #     "app-eselect/eselect-timezone",
+        #     "app-editors/nano",
+        #     "sys-kernel/gentoo-sources",
+        # }
+        # ftPortage.update_world_set(worldSet)
         # ftGenkernel.update_world_set(worldSet)
         # ftSystemd.update_world_set(worldSet)
         # ftSshServer.update_world_set(worldSet)
@@ -187,11 +185,11 @@ class RescueDiskBuilder:
     def buildWorkerSystem(self):
         ftPortage = gstage4.target_features.Portage()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
-        if self._devType == "iso":
+        if self._devType == self.DEV_TYPE_ISO:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
-        elif self._devType == "usb":
+        elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
-        elif self._devType == "cdrom":
+        elif self._devType == self.DEV_TYPE_CDROM:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom("amd64", self._diskName, self._diskLabel)
         else:
             assert False
@@ -228,11 +226,11 @@ class RescueDiskBuilder:
         # builder.action_update_world(world_set=worldSet)
 
     def installIntoDevice(self):
-        if self._devType == "iso":
+        if self._devType == self.DEV_TYPE_ISO:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
-        elif self._devType == "usb":
+        elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
-        elif self._devType == "cdrom":
+        elif self._devType == self.DEV_TYPE_CDROM:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom("amd64", self._diskName, self._diskLabel)
         else:
             assert False

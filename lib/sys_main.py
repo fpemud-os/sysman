@@ -2,6 +2,7 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 import os
+import re
 import sys
 import pyudev
 import strict_pgs
@@ -593,7 +594,15 @@ class FmMain:
         self.param.sysChecker.basicCheckWithOverlayContent()
 
         arch, subarch = FmUtil.portageGetArchAndSubArch()
-        builder = RescueDiskBuilder(arch, subarch, devPath, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
+        if devPath.endswith(".iso"):
+            devType = RescueDiskBuilder.DEV_TYPE_ISO
+        elif re.fullmatch("/dev/sd.*", devPath) is not None:
+            devType = RescueDiskBuilder.DEV_TYPE_REMOVABLE_MEDIA
+        elif re.fullmatch("/dev/sr.*", devPath) is not None:
+            devType = RescueDiskBuilder.DEV_TYPE_CDROM
+        else:
+            raise Exception("device not supported")
+        builder = RescueDiskBuilder(arch, subarch, devType, devPath, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
 
         self.infoPrinter.printInfo(">> Checking...")
         builder.checkDevice()
@@ -612,7 +621,14 @@ class FmMain:
         print("")
 
         # make target
-        self.infoPrinter.printInfo(">> Installing into USB stick...")
+        if devType == RescueDiskBuilder.DEV_TYPE_ISO:
+            self.infoPrinter.printInfo(">> Creating %s..." % (devPath))
+        elif devType == RescueDiskBuilder.DEV_TYPE_REMOVABLE_MEDIA:
+            self.infoPrinter.printInfo(">> Installing into Removable media %s..." % (devPath))
+        elif devType == RescueDiskBuilder.DEV_TYPE_CDROM:
+            self.infoPrinter.printInfo(">> Creating CDROM %s..." % (devPath))
+        else:
+            assert False
         builder.installIntoDevice()
         print("")
 
