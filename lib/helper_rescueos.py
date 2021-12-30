@@ -220,10 +220,10 @@ class RescueDiskBuilder:
 
         builder.action_init_confdir()
 
-        # worldSet = set()
-        # ftPortage.update_world_set(worldSet)
-        # ftCreateLiveCd.update_world_set(worldSet)
-        # builder.action_update_world(world_set=worldSet)
+        worldSet = set()
+        ftPortage.update_world_set(worldSet)
+        ftCreateLiveCd.update_world_set(worldSet)
+        builder.action_update_world(world_set=worldSet)
 
     def installIntoDevice(self):
         if self._devType == self.DEV_TYPE_ISO:
