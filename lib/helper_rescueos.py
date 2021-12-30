@@ -160,7 +160,7 @@ class RescueDiskBuilder:
         # ftSshServer.update_world_set(worldSet)
         # ftChronyDaemon.update_world_set(worldSet)
         # ftNetworkManager.update_world_set(worldSet)
-        builder.action_update_world(world_set=worldSet)
+        # builder.action_update_world(world_set=worldSet)
 
         print("Build kernel")
         builder.action_install_kernel()
@@ -222,10 +222,10 @@ class RescueDiskBuilder:
 
         builder.action_init_confdir()
 
-        worldSet = set()
-        ftPortage.update_world_set(worldSet)
-        ftCreateLiveCd.update_world_set(worldSet)
-        builder.action_update_world(world_set=worldSet)
+        # worldSet = set()
+        # ftPortage.update_world_set(worldSet)
+        # ftCreateLiveCd.update_world_set(worldSet)
+        # builder.action_update_world(world_set=worldSet)
 
     def installIntoDevice(self):
         if self._devType == "iso":
