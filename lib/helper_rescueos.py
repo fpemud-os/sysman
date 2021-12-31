@@ -188,7 +188,7 @@ class RescueDiskBuilder:
         if self._devType == self.DEV_TYPE_ISO:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
         elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._devPath, self._diskName, self._diskLabel)
         elif self._devType == self.DEV_TYPE_CDROM:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom("amd64", self._diskName, self._diskLabel)
         else:
@@ -229,14 +229,15 @@ class RescueDiskBuilder:
         if self._devType == self.DEV_TYPE_ISO:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
         elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._diskName, self._diskLabel)
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._devPath, self._diskName, self._diskLabel)
+            ftCreateLiveCd.prepare_target_device()
         elif self._devType == self.DEV_TYPE_CDROM:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom("amd64", self._diskName, self._diskLabel)
         else:
             assert False
 
         p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names()[-1])
-        workerScript = ftCreateLiveCd.get_worker_script(p, self._devPath)
+        workerScript = ftCreateLiveCd.get_worker_script(p)
 
         p = self._tmpStageDir.get_old_chroot_dir_path(self._tmpStageDir.get_old_chroot_dir_names()[-1])
         with gstage4.Chrooter(p) as wc:
