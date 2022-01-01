@@ -186,7 +186,7 @@ class RescueDiskBuilder:
         ftPortage = gstage4.target_features.Portage()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         if self._devType == self.DEV_TYPE_ISO:
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._devPath, self._diskName, self._diskLabel)
         elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._devPath, self._diskName, self._diskLabel)
         elif self._devType == self.DEV_TYPE_CDROM:
@@ -227,7 +227,7 @@ class RescueDiskBuilder:
 
     def installIntoDevice(self):
         if self._devType == self.DEV_TYPE_ISO:
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._devPath, self._diskName, self._diskLabel)
         elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._devPath, self._diskName, self._diskLabel)
             ftCreateLiveCd.prepare_target_device()
