@@ -110,8 +110,8 @@ class RescueDiskBuilder:
 
     def buildTargetSystem(self):
         ftPortage = gstage4.target_features.Portage()
-        # ftGenkernel = gstage4.target_features.Genkernel()
-        # ftSystemd = gstage4.target_features.Systemd()
+        ftGenkernel = gstage4.target_features.Genkernel()
+        ftSystemd = gstage4.target_features.Systemd()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         ftSshServer = gstage4.target_features.SshServer()
         ftChronyDaemon = gstage4.target_features.ChronyDaemon()
@@ -128,8 +128,8 @@ class RescueDiskBuilder:
         ts = gstage4.TargetSettings()
         ts.arch = "amd64"
         ftPortage.update_target_settings(ts)
-        # ftGenkernel.update_target_settings(ts)
-        # ftSystemd.update_target_settings(ts)
+        ftGenkernel.update_target_settings(ts)
+        ftSystemd.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
 
         builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
@@ -146,22 +146,22 @@ class RescueDiskBuilder:
 
         builder.action_init_confdir()
 
-        # worldSet = {
-        #     "app-admin/eselec",
-        #     "app-eselect/eselect-timezone",
-        #     "app-editors/nano",
-        #     "sys-kernel/gentoo-sources",
-        # }
-        # ftPortage.update_world_set(worldSet)
-        # ftGenkernel.update_world_set(worldSet)
-        # ftSystemd.update_world_set(worldSet)
-        # ftSshServer.update_world_set(worldSet)
-        # ftChronyDaemon.update_world_set(worldSet)
-        # ftNetworkManager.update_world_set(worldSet)
-        # builder.action_update_world(world_set=worldSet)
+        worldSet = {
+            "app-admin/eselec",
+            "app-eselect/eselect-timezone",
+            "app-editors/nano",
+            "sys-kernel/gentoo-sources",
+        }
+        ftPortage.update_world_set(worldSet)
+        ftGenkernel.update_world_set(worldSet)
+        ftSystemd.update_world_set(worldSet)
+        ftSshServer.update_world_set(worldSet)
+        ftChronyDaemon.update_world_set(worldSet)
+        ftNetworkManager.update_world_set(worldSet)
+        builder.action_update_world(world_set=worldSet)
 
-        # print("Build kernel")
-        # builder.action_install_kernel()
+        print("Build kernel")
+        builder.action_install_kernel()
 
         p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names()[-1])
         p = os.path.join(p, "boot")
@@ -170,17 +170,17 @@ class RescueDiskBuilder:
         with open(os.path.join(p, "initramfs.img"), "w") as f:
             f.write("")
 
-        # serviceList = []
-        # ftSshServer.update_service_list(serviceList)
-        # ftChronyDaemon.update_service_list(serviceList)
-        # ftNetworkManager.update_service_list(serviceList)
-        # builder.action_enable_services(service_list=serviceList)
+        serviceList = []
+        ftSshServer.update_service_list(serviceList)
+        ftChronyDaemon.update_service_list(serviceList)
+        ftNetworkManager.update_service_list(serviceList)
+        builder.action_enable_services(service_list=serviceList)
 
-        # scriptList = []
-        # ftGettyAutoLogin.update_custom_script_list(scriptList)
-        # builder.action_customize_system(custom_script_list=scriptList)
+        scriptList = []
+        ftGettyAutoLogin.update_custom_script_list(scriptList)
+        builder.action_customize_system(custom_script_list=scriptList)
 
-        # builder.action_cleanup()
+        builder.action_cleanup()
 
     def buildWorkerSystem(self):
         ftPortage = gstage4.target_features.Portage()
