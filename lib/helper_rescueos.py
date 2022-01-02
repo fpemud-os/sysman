@@ -225,9 +225,9 @@ class RescueDiskBuilder:
         ftCreateLiveCd.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
-    def installIntoDevice(self):
+    def export(self):
         if self._devType == self.DEV_TYPE_ISO:
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._devPath, self._diskName, self._diskLabel)
+            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
         elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._devPath, self._diskName, self._diskLabel)
             ftCreateLiveCd.prepare_target_device()
@@ -242,6 +242,9 @@ class RescueDiskBuilder:
         p = self._tmpStageDir.get_old_chroot_dir_path(self._tmpStageDir.get_old_chroot_dir_names()[-1])
         with gstage4.Chrooter(p) as wc:
             wc.script_exec(workerScript)
+
+        if self._dev_type == self.DEV_TYPE_ISO:
+            os.rename(os.path.join(p, ftCreateLiveCd.get_result_filename()[1:]), self._devPath)
 
 
 devMinSizeInGb = 1                        # 1Gib
