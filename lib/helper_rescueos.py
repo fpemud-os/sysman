@@ -180,7 +180,7 @@ class RescueDiskBuilder:
         # ftGettyAutoLogin.update_custom_script_list(scriptList)
         # builder.action_customize_system(custom_script_list=scriptList)
 
-        builder.action_cleanup()
+        # builder.action_cleanup()
 
     def buildWorkerSystem(self):
         ftPortage = gstage4.target_features.Portage()
