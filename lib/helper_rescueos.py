@@ -243,7 +243,7 @@ class RescueDiskBuilder:
         with gstage4.Chrooter(p) as wc:
             wc.script_exec(workerScript)
 
-        if self._dev_type == self.DEV_TYPE_ISO:
+        if self._devType == self.DEV_TYPE_ISO:
             os.rename(os.path.join(p, ftCreateLiveCd.get_result_filename()[1:]), self._devPath)
 
 
