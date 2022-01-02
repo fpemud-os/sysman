@@ -629,7 +629,7 @@ class FmMain:
             self.infoPrinter.printInfo(">> Creating CDROM %s..." % (devPath))
         else:
             assert False
-        builder.installIntoDevice()
+        builder.export()
         print("")
 
         return 0
