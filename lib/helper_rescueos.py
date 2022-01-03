@@ -2,7 +2,6 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 import os
-import re
 import gstage4
 import gstage4.seed_stages
 import gstage4.repositories
@@ -74,7 +73,7 @@ class RescueDiskBuilder:
         self._tmpRootfsDir = gstage4.WorkDir(os.path.join(tmpDir, "rootfs"))
         self._tmpStageDir = gstage4.WorkDir(os.path.join(tmpDir, "tmpstage"))
 
-    def checkDevice(self):
+    def check(self):
         if self._devType == self.DEV_TYPE_ISO:
             # FIXME
             pass
@@ -118,6 +117,7 @@ class RescueDiskBuilder:
         ftNetworkManager = gstage4.target_features.NetworkManager()
         ftGettyAutoLogin = gstage4.target_features.GettyAutoLogin()
 
+        print("        - Initializing...")
         self._tmpRootfsDir.initialize()
 
         s = gstage4.Settings()
@@ -134,18 +134,21 @@ class RescueDiskBuilder:
 
         builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
 
-        print("Extract seed stage")
+        print("        - Extracting seed stage...")
         with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
             builder.action_unpack(ss)
         print("")
 
+        print("        - Installing repositories...")
         repos = [
             gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
         ]
         builder.action_init_repositories(repos)
 
+        print("        - Generating configurations...")
         builder.action_init_confdir()
 
+        print("        - Updating world...")
         worldSet = {
             "app-admin/eselec",
             "app-eselect/eselect-timezone",
@@ -160,31 +163,28 @@ class RescueDiskBuilder:
         ftNetworkManager.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
-        print("Build kernel")
+        print("        - Building kernel...")
         builder.action_install_kernel()
 
-        p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names()[-1])
-        p = os.path.join(p, "boot")
-        with open(os.path.join(p, "vmlinuz"), "w") as f:
-            f.write("")
-        with open(os.path.join(p, "initramfs.img"), "w") as f:
-            f.write("")
-
+        print("        - Enabling services...")
         serviceList = []
         ftSshServer.update_service_list(serviceList)
         ftChronyDaemon.update_service_list(serviceList)
         ftNetworkManager.update_service_list(serviceList)
         builder.action_enable_services(service_list=serviceList)
 
+        print("        - Customizing...")
         scriptList = []
         ftGettyAutoLogin.update_custom_script_list(scriptList)
         builder.action_customize_system(custom_script_list=scriptList)
 
+        print("        - Cleaning up...")
         builder.action_cleanup()
 
-    def buildWorkerSystem(self):
+    def exportTargetSystem(self):
         ftPortage = gstage4.target_features.Portage()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
+
         if self._devType == self.DEV_TYPE_ISO:
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._devPath, self._diskName, self._diskLabel)
         elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
@@ -194,6 +194,7 @@ class RescueDiskBuilder:
         else:
             assert False
 
+        print("        - Creating temporary stage...")
         self._tmpStageDir.initialize()
 
         s = gstage4.Settings()
@@ -208,7 +209,6 @@ class RescueDiskBuilder:
 
         builder = gstage4.Builder(s, ts, self._tmpStageDir)
 
-        print("Extract seed stage")
         with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
             builder.action_unpack(ss)
         print("")
@@ -220,18 +220,21 @@ class RescueDiskBuilder:
 
         builder.action_init_confdir()
 
+        print("        - Updating temporary stage...")
         worldSet = set()
         ftPortage.update_world_set(worldSet)
         ftCreateLiveCd.update_world_set(worldSet)
         builder.action_update_world(world_set=worldSet)
 
-    def export(self):
         if self._devType == self.DEV_TYPE_ISO:
+            print("        - Creating %s..." % (self._devPath))
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
         elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
+            print("        - Installing into Removable media %s..." % (self._devPath))
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._devPath, self._diskName, self._diskLabel)
             ftCreateLiveCd.prepare_target_device()
         elif self._devType == self.DEV_TYPE_CDROM:
+            print("        - Creating CD-ROM %s..." % (self._devPath))
             ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom("amd64", self._diskName, self._diskLabel)
         else:
             assert False

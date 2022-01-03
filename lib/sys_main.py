@@ -601,35 +601,21 @@ class FmMain:
         elif re.fullmatch("/dev/sr.*", devPath) is not None:
             devType = RescueDiskBuilder.DEV_TYPE_CDROM
         else:
-            raise Exception("device not supported")
-        builder = RescueDiskBuilder(arch, subarch, devType, devPath, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
+            raise Exception("target is not supported")
 
-        self.infoPrinter.printInfo(">> Checking...")
-        builder.checkDevice()
-        print("")
+        builder = RescueDiskBuilder(arch, subarch, devType, devPath, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
+        builder.check()
 
         self.infoPrinter.printInfo(">> Downloading files...")
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Building target system...")
+        self.infoPrinter.printInfo(">> Building the target system...")
         builder.buildTargetSystem()
         print("")
 
-        self.infoPrinter.printInfo(">> Creatig worker system...")
-        builder.buildWorkerSystem()
-        print("")
-
-        # make target
-        if devType == RescueDiskBuilder.DEV_TYPE_ISO:
-            self.infoPrinter.printInfo(">> Creating %s..." % (devPath))
-        elif devType == RescueDiskBuilder.DEV_TYPE_REMOVABLE_MEDIA:
-            self.infoPrinter.printInfo(">> Installing into Removable media %s..." % (devPath))
-        elif devType == RescueDiskBuilder.DEV_TYPE_CDROM:
-            self.infoPrinter.printInfo(">> Creating CDROM %s..." % (devPath))
-        else:
-            assert False
-        builder.export()
+        self.infoPrinter.printInfo(">> Exporting...")
+        builder.exportTargetSystem()
         print("")
 
         return 0
