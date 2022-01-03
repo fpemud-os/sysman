@@ -25,6 +25,7 @@ class RescueDiskBuilder:
         self._pkgListFile = os.path.join(self._filesDir, "packages.x86_64")
         self._grubCfgSrcFile = os.path.join(self._filesDir, "grub.cfg.in")
         self._pkgDir = os.path.join(FmConst.dataDir, "rescue", "pkg")
+        self._tmpDir = tmpDir
 
         self._mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
 
@@ -69,9 +70,7 @@ class RescueDiskBuilder:
 
         self._stage3Files = None
         self._snapshotFile = None
-
-        self._tmpRootfsDir = gstage4.WorkDir(os.path.join(tmpDir, "rootfs"))
-        self._tmpStageDir = gstage4.WorkDir(os.path.join(tmpDir, "tmpstage"))
+        self._tmpRootfsDir = None
 
     def check(self):
         if self._devType == self.DEV_TYPE_ISO:
@@ -118,6 +117,7 @@ class RescueDiskBuilder:
         ftGettyAutoLogin = gstage4.target_features.GettyAutoLogin()
 
         print("        - Initializing...")
+        self._tmpRootfsDir = gstage4.WorkDir(os.path.join(self._tmpDir, "rootfs"))
         self._tmpRootfsDir.initialize()
 
         s = gstage4.Settings()
@@ -195,7 +195,8 @@ class RescueDiskBuilder:
             assert False
 
         print("        - Creating temporary stage...")
-        self._tmpStageDir.initialize()
+        tmpStageDir = gstage4.WorkDir(os.path.join(tmpDir, "tmpstage"))
+        tmpStageDir.initialize()
 
         s = gstage4.Settings()
         s.program_name = "fpemud-os-sysman"
@@ -207,7 +208,7 @@ class RescueDiskBuilder:
         ftPortage.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
 
-        builder = gstage4.Builder(s, ts, self._tmpStageDir)
+        builder = gstage4.Builder(s, ts, tmpStageDir)
 
         with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
             builder.action_unpack(ss)
@@ -242,7 +243,7 @@ class RescueDiskBuilder:
         p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names()[-1])
         workerScript = ftCreateLiveCd.get_worker_script(p)
 
-        p = self._tmpStageDir.get_old_chroot_dir_path(self._tmpStageDir.get_old_chroot_dir_names()[-1])
+        p = tmpStageDir.get_old_chroot_dir_path(tmpStageDir.get_old_chroot_dir_names()[-1])
         with gstage4.Chrooter(p) as wc:
             wc.script_exec(workerScript)
 
