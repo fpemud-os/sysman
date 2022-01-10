@@ -263,7 +263,7 @@ class RescueDiskBuilder:
                 f.write("}\n")
 
                 f.write("menuentry \"Run Memtest86+ (RAM test)\" {\n")
-                f.write("    linux /data/%ARCH%/memtest\n")
+                f.write("    linux /data/%s/memtest\n" % ("x86_64"))
                 f.write("}\n")
 
                 # menuentry "Hardware Information (HDT)" {
