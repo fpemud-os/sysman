@@ -2,11 +2,14 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 import os
+import shutil
+import grub_install
 import gstage4
 import gstage4.seed_stages
 import gstage4.repositories
 import gstage4.target_features
 from fm_util import FmUtil
+from fm_util import TmpMount
 from fm_util import CloudCacheGentoo
 from fm_param import FmConst
 
@@ -15,17 +18,15 @@ class RescueDiskBuilder:
 
     DEV_TYPE_ISO = "iso"
     DEV_TYPE_CDROM = "cdrom"
-    DEV_TYPE_REMOVABLE_MEDIA = "removable-media"
+    DEV_TYPE_USB_STICK = "usb-stick"
 
     def __init__(self, arch, subarch, devType, devPath, tmpDir, hwInfo):
-        self._diskName = "SystemRescueDisk"
-        self._diskLabel = "SYSREC"
-
         self._filesDir = os.path.join(FmConst.dataDir, "rescue", "rescuedisk")
         self._pkgListFile = os.path.join(self._filesDir, "packages.x86_64")
         self._grubCfgSrcFile = os.path.join(self._filesDir, "grub.cfg.in")
         self._pkgDir = os.path.join(FmConst.dataDir, "rescue", "pkg")
-        self._tmpDir = tmpDir
+        self._tmpRootfsDir = os.path.join(tmpDir, "rootfs")
+        self._tmpStageDir = os.path.join(tmpDir, "tmpstage")
 
         self._mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
 
@@ -60,7 +61,7 @@ class RescueDiskBuilder:
         else:
             assert False
 
-        assert devType in [self.DEV_TYPE_ISO, self.DEV_TYPE_CDROM, self.DEV_TYPE_REMOVABLE_MEDIA]
+        assert devType in [self.DEV_TYPE_ISO, self.DEV_TYPE_CDROM, self.DEV_TYPE_USB_STICK]
         self._devType = devType
         self._devPath = devPath
 
@@ -70,17 +71,16 @@ class RescueDiskBuilder:
 
         self._stage3Files = None
         self._snapshotFile = None
-        self._tmpRootfsDir = None
 
     def check(self):
         if self._devType == self.DEV_TYPE_ISO:
             # FIXME
             pass
-        elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
+        elif self._devType == self.DEV_TYPE_USB_STICK:
             if not FmUtil.isBlkDevUsbStick(self._devPath):
                 raise Exception("device %s does not seem to be an usb-stick." % (self._devPath))
-            if FmUtil.getBlkDevSize(self._devPath) < devMinSize:
-                raise Exception("device %s needs to be at least %d GB." % (self._devPath, devMinSizeInGb))
+            if FmUtil.getBlkDevSize(self._devPath) < DEV_MIN_SIZE:
+                raise Exception("device %s needs to be at least %d GB." % (self._devPath, DEV_MIN_SIZE_IN_GB))
             if FmUtil.isMountPoint(self._devPath):
                 raise Exception("device %s or any of its partitions is already mounted, umount it first." % (self._devPath))
         elif self._devType == self.DEV_TYPE_CDROM:
@@ -116,9 +116,10 @@ class RescueDiskBuilder:
         ftNetworkManager = gstage4.target_features.NetworkManager()
         ftGettyAutoLogin = gstage4.target_features.GettyAutoLogin()
 
+        # step
         print("        - Initializing...")
-        self._tmpRootfsDir = gstage4.WorkDir(os.path.join(self._tmpDir, "rootfs"))
-        self._tmpRootfsDir.initialize()
+        wdir = gstage4.WorkDir(self._tmpRootfsDir)
+        wdir.initialize()
 
         s = gstage4.Settings()
         s.program_name = "fpemud-os-sysman"
@@ -132,23 +133,31 @@ class RescueDiskBuilder:
         ftSystemd.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
 
-        builder = gstage4.Builder(s, ts, self._tmpRootfsDir)
+        builder = gstage4.Builder(s, ts, wdir)
 
+        # step
         print("        - Extracting seed stage...")
         with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
             builder.action_unpack(ss)
         print("")
 
+        # step
         print("        - Installing repositories...")
         repos = [
             gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
         ]
         builder.action_init_repositories(repos)
 
+        # step
         print("        - Generating configurations...")
         builder.action_init_confdir()
 
+        # step
         print("        - Updating world...")
+        installList = [
+            "sys-boot/grub",
+            "sys-apps/memtest86+",
+        ]
         worldSet = {
             "app-admin/eselec",
             "app-eselect/eselect-timezone",
@@ -161,11 +170,20 @@ class RescueDiskBuilder:
         ftSshServer.update_world_set(worldSet)
         ftChronyDaemon.update_world_set(worldSet)
         ftNetworkManager.update_world_set(worldSet)
-        builder.action_update_world(world_set=worldSet)
+        builder.action_update_world(install_list=installList, world_set=worldSet)
 
+        # step
         print("        - Building kernel...")
         builder.action_install_kernel()
 
+        # hidden step: pick out boot related files
+        if True:
+            sp = wdir.get_old_chroot_dir_paths()[-1]
+            for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
+                os.makedirs(os.path.dirname(os.path.join(self._tmpStageDir, p)))
+                shutil.copytree(os.path.join(sp, p), os.path.join(self._tmpStageDir, p), symlinks=True, dirs_exist_ok=True)
+
+        # step
         print("        - Enabling services...")
         serviceList = []
         ftSshServer.update_service_list(serviceList)
@@ -173,84 +191,98 @@ class RescueDiskBuilder:
         ftNetworkManager.update_service_list(serviceList)
         builder.action_enable_services(service_list=serviceList)
 
+        # step
         print("        - Customizing...")
         scriptList = []
         ftGettyAutoLogin.update_custom_script_list(scriptList)
         builder.action_customize_system(custom_script_list=scriptList)
 
+        # step
         print("        - Cleaning up...")
         builder.action_cleanup()
 
     def exportTargetSystem(self):
-        ftPortage = gstage4.target_features.Portage()
-        ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
-
-        if self._devType == self.DEV_TYPE_ISO:
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._devPath, self._diskName, self._diskLabel)
-        elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._devPath, self._diskName, self._diskLabel)
-        elif self._devType == self.DEV_TYPE_CDROM:
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom("amd64", self._diskName, self._diskLabel)
-        else:
-            assert False
-
-        print("        - Creating temporary stage...")
-        tmpStageDir = gstage4.WorkDir(os.path.join(tmpDir, "tmpstage"))
-        tmpStageDir.initialize()
-
-        s = gstage4.Settings()
-        s.program_name = "fpemud-os-sysman"
-        s.host_computing_power = self._cp
-        s.host_distfiles_dir = FmConst.distDir
-
-        ts = gstage4.TargetSettings()
-        ts.arch = "amd64"
-        ftPortage.update_target_settings(ts)
-        ftNoDeprecate.update_target_settings(ts)
-
-        builder = gstage4.Builder(s, ts, tmpStageDir)
-
-        with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
-            builder.action_unpack(ss)
-        print("")
-
-        repos = [
-            gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
-        ]
-        builder.action_init_repositories(repos)
-
-        builder.action_init_confdir()
-
-        print("        - Updating temporary stage...")
-        worldSet = set()
-        ftPortage.update_world_set(worldSet)
-        ftCreateLiveCd.update_world_set(worldSet)
-        builder.action_update_world(world_set=worldSet)
+        sp = gstage4.WorkDir(self._tmpRootfsDir).get_old_chroot_dir_paths()[-1]
 
         if self._devType == self.DEV_TYPE_ISO:
             print("        - Creating %s..." % (self._devPath))
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdAsIsoFile("amd64", self._diskName, self._diskLabel)
-        elif self._devType == self.DEV_TYPE_REMOVABLE_MEDIA:
-            print("        - Installing into Removable media %s..." % (self._devPath))
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnRemovableMedia(self._devPath, self._diskName, self._diskLabel)
-            ftCreateLiveCd.prepare_target_device()
+            assert False
+        elif self._devType == self.DEV_TYPE_USB_STICK:
+            print("        - Installing into USB stick %s..." % (self._devPath))
+            self._exportToUsbStick(sp)
         elif self._devType == self.DEV_TYPE_CDROM:
             print("        - Creating CD-ROM %s..." % (self._devPath))
-            ftCreateLiveCd = gstage4.target_features.CreateLiveCdOnCdrom("amd64", self._diskName, self._diskLabel)
+            assert False
         else:
             assert False
 
-        p = self._tmpRootfsDir.get_old_chroot_dir_path(self._tmpRootfsDir.get_old_chroot_dir_names()[-1])
-        workerScript = ftCreateLiveCd.get_worker_script(p)
+    def _exportToUsbStick(self, rootfsDir):
+        FmUtil.cmdCall("parted", "--script", self._devPath, "mklabel", "msdos", "mkpart", "primary", "fat32", r"0%", r"100%")
+        FmUtil.cmdCall("mkfs.vfat", "-F", "32", "-n", DISK_LABEL, self._devPath + "1")
 
-        p = tmpStageDir.get_old_chroot_dir_path(tmpStageDir.get_old_chroot_dir_names()[-1])
-        with gstage4.Chrooter(p) as wc:
-            wc.script_exec(workerScript)
+        with TmpMount(self._devPath + "1") as mp:
+            # create rootfs.sqfs and rootfs.sqfs.sha512
+            sqfsFile = os.path.join(mp.mountpoint, "rootfs.sqfs")
+            sqfsSumFile = os.path.join(mp.mountpoint, "rootfs.sqfs.sha512")
+            FmUtil.shellCall("/bin/cp %s %s" % (os.path.join(rootfsDir, "boot", "*"), mp.mountpoint))
+            FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (rootfsDir, sqfsFile))
+            FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
+            FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\?##" % (mp.mountpoint), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
 
-        if self._devType == self.DEV_TYPE_ISO:
-            os.rename(os.path.join(p, ftCreateLiveCd.get_result_filename()[1:]), self._devPath)
+            # install grub
+            src = grub_install.Source(base_dir=self._tmpStageDir)
+            dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
+            grub_install.install(src, dst, ["i386-pc", "x86_64_efi"])
+
+            # create grub.cfg
+            uuid = FmUtil.cmdCall("blkid", "-s", "UUID", "-o", "value", self._devPath).rstrip("\n")
+            with open(os.path.join(mp.mountpoint, "grub", "grub.cfg"), "w") as f:
+                f.write("set default=0\n")
+                f.write("set timeout=90\n")
+
+                f.write("set gfxmode=auto\n")
+                f.write("insmod efi_gop\n")
+                f.write("insmod efi_uga\n")
+                f.write("insmod gfxterm\n")
+                f.write("insmod all_video\n")
+                f.write("insmod videotest\n")
+                f.write("insmod videoinfo\n")
+                f.write("terminal_output gfxterm\n")
+
+                f.write("menuentry \"Boot %s\" {\n" % (DISK_NAME))
+                f.write("    search --no-floppy --fs-uuid --set %s\n" % (uuid))
+                f.write("    linux /data/%s/vmlinuz dev_uuid=%s basedir=/data\n" % ("x86_64", uuid))
+                f.write("    initrd /data/%s/initramfs.img\n" % ("x86_64"))
+                f.write("}\n")
+
+                f.write("menuentry \"Boot existing OS\" {\n")
+                f.write("    set root=(hd0)\n")
+                f.write("    chainloader +1\n")
+                f.write("}\n")
+
+                f.write("menuentry \"Run Memtest86+ (RAM test)\" {\n")
+                f.write("    linux /data/%ARCH%/memtest\n")
+                f.write("}\n")
+
+                # menuentry "Hardware Information (HDT)" {
+                #     linux /data/%ARCH%/hdt
+                # }
+
+                # Menu
+                f.write("menuentry \"Restart\" {\n")
+                f.write("    reboot\n")
+                f.write("}\n")
+
+                # Menu
+                f.write("menuentry \"Power Off\" {\n")
+                f.write("    halt\n")
+                f.write("}\n")
 
 
-devMinSizeInGb = 1                        # 1Gib
+DISK_NAME = "SystemRescueDisk"
 
-devMinSize = 1 * 1024 * 1024 * 1024       # 1GiB
+DISK_LABEL = "SYSREC"
+
+DEV_MIN_SIZE_IN_GB = 1                      # 1Gib
+
+DEV_MIN_SIZE = 1 * 1024 * 1024 * 1024       # 1GiB
