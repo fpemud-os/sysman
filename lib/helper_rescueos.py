@@ -3,11 +3,11 @@
 
 import os
 import shutil
-import grub_install
 import gstage4
 import gstage4.seed_stages
 import gstage4.repositories
 import gstage4.target_features
+#import grub_install
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_util import CloudCacheGentoo
