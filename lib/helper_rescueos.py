@@ -76,6 +76,8 @@ class RescueDiskBuilder:
         if self._devType == self.DEV_TYPE_ISO:
             # FIXME
             pass
+        elif self._devType == self.DEV_TYPE_CDROM:
+            assert False
         elif self._devType == self.DEV_TYPE_USB_STICK:
             if not FmUtil.isBlkDevUsbStick(self._devPath):
                 raise Exception("device %s does not seem to be an usb-stick." % (self._devPath))
@@ -83,8 +85,6 @@ class RescueDiskBuilder:
                 raise Exception("device %s needs to be at least %d GB." % (self._devPath, DEV_MIN_SIZE_IN_GB))
             if FmUtil.isMountPoint(self._devPath):
                 raise Exception("device %s or any of its partitions is already mounted, umount it first." % (self._devPath))
-        elif self._devType == self.DEV_TYPE_CDROM:
-            assert False
         else:
             assert False
 
@@ -207,12 +207,12 @@ class RescueDiskBuilder:
         if self._devType == self.DEV_TYPE_ISO:
             print("        - Creating %s..." % (self._devPath))
             assert False
+        elif self._devType == self.DEV_TYPE_CDROM:
+            print("        - Burning CD in %s..." % (self._devPath))
+            assert False
         elif self._devType == self.DEV_TYPE_USB_STICK:
             print("        - Installing into USB stick %s..." % (self._devPath))
             self._exportToUsbStick(sp)
-        elif self._devType == self.DEV_TYPE_CDROM:
-            print("        - Creating CD-ROM %s..." % (self._devPath))
-            assert False
         else:
             assert False
 
@@ -230,9 +230,11 @@ class RescueDiskBuilder:
             FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\?##" % (mp.mountpoint), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
 
             # install grub
-            src = grub_install.Source(base_dir=self._tmpStageDir)
-            dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
-            grub_install.install(src, dst, ["i386-pc", "x86_64_efi"])
+            FmUtil.shellCall("/usr/sbin/grub-install --removable --target=x86_64-efi --boot-directory=%s --efi-directory=%s --no-nvram" % (mp.mountpoint, os.path.join(mp.mountpoint, "EFI")))
+            FmUtil.shellCall("/usr/sbin/grub-install --removable --target=i386-pc --boot-directory=%s %s" % (mp.mountpoint, self._devPath))
+            # src = grub_install.Source(base_dir=self._tmpStageDir)
+            # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
+            # grub_install.install(src, dst, ["i386-pc", "x86_64_efi"])
 
             # create grub.cfg
             uuid = FmUtil.cmdCall("blkid", "-s", "UUID", "-o", "value", self._devPath).rstrip("\n")
