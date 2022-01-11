@@ -126,6 +126,10 @@ class RescueDiskBuilder:
         s.host_computing_power = self._cp
         s.host_distfiles_dir = FmConst.distDir
 
+        # FIXME
+        s.host_ccache_dir = "/var/tmp/ccache"
+        os.makedirs("/var/tmp/ccache", exist_ok=True)
+
         ts = gstage4.TargetSettings()
         ts.arch = "amd64"
         ftPortage.update_target_settings(ts)
