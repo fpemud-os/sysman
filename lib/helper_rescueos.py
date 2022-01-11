@@ -139,7 +139,6 @@ class RescueDiskBuilder:
         print("        - Extracting seed stage...")
         with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
             builder.action_unpack(ss)
-        print("")
 
         # step
         print("        - Installing repositories...")
