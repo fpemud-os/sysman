@@ -108,7 +108,7 @@ class RescueDiskBuilder:
         ts = gstage4.TargetSettings()
         ts.arch = arch
         ftPortage.update_target_settings(ts)
-        ftGenkernel.update_target_settings(ts)
+        # ftGenkernel.update_target_settings(ts)
         ftSystemd.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
 
@@ -117,6 +117,7 @@ class RescueDiskBuilder:
             s.host_ccache_dir = "/var/tmp/ccache"
             os.makedirs("/var/tmp/ccache", exist_ok=True)
             ts.build_opts.ccache = True
+            ts.kernel_manager = "fake"
 
         builder = gstage4.Builder(s, ts, wdir)
 
@@ -150,7 +151,7 @@ class RescueDiskBuilder:
             "sys-kernel/gentoo-sources",
         }
         ftPortage.update_world_set(worldSet)
-        ftGenkernel.update_world_set(worldSet)
+        # ftGenkernel.update_world_set(worldSet)
         ftSystemd.update_world_set(worldSet)
         ftSshServer.update_world_set(worldSet)
         ftChronyDaemon.update_world_set(worldSet)
