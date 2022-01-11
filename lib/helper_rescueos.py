@@ -138,6 +138,7 @@ class RescueDiskBuilder:
         # step
         print("        - Updating world...")
         installList = [
+            "dev-util/ccache",      # FIXME
             "sys-boot/grub",
             "sys-apps/memtest86+",
         ]
