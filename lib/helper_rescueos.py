@@ -198,8 +198,6 @@ class RescueDiskBuilder:
         pass
 
     def exportTargetSystem(self):
-        sp = gstage4.WorkDir(self._tmpRootfsDir).get_old_chroot_dir_paths()[-1]
-
         if self._devType == self.DEV_TYPE_ISO:
             print("        - Creating %s..." % (self._devPath))
             assert False
@@ -208,11 +206,11 @@ class RescueDiskBuilder:
             assert False
         elif self._devType == self.DEV_TYPE_USB_STICK:
             print("        - Installing into USB stick %s..." % (self._devPath))
-            self._exportToUsbStick(sp)
+            self._exportToUsbStick()
         else:
             assert False
 
-    def _exportToUsbStick(self, rootfsDir):
+    def _exportToUsbStick(self):
         FmUtil.cmdCall("parted", "--script", self._devPath, "mklabel", "msdos", "mkpart", "primary", "fat32", r"0%", r"100%")
         FmUtil.cmdCall("mkfs.vfat", "-F", "32", "-n", DISK_LABEL, self._devPath + "1")
 
