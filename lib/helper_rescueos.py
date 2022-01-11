@@ -7,6 +7,7 @@ import gstage4
 import gstage4.seed_stages
 import gstage4.repositories
 import gstage4.target_features
+import robust_layer.simple_fops
 #import grub_install
 from fm_util import FmUtil
 from fm_util import TmpMount
@@ -98,6 +99,8 @@ class RescueDiskBuilder:
         print("        - Initializing...")
         wdir = gstage4.WorkDir(tmpRootfsDir)
         wdir.initialize()
+
+        robust_layer.simple_fops.mkdir(tmpStageDir)
 
         s = gstage4.Settings()
         s.program_name = "fpemud-os-sysman"
