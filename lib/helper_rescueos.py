@@ -84,6 +84,8 @@ class RescueDiskBuilder:
         arch = "amd64"
         tmpRootfsDir = self._archDict[arch][2]
         tmpStageDir = self._archDict[arch][3]
+        os.mkdir(tmpRootfsDir)
+        os.mkdir(tmpStageDir)
 
         ftPortage = gstage4.target_features.Portage()
         ftGenkernel = gstage4.target_features.Genkernel()
