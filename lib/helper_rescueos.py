@@ -84,8 +84,6 @@ class RescueDiskBuilder:
         arch = "amd64"
         tmpRootfsDir = self._archDict[arch][2]
         tmpStageDir = self._archDict[arch][3]
-        os.mkdir(tmpRootfsDir)
-        os.mkdir(tmpStageDir)
 
         ftPortage = gstage4.target_features.Portage()
         ftGenkernel = gstage4.target_features.Genkernel()
@@ -178,7 +176,7 @@ class RescueDiskBuilder:
         # hidden step: pick out boot related files
         sp = wdir.get_old_chroot_dir_paths()[-1]
         for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
-            os.makedirs(os.path.dirname(os.path.join(tmpStageDir, p)))
+            os.makedirs(os.path.dirname(os.path.join(tmpStageDir, p)), exist_ok=True)
             shutil.copytree(os.path.join(sp, p), os.path.join(tmpStageDir, p), symlinks=True, dirs_exist_ok=True)
 
         # step
@@ -189,6 +187,7 @@ class RescueDiskBuilder:
         sp = wdir.get_old_chroot_dir_paths()[-1]
         sqfsFile = os.path.join(tmpStageDir, "rootfs.sqfs")
         sqfsSumFile = os.path.join(tmpStageDir, "rootfs.sqfs.sha512")
+        os.makedirs(tmpStageDir, exist_ok=True)
         FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (sp, sqfsFile))
         FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
         FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\?##" % (tmpStageDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
