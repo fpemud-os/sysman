@@ -20,46 +20,18 @@ class RescueDiskBuilder:
     DEV_TYPE_CDROM = "cdrom"
     DEV_TYPE_USB_STICK = "usb-stick"
 
-    def __init__(self, arch, subarch, devType, devPath, tmpDir, hwInfo):
+    def __init__(self, devType, devPath, tmpDir, hwInfo):
         self._filesDir = os.path.join(FmConst.dataDir, "rescue", "rescuedisk")
         self._pkgListFile = os.path.join(self._filesDir, "packages.x86_64")
         self._grubCfgSrcFile = os.path.join(self._filesDir, "grub.cfg.in")
         self._pkgDir = os.path.join(FmConst.dataDir, "rescue", "pkg")
-        self._tmpRootfsDir = os.path.join(tmpDir, "rootfs")
-        self._tmpStageDir = os.path.join(tmpDir, "tmpstage")
 
         self._mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
 
-        self._arch = arch
-        self._subarch = subarch
-        if self._arch == "alpha":
-            assert False
-        elif self._arch == "amd64":
-            self._stage3Variant = "systemd"
-        elif self._arch == "arm":
-            assert False
-        elif self._arch == "arm64":
-            assert False
-        elif self._arch == "hppa":
-            assert False
-        elif self._arch == "ia64":
-            assert False
-        elif self._arch == "m68k":
-            assert False
-        elif self._arch == "ppc":
-            assert False
-        elif self._arch == "riscv":
-            assert False
-        elif self._arch == "s390":
-            assert False
-        elif self._arch == "sh":
-            assert False
-        elif self._arch == "sparc":
-            assert False
-        elif self._arch == "x86":
-            assert False
-        else:
-            assert False
+        self._archDict = {
+            "amd64": ("amd64", "systemd", os.path.join(tmpDir, "rescd-rootfs-amd64"), os.path.join(tmpDir, "rescd-tmp-amd64")),
+            # "arm64": ("arm64", None),
+        }
 
         assert devType in [self.DEV_TYPE_ISO, self.DEV_TYPE_CDROM, self.DEV_TYPE_USB_STICK]
         self._devType = devType
@@ -69,7 +41,7 @@ class RescueDiskBuilder:
                                               hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
                                               10 if "fan" in hwInfo.hwDict else 1)
 
-        self._stage3Files = None
+        self._stage3Files = dict()
         self._snapshotFile = None
 
     def check(self):
@@ -93,20 +65,26 @@ class RescueDiskBuilder:
 
         # sync
         cache.sync()
-        if self._arch not in cache.get_arch_list():
-            raise Exception("arch \"%s\" is not supported" % (self._arch))
-        if self._subarch not in cache.get_subarch_list(self._arch):
-            raise Exception("subarch \"%s\" is not supported" % (self._subarch))
+        for arch, v in self._archDict.items():
+            if arch not in cache.get_arch_list():
+                raise Exception("arch \"%s\" is not supported" % (arch))
+            if v[0] not in cache.get_subarch_list(arch):
+                raise Exception("subarch \"%s\" is not supported" % (v[0]))
 
         # prefer local stage3 file
-        self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant, cached_only=True)
-        if self._stage3Files is None:
-            self._stage3Files = cache.get_latest_stage3(self._arch, self._subarch, self._stage3Variant)
+        for arch, v in self._archDict.items():
+            self._stage3Files[arch] = cache.get_latest_stage3(arch, v[0], v[1], cached_only=True)
+            if self._stage3Files[arch] is None:
+                self._stage3Files[arch] = cache.get_latest_stage3(arch, v[0], v[1])
 
         # always use newest snapshot
         self._snapshotFile = cache.get_latest_snapshot()
 
-    def buildTargetSystem(self):
+    def buildTargetSystemAmd64(self):
+        arch = "amd64"
+        tmpRootfsDir = self._archDict[arch][2]
+        tmpStageDir = self._archDict[arch][3]
+
         ftPortage = gstage4.target_features.Portage()
         ftGenkernel = gstage4.target_features.Genkernel()
         ftSystemd = gstage4.target_features.Systemd()
@@ -118,7 +96,7 @@ class RescueDiskBuilder:
 
         # step
         print("        - Initializing...")
-        wdir = gstage4.WorkDir(self._tmpRootfsDir)
+        wdir = gstage4.WorkDir(tmpRootfsDir)
         wdir.initialize()
 
         s = gstage4.Settings()
@@ -126,22 +104,24 @@ class RescueDiskBuilder:
         s.host_computing_power = self._cp
         s.host_distfiles_dir = FmConst.distDir
 
-        # FIXME
-        s.host_ccache_dir = "/var/tmp/ccache"
-        os.makedirs("/var/tmp/ccache", exist_ok=True)
-
         ts = gstage4.TargetSettings()
-        ts.arch = "amd64"
+        ts.arch = arch
         ftPortage.update_target_settings(ts)
         ftGenkernel.update_target_settings(ts)
         ftSystemd.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
 
+        # FIXME
+        if True:
+            s.host_ccache_dir = "/var/tmp/ccache"
+            os.makedirs("/var/tmp/ccache", exist_ok=True)
+            ts.build_opts.ccache = True
+
         builder = gstage4.Builder(s, ts, wdir)
 
         # step
         print("        - Extracting seed stage...")
-        with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files) as ss:
+        with gstage4.seed_stages.GentooStage3Archive(*self._stage3Files[arch]) as ss:
             builder.action_unpack(ss)
 
         # step
@@ -179,13 +159,6 @@ class RescueDiskBuilder:
         print("        - Building kernel...")
         builder.action_install_kernel()
 
-        # hidden step: pick out boot related files
-        if True:
-            sp = wdir.get_old_chroot_dir_paths()[-1]
-            for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
-                os.makedirs(os.path.dirname(os.path.join(self._tmpStageDir, p)))
-                shutil.copytree(os.path.join(sp, p), os.path.join(self._tmpStageDir, p), symlinks=True, dirs_exist_ok=True)
-
         # step
         print("        - Enabling services...")
         serviceList = []
@@ -200,9 +173,26 @@ class RescueDiskBuilder:
         ftGettyAutoLogin.update_custom_script_list(scriptList)
         builder.action_customize_system(custom_script_list=scriptList)
 
+        # hidden step: pick out boot related files
+        sp = wdir.get_old_chroot_dir_paths()[-1]
+        for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
+            os.makedirs(os.path.dirname(os.path.join(tmpStageDir, p)))
+            shutil.copytree(os.path.join(sp, p), os.path.join(tmpStageDir, p), symlinks=True, dirs_exist_ok=True)
+
         # step
         print("        - Cleaning up...")
         builder.action_cleanup()
+
+        # hidden step: create rootfs.sqfs and rootfs.sqfs.sha512
+        sp = wdir.get_old_chroot_dir_paths()[-1]
+        sqfsFile = os.path.join(tmpStageDir, "rootfs.sqfs")
+        sqfsSumFile = os.path.join(tmpStageDir, "rootfs.sqfs.sha512")
+        FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (sp, sqfsFile))
+        FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
+        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\?##" % (tmpStageDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
+
+    def buildTargetSystemArm64(self):
+        pass
 
     def exportTargetSystem(self):
         sp = gstage4.WorkDir(self._tmpRootfsDir).get_old_chroot_dir_paths()[-1]
@@ -224,22 +214,36 @@ class RescueDiskBuilder:
         FmUtil.cmdCall("mkfs.vfat", "-F", "32", "-n", DISK_LABEL, self._devPath + "1")
 
         with TmpMount(self._devPath + "1") as mp:
-            # create rootfs.sqfs and rootfs.sqfs.sha512
-            sqfsFile = os.path.join(mp.mountpoint, "rootfs.sqfs")
-            sqfsSumFile = os.path.join(mp.mountpoint, "rootfs.sqfs.sha512")
-            FmUtil.shellCall("/bin/cp %s %s" % (os.path.join(rootfsDir, "boot", "*"), mp.mountpoint))
-            FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (rootfsDir, sqfsFile))
-            FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
-            FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\?##" % (mp.mountpoint), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
+            dataDir = os.path.join(mp.mountpoint, "data")
+            os.mkdir(dataDir)
 
-            # install grub
-            FmUtil.shellCall("/usr/sbin/grub-install --removable --target=x86_64-efi --boot-directory=%s --efi-directory=%s --no-nvram" % (mp.mountpoint, os.path.join(mp.mountpoint, "EFI")))
-            FmUtil.shellCall("/usr/sbin/grub-install --removable --target=i386-pc --boot-directory=%s %s" % (mp.mountpoint, self._devPath))
-            # src = grub_install.Source(base_dir=self._tmpStageDir)
-            # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
-            # grub_install.install(src, dst, ["i386-pc", "x86_64_efi"])
+            # copy rootfs.sqfs and rootfs.sqfs.sha512
+            for arch, v in self._archDict.items():
+                tmpStageDir = v[3]
+                dstDataDir = os.path.join(dataDir, arch)
+                os.mkdir(dstDataDir)
+                shutil.copy(os.path.join(tmpStageDir, "boot", "vmlinuz"), dstDataDir)
+                shutil.copy(os.path.join(tmpStageDir, "boot", "initramfs.img"), dstDataDir)
+                shutil.copy(os.path.join(tmpStageDir, "rootfs.sqfs"), dstDataDir)
+                shutil.copy(os.path.join(tmpStageDir, "rootfs.sqfs.sha512"), dstDataDir)
+
+                # install grub
+                if arch == "amd64":
+                    FmUtil.shellCall("/usr/sbin/grub-install --removable --target=x86_64-efi --boot-directory=%s --efi-directory=%s --no-nvram" % (mp.mountpoint, os.path.join(mp.mountpoint, "EFI")))
+                    FmUtil.shellCall("/usr/sbin/grub-install --removable --target=i386-pc --boot-directory=%s %s" % (mp.mountpoint, self._devPath))
+                    # src = grub_install.Source(base_dir=self._tmpStageDir)
+                    # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
+                    # grub_install.install(src, dst, ["i386-pc", "x86_64_efi"])
+                elif arch == "arm64":
+                    # src = grub_install.Source(base_dir=self._tmpStageDir)
+                    # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
+                    # grub_install.install(src, dst, ["arm64_efi"])
+                    assert False
+                else:
+                    assert False
 
             # create grub.cfg
+            arch = "amd64"      # FIXME
             uuid = FmUtil.cmdCall("blkid", "-s", "UUID", "-o", "value", self._devPath).rstrip("\n")
             with open(os.path.join(mp.mountpoint, "grub", "grub.cfg"), "w") as f:
                 f.write("set default=0\n")
@@ -256,8 +260,8 @@ class RescueDiskBuilder:
 
                 f.write("menuentry \"Boot %s\" {\n" % (DISK_NAME))
                 f.write("    search --no-floppy --fs-uuid --set %s\n" % (uuid))
-                f.write("    linux /data/%s/vmlinuz dev_uuid=%s basedir=/data\n" % ("x86_64", uuid))
-                f.write("    initrd /data/%s/initramfs.img\n" % ("x86_64"))
+                f.write("    linux /data/%s/vmlinuz dev_uuid=%s basedir=/data\n" % (arch, uuid))
+                f.write("    initrd /data/%s/initramfs.img\n" % (arch))
                 f.write("}\n")
 
                 f.write("menuentry \"Boot existing OS\" {\n")
@@ -266,7 +270,7 @@ class RescueDiskBuilder:
                 f.write("}\n")
 
                 f.write("menuentry \"Run Memtest86+ (RAM test)\" {\n")
-                f.write("    linux /data/%s/memtest\n" % ("x86_64"))
+                f.write("    linux /data/%s/memtest\n" % (arch))
                 f.write("}\n")
 
                 # menuentry "Hardware Information (HDT)" {

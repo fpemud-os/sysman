@@ -593,7 +593,6 @@ class FmMain:
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()
 
-        arch, subarch = FmUtil.portageGetArchAndSubArch()
         if devPath.endswith(".iso"):
             devType = RescueDiskBuilder.DEV_TYPE_ISO
         elif re.fullmatch("/dev/sd.*", devPath) is not None:
@@ -603,15 +602,19 @@ class FmMain:
         else:
             raise Exception("target is not supported")
 
-        builder = RescueDiskBuilder(arch, subarch, devType, devPath, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
+        builder = RescueDiskBuilder(devType, devPath, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
         builder.check()
 
         self.infoPrinter.printInfo(">> Downloading files...")
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Building the target system...")
-        builder.buildTargetSystem()
+        self.infoPrinter.printInfo(">> Building target system (amd64)...")
+        builder.buildTargetSystemAmd64()
+        print("")
+
+        self.infoPrinter.printInfo(">> Building target system (arm64)...")
+        builder.buildTargetSystemArm64()
         print("")
 
         self.infoPrinter.printInfo(">> Exporting...")
