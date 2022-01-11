@@ -597,7 +597,7 @@ class FmMain:
         if devPath.endswith(".iso"):
             devType = RescueDiskBuilder.DEV_TYPE_ISO
         elif re.fullmatch("/dev/sd.*", devPath) is not None:
-            devType = RescueDiskBuilder.DEV_TYPE_REMOVABLE_MEDIA
+            devType = RescueDiskBuilder.DEV_TYPE_USB_STICK
         elif re.fullmatch("/dev/sr.*", devPath) is not None:
             devType = RescueDiskBuilder.DEV_TYPE_CDROM
         else:
