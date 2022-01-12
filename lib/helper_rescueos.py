@@ -144,54 +144,81 @@ class RescueDiskBuilder:
 
         # step
         with PrintLoadAvgThread("        - Updating world..."):
-            installList = [
-                "sys-boot/grub",
-                "sys-apps/memtest86+",
-            ]
+            installList = []
             if c.is_enabled():
                 installList.append("dev-util/ccache")
             worldSet = {
-                "app-admin/eselec",
+                "app-admin/eselect",
+                "app-arch/cpio",
+                "app-arch/gzip",
+                "app-arch/p7zip",
+                "app-arch/rar",
+                "app-arch/unzip",
+                "app-arch/zip",
                 "app-eselect/eselect-timezone",
                 "app-editors/nano",
+                "app-misc/tmux",
+                "dev-lang/python",
+                "dev-lang/ruby",
+                "dev-util/strace",
+                "dev-vcs/git",
+                "net-analyzer/nmap",
+                "net-analyzer/tcpdump",
+                "net-analyzer/traceroute",
+                "net-fs/cifs-utils",
+                "net-fs/nfs-utils",
+                "net-misc/rsync",
+                "net-misc/wget",
+                "sys-apps/dmidecode",
+                "sys-apps/gptfdisk",
+                "sys-apps/lshw",
+                "sys-apps/sg3_utils",
+                "sys-apps/smartmontools",
+                "sys-boot/grub",
+                "sys-apps/hdparm",
+                "sys-apps/memtest86+",
+                "sys-apps/nvme-cli",
+                "sys-apps/sdparm",
+                "sys-block/ms-sys",
+                "sys-block/parted",
+                "sys-fs/btrfs-progs",
+                "sys-fs/dosfstools",
+                "sys-fs/e2fsprogs",
+                "sys-fs/exfat-utils",
+                # "sys-fs/f2fs-tools",
+                "sys-fs/lsscsi",
+                "sys-fs/mtools",
+                "sys-fs/nilfs-utils",
+                "sys-fs/ntfs3g",
+                "sys-fs/xfsdump",
+                "sys-fs/xfsprogs",
                 "sys-kernel/gentoo-sources",
+                "sys-process/lsof",
+
                 # atop
                 # b43-fwcutter
                 # borg
-                # btrfs-progs
                 # chntpw
-                # cifs-utils
                 # clonezilla
-                # cpio
                 # crda
                 # darkhttpd
                 # ddrescue
                 # dhclient
                 # dialog
-                # dmidecode
                 # dmraid
                 # dnsmasq
                 # dnsutils
-                # dosfstools
                 # elinks
                 # ethtool
-                # exfat-utils
-                # f2fs-tools
                 # # featherpad
                 # # firefox-esr-bin
                 # fsarchiver
                 # geany
-                # git
                 # gnu-netcat
-                # gparted
                 # gpm
-                # gptfdisk
                 # grml-zsh-config
                 # # growpart
                 # grsync
-                # grub
-                # hdparm
-                # hexedit
                 # htop
                 # iftop
                 # iotop
@@ -205,34 +232,19 @@ class RescueDiskBuilder:
                 # lightdm
                 # linux-atm
                 # linux-lts-headers
-                # lshw
-                # lsof
-                # lsscsi
                 # lzip
                 # mc
                 # memtester
-                # mlocate
-                # # ms-sys
-                # mtools
-                # nano
                 # ncdu
                 # ndisc6
                 # network-manager-applet
                 # networkmanager-openvpn
                 # networkmanager-vpnc
-                # nfs-utils
-                # nilfs-utils
-                # nmap
-                # ntfs-3g
-                # ntp
-                # nvme-cli
                 # # nwipe
                 # openconnect
                 # openssh
                 # openvpn
-                # p7zip
                 # partclone
-                # parted
                 # partimage
                 # ppp
                 # pptpclient
@@ -241,28 +253,16 @@ class RescueDiskBuilder:
                 # # refind-efi                    # this package disappears
                 # rkhunter
                 # rp-pppoe
-                # rsync
-                # ruby
-                # screen
-                # sdparm
-                # sg3_utils
-                # smartmontools
-                # strace
                 # sudo
                 # sysstat
-                # tcpdump
                 # testdisk
                 # tigervnc
-                # tmux
-                # traceroute
                 # ttf-dejavu
                 # ttf-droid
-                # unzip
                 # usb_modeswitch
                 # vim-minimal
                 # vpnc
                 # wipe
-                # wget
                 # wireless-regdb
                 # wireless_tools
                 # wvdial
@@ -270,7 +270,6 @@ class RescueDiskBuilder:
                 # xfce4
                 # xfce4-battery-plugin
                 # xfce4-taskmanager
-                # xfsdump
                 # xkbsel
                 # xkeyboard-config
                 # xl2tpd
@@ -282,7 +281,6 @@ class RescueDiskBuilder:
                 # yubikey-personalization-gui
                 # # zerofree
                 # zile
-                # zip
             }
             ftPortage.update_world_set(worldSet)
             ftGenkernel.update_world_set(worldSet)
@@ -310,12 +308,6 @@ class RescueDiskBuilder:
         ftGettyAutoLogin.update_custom_script_list(scriptList)
         builder.action_customize_system(custom_script_list=scriptList)
 
-        # hidden step: pick out boot related files
-        sp = wdir.get_old_chroot_dir_paths()[-1]
-        for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
-            os.makedirs(os.path.join(tmpStageDir, p), exist_ok=True)
-            FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p)))
-
         # step
         print("        - Cleaning up...")
         builder.action_cleanup()
@@ -325,6 +317,9 @@ class RescueDiskBuilder:
         sqfsFile = os.path.join(tmpStageDir, "rootfs.sqfs")
         sqfsSumFile = os.path.join(tmpStageDir, "rootfs.sqfs.sha512")
         os.makedirs(tmpStageDir, exist_ok=True)
+        for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
+            os.makedirs(os.path.join(tmpStageDir, p), exist_ok=True)
+            FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p)))
         FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (sp, sqfsFile))
         FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
         FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\?##" % (tmpStageDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks

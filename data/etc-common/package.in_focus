@@ -86,10 +86,16 @@ sys-fs/vdfuse
 net-fs/sshfs
 
 ## utility: small tools ############################################
+app-arch/cpio
+app-arch/gzip
+app-arch/p7zip
 app-arch/rar
+app-arch/unzip
+app-arch/zip
 app-cdr/mirage2iso
 app-crypt/sbsigntools
 app-editors/hexedit
+app-editors/nano
 app-misc/cpufetch
 app-misc/evtest
 app-misc/htmlq
@@ -119,6 +125,8 @@ net-ftp/filezilla
 net-misc/aria2
 net-misc/cadaver
 net-misc/nyx
+net-misc/rsync
+net-misc/wget
 sci-geosciences/gpxsee
 sys-apps/dmidecode
 sys-apps/ethtool
