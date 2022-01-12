@@ -445,24 +445,19 @@ class FmSysChecker:
         if not c.is_enabled():
             return
 
-        ccacheRootDir = "/var/cache/ccache"
-        ccacheDir = os.path.join(ccacheRootDir, platform.machine())
-
+        ccacheDir = "/var/cache/ccache"
         if c.get_ccache_dir() != ccacheDir:
             self.infoPrinter.printError("invalid ccache directory")
 
-        s = os.stat(ccacheRootDir)
+        s = os.stat(ccacheDir)
         if not stat.S_ISDIR(s.st_mode):
-            self.infoPrinter.printError("\"%s\" is not a directory" % (ccacheRootDir))
-        if s.st_mode != 0o40700:
-            self.infoPrinter.printError("invalid mode for \"%s\"" % (ccacheRootDir))
-        if s.st_uid != os.getuid():
-            self.infoPrinter.printError("invalid uid for \"%s\"" % (ccacheRootDir))
-        if s.st_gid != os.getgid():
-            self.infoPrinter.printError("invalid gid for \"%s\"" % (ccacheRootDir))
-
-        if not os.path.isdir(ccacheDir):
             self.infoPrinter.printError("\"%s\" is not a directory" % (ccacheDir))
+        if s.st_mode != 0o40700:
+            self.infoPrinter.printError("invalid mode for \"%s\"" % (ccacheDir))
+        if s.st_uid != os.getuid():
+            self.infoPrinter.printError("invalid owner for \"%s\"" % (ccacheDir))
+        if s.st_gid != os.getgid():
+            self.infoPrinter.printError("invalid group for \"%s\"" % (ccacheDir))
 
     def _checkServiceFiles(self):
         mustEnableServiceList = [
