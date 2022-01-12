@@ -12,6 +12,7 @@ import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_util import CloudCacheGentoo
+from fm_util import PrintLoadAvgThread
 from fm_util import CcacheLocalService
 from fm_param import FmConst
 
@@ -143,30 +144,30 @@ class RescueDiskBuilder:
         builder.action_init_confdir()
 
         # step
-        print("        - Updating world...")
-        installList = [
-            "sys-boot/grub",
-            "sys-apps/memtest86+",
-        ]
-        if c.is_enabled():
-            installList.append("dev-util/ccache")
-        worldSet = {
-            "app-admin/eselec",
-            "app-eselect/eselect-timezone",
-            "app-editors/nano",
-            "sys-kernel/gentoo-sources",
-        }
-        ftPortage.update_world_set(worldSet)
-        ftGenkernel.update_world_set(worldSet)
-        ftSystemd.update_world_set(worldSet)
-        ftSshServer.update_world_set(worldSet)
-        ftChronyDaemon.update_world_set(worldSet)
-        ftNetworkManager.update_world_set(worldSet)
-        builder.action_update_world(install_list=installList, world_set=worldSet)
+        with PrintLoadAvgThread("        - Updating world..."):
+            installList = [
+                "sys-boot/grub",
+                "sys-apps/memtest86+",
+            ]
+            if c.is_enabled():
+                installList.append("dev-util/ccache")
+            worldSet = {
+                "app-admin/eselec",
+                "app-eselect/eselect-timezone",
+                "app-editors/nano",
+                "sys-kernel/gentoo-sources",
+            }
+            ftPortage.update_world_set(worldSet)
+            ftGenkernel.update_world_set(worldSet)
+            ftSystemd.update_world_set(worldSet)
+            ftSshServer.update_world_set(worldSet)
+            ftChronyDaemon.update_world_set(worldSet)
+            ftNetworkManager.update_world_set(worldSet)
+            builder.action_update_world(install_list=installList, world_set=worldSet)
 
         # step
-        print("        - Building kernel...")
-        builder.action_install_kernel()
+        with PrintLoadAvgThread("        - Building kernel..."):
+            builder.action_install_kernel()
 
         # step
         print("        - Enabling services...")
