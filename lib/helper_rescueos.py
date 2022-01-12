@@ -25,7 +25,7 @@ class RescueDiskBuilder:
 
     def __init__(self, devType, devPath, tmpDir, hwInfo):
         self._archInfoDict = {
-            "amd64": ("amd64", "systemd", os.path.join(tmpDir, "rescd-rootfs-amd64"), os.path.join(tmpDir, "rescd-tmp-amd64")),
+            "amd64": ("amd64", "openrc", os.path.join(tmpDir, "rescd-rootfs-amd64"), os.path.join(tmpDir, "rescd-tmp-amd64")),
             # "arm64": ("arm64", None),
         }
         self._archDirDict = {
@@ -91,14 +91,14 @@ class RescueDiskBuilder:
 
         c = CcacheLocalService()
 
-        ftPortage = gstage4.target_features.Portage()
-        ftGenkernel = gstage4.target_features.Genkernel()
-        ftSystemd = gstage4.target_features.Systemd()
+        ftPortage = gstage4.target_features.UsePortage()
+        ftGenkernel = gstage4.target_features.UseGenkernel()
+        ftOpenrc = gstage4.target_features.UseOpenrc()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         ftSshServer = gstage4.target_features.SshServer()
         ftChronyDaemon = gstage4.target_features.ChronyDaemon()
         ftNetworkManager = gstage4.target_features.NetworkManager()
-        ftGettyAutoLogin = gstage4.target_features.GettyAutoLogin()
+        # ftGettyAutoLogin = gstage4.target_features.GettyAutoLogin()
 
         # step
         print("        - Initializing...")
@@ -117,7 +117,7 @@ class RescueDiskBuilder:
         ts.arch = arch
         ftPortage.update_target_settings(ts)
         ftGenkernel.update_target_settings(ts)
-        ftSystemd.update_target_settings(ts)
+        ftOpenrc.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
 
         if c.is_enabled():
@@ -284,7 +284,7 @@ class RescueDiskBuilder:
             }
             ftPortage.update_world_set(worldSet)
             ftGenkernel.update_world_set(worldSet)
-            ftSystemd.update_world_set(worldSet)
+            ftOpenrc.update_world_set(worldSet)
             ftSshServer.update_world_set(worldSet)
             ftChronyDaemon.update_world_set(worldSet)
             ftNetworkManager.update_world_set(worldSet)
@@ -305,7 +305,7 @@ class RescueDiskBuilder:
         # step
         print("        - Customizing...")
         scriptList = []
-        ftGettyAutoLogin.update_custom_script_list(scriptList)
+        # ftGettyAutoLogin.update_custom_script_list(scriptList)
         builder.action_customize_system(custom_script_list=scriptList)
 
         # step
