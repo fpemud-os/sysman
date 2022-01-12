@@ -187,7 +187,7 @@ class RescueDiskBuilder:
         sp = wdir.get_old_chroot_dir_paths()[-1]
         for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
             os.makedirs(os.path.join(tmpStageDir, p), exist_ok=True)
-            FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p)))
+            FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p))) 
 
         # step
         print("        - Cleaning up...")
@@ -262,6 +262,7 @@ class RescueDiskBuilder:
             with open(os.path.join(mp.mountpoint, "grub", "grub.cfg"), "w") as f:
                 f.write("set default=0\n")
                 f.write("set timeout=90\n")
+                f.write("\n")
 
                 f.write("set gfxmode=auto\n")
                 f.write("insmod efi_gop\n")
@@ -271,21 +272,25 @@ class RescueDiskBuilder:
                 f.write("insmod videotest\n")
                 f.write("insmod videoinfo\n")
                 f.write("terminal_output gfxterm\n")
+                f.write("\n")
 
                 f.write("menuentry \"Boot %s\" --class gnu-linux --class os {\n" % (DISK_NAME))
                 # f.write("    search --no-floppy --fs-uuid --set %s\n" % (uuid))
-                f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc dokeymap looptype=squashfs loop=%s/rootfs.sqfs cdroot docache" % (osArchDir, osArchDir))
+                f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc dokeymap looptype=squashfs loop=%s/rootfs.sqfs cdroot docache\n" % (osArchDir, osArchDir))
                 f.write("    initrd %s/initramfs.img\n" % (osArchDir))
                 f.write("}\n")
+                f.write("\n")
 
                 f.write("menuentry \"Boot existing OS\" --class os {\n")
                 f.write("    set root=(hd0)\n")
                 f.write("    chainloader +1\n")
                 f.write("}\n")
+                f.write("\n")
 
                 f.write("menuentry \"Run Memtest86+\" {\n")
                 f.write("    linux %s/memtest\n" % (osArchDir))
                 f.write("}\n")
+                f.write("\n")
 
                 # menuentry "Hardware Information (HDT)" {
                 #     linux /os/%ARCH%/hdt
@@ -295,6 +300,7 @@ class RescueDiskBuilder:
                 f.write("menuentry \"Restart\" {\n")
                 f.write("    reboot\n")
                 f.write("}\n")
+                f.write("\n")
 
                 # Menu
                 f.write("menuentry \"Power Off\" {\n")
