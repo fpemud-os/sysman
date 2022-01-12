@@ -24,13 +24,6 @@ class RescueDiskBuilder:
     DEV_TYPE_USB_STICK = "usb-stick"
 
     def __init__(self, devType, devPath, tmpDir, hwInfo):
-        self._filesDir = os.path.join(FmConst.dataDir, "rescue", "rescuedisk")
-        self._pkgListFile = os.path.join(self._filesDir, "packages.x86_64")
-        self._grubCfgSrcFile = os.path.join(self._filesDir, "grub.cfg.in")
-        self._pkgDir = os.path.join(FmConst.dataDir, "rescue", "pkg")
-
-        self._mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
-
         self._archInfoDict = {
             "amd64": ("amd64", "systemd", os.path.join(tmpDir, "rescd-rootfs-amd64"), os.path.join(tmpDir, "rescd-tmp-amd64")),
             # "arm64": ("arm64", None),
@@ -162,6 +155,134 @@ class RescueDiskBuilder:
                 "app-eselect/eselect-timezone",
                 "app-editors/nano",
                 "sys-kernel/gentoo-sources",
+                # atop
+                # b43-fwcutter
+                # borg
+                # btrfs-progs
+                # chntpw
+                # cifs-utils
+                # clonezilla
+                # cpio
+                # crda
+                # darkhttpd
+                # ddrescue
+                # dhclient
+                # dialog
+                # dmidecode
+                # dmraid
+                # dnsmasq
+                # dnsutils
+                # dosfstools
+                # elinks
+                # ethtool
+                # exfat-utils
+                # f2fs-tools
+                # # featherpad
+                # # firefox-esr-bin
+                # fsarchiver
+                # geany
+                # git
+                # gnu-netcat
+                # gparted
+                # gpm
+                # gptfdisk
+                # grml-zsh-config
+                # # growpart
+                # grsync
+                # grub
+                # hdparm
+                # hexedit
+                # htop
+                # iftop
+                # iotop
+                # ipw2100-fw
+                # ipw2200-fw
+                # irssi
+                # iwd
+                # # joe                       # this package disppears
+                # keepassxc
+                # lftp
+                # lightdm
+                # linux-atm
+                # linux-lts-headers
+                # lshw
+                # lsof
+                # lsscsi
+                # lzip
+                # mc
+                # memtester
+                # mlocate
+                # # ms-sys
+                # mtools
+                # nano
+                # ncdu
+                # ndisc6
+                # network-manager-applet
+                # networkmanager-openvpn
+                # networkmanager-vpnc
+                # nfs-utils
+                # nilfs-utils
+                # nmap
+                # ntfs-3g
+                # ntp
+                # nvme-cli
+                # # nwipe
+                # openconnect
+                # openssh
+                # openvpn
+                # p7zip
+                # partclone
+                # parted
+                # partimage
+                # ppp
+                # pptpclient
+                # pv
+                # rdesktop
+                # # refind-efi                    # this package disappears
+                # rkhunter
+                # rp-pppoe
+                # rsync
+                # ruby
+                # screen
+                # sdparm
+                # sg3_utils
+                # smartmontools
+                # strace
+                # sudo
+                # sysstat
+                # tcpdump
+                # testdisk
+                # tigervnc
+                # tmux
+                # traceroute
+                # ttf-dejavu
+                # ttf-droid
+                # unzip
+                # usb_modeswitch
+                # vim-minimal
+                # vpnc
+                # wipe
+                # wget
+                # wireless-regdb
+                # wireless_tools
+                # wvdial
+                # xarchiver
+                # xfce4
+                # xfce4-battery-plugin
+                # xfce4-taskmanager
+                # xfsdump
+                # xkbsel
+                # xkeyboard-config
+                # xl2tpd
+                # xorg-apps
+                # xorg-drivers
+                # xorg-server
+                # xorg-xinit
+                # yubikey-manager-qt
+                # yubikey-personalization-gui
+                # # zerofree
+                # zile
+                # zip
             }
             ftPortage.update_world_set(worldSet)
             ftGenkernel.update_world_set(worldSet)
@@ -193,7 +314,7 @@ class RescueDiskBuilder:
         sp = wdir.get_old_chroot_dir_paths()[-1]
         for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
             os.makedirs(os.path.join(tmpStageDir, p), exist_ok=True)
-            FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p))) 
+            FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p)))
 
         # step
         print("        - Cleaning up...")
@@ -282,7 +403,7 @@ class RescueDiskBuilder:
 
                 f.write("menuentry \"Boot %s\" --class gnu-linux --class os {\n" % (DISK_NAME))
                 # f.write("    search --no-floppy --fs-uuid --set %s\n" % (uuid))
-                f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc looptype=squashfs loop=%s/rootfs.sqfs cdroot dokeymap docache\n" % (osArchDir, osArchDir))
+                f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc dev_uuid=%s looptype=squashfs loop=%s/rootfs.sqfs cdroot dokeymap docache\n" % (osArchDir, uuid, osArchDir))
                 f.write("    initrd %s/initramfs.img\n" % (osArchDir))
                 f.write("}\n")
                 f.write("\n")
