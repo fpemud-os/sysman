@@ -212,7 +212,12 @@ class DynCfgModifier:
                 FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "EMERGE_DEFAULT_OPTS", value.lstrip())
 
     def updateCcache(self):
-        valueList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "FEATURES").split(" ")
+        value = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "FEATURES")
+        if value != "":
+            valueList = value.split(" ")
+        else:
+            valueList = []
+
         c = CcacheLocalService()
         if c.is_enabled():
             if "ccache" not in valueList:
