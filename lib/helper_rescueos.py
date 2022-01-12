@@ -262,9 +262,9 @@ class RescueDiskBuilder:
             with open(os.path.join(mp.mountpoint, "grub", "grub.cfg"), "w") as f:
                 f.write("set default=0\n")
                 f.write("set timeout=90\n")
+                f.write("set gfxmode=auto\n")
                 f.write("\n")
 
-                f.write("set gfxmode=auto\n")
                 f.write("insmod efi_gop\n")
                 f.write("insmod efi_uga\n")
                 f.write("insmod gfxterm\n")
@@ -276,7 +276,7 @@ class RescueDiskBuilder:
 
                 f.write("menuentry \"Boot %s\" --class gnu-linux --class os {\n" % (DISK_NAME))
                 # f.write("    search --no-floppy --fs-uuid --set %s\n" % (uuid))
-                f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc dokeymap looptype=squashfs loop=%s/rootfs.sqfs cdroot docache\n" % (osArchDir, osArchDir))
+                f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc looptype=squashfs loop=%s/rootfs.sqfs cdroot dokeymap docache\n" % (osArchDir, osArchDir))
                 f.write("    initrd %s/initramfs.img\n" % (osArchDir))
                 f.write("}\n")
                 f.write("\n")
