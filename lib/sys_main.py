@@ -630,7 +630,14 @@ class FmMain:
         builder.buildTargetSystemArm64()
         print("")
 
-        self.infoPrinter.printInfo(">> Exporting...")
+        if devType == RescueDiskBuilder.DEV_TYPE_ISO:
+            self.infoPrinter.printInfo(">> Creating %s..." % (devPath))
+        elif devType == RescueDiskBuilder.DEV_TYPE_USB_STICK:
+            self.infoPrinter.printInfo(">> Installing into USB stick %s..." % (devPath))
+        elif devType == RescueDiskBuilder.DEV_TYPE_CDROM:
+            self.infoPrinter.printInfo(">> Burning CD in %s..." % (devPath))
+        else:
+            assert False
         builder.exportTargetSystem()
         print("")
 

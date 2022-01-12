@@ -207,13 +207,10 @@ class RescueDiskBuilder:
 
     def exportTargetSystem(self):
         if self._devType == self.DEV_TYPE_ISO:
-            print("        - Creating %s..." % (self._devPath))
             assert False
         elif self._devType == self.DEV_TYPE_CDROM:
-            print("        - Burning CD in %s..." % (self._devPath))
             assert False
         elif self._devType == self.DEV_TYPE_USB_STICK:
-            print("        - Installing into USB stick %s..." % (self._devPath))
             self._exportToUsbStick()
         else:
             assert False
