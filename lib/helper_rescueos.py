@@ -77,8 +77,9 @@ class RescueDiskBuilder:
 
         # prefer local stage3 file
         for arch, v in self._archInfoDict.items():
-            self._stage3FilesDict[arch] = cache.get_latest_stage3(arch, v[0], v[1], cached_only=True)
-            if self._stage3FilesDict[arch] is None:
+            try:
+                self._stage3FilesDict[arch] = cache.get_latest_stage3(arch, v[0], v[1], cached_only=True)
+            except FileNotFoundError:
                 self._stage3FilesDict[arch] = cache.get_latest_stage3(arch, v[0], v[1])
 
         # always use newest snapshot
