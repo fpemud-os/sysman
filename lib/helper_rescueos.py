@@ -157,6 +157,7 @@ class RescueDiskBuilder:
                 "app-arch/zip",
                 "app-eselect/eselect-timezone",
                 "app-editors/nano",
+                "app-misc/mc",
                 "app-misc/tmux",
                 "dev-lang/python",
                 "dev-lang/ruby",
@@ -193,6 +194,7 @@ class RescueDiskBuilder:
                 "sys-fs/xfsdump",
                 "sys-fs/xfsprogs",
                 "sys-kernel/gentoo-sources",
+                "sys-process/bpytop",
                 "sys-process/lsof",
 
                 # atop
@@ -222,8 +224,6 @@ class RescueDiskBuilder:
                 # htop
                 # iftop
                 # iotop
-                # ipw2100-fw
-                # ipw2200-fw
                 # irssi
                 # iwd
                 # # joe                       # this package disppears

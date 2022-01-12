@@ -77,6 +77,9 @@
 # don't enable upnp by default
 */*                                                                                                       -upnp
 
+# use sys-libs/ncurses, why sys-libs/slang?
+*/*                                                                                                       -slang
+
 # preference: gstreamer -> pipewire -> alsa
 app-emulation/wine-vanilla                                                                                alsa            # gstreamer support in wine is not an alsa replacement
 app-emulation/wine-staging                                                                                alsa            # gstreamer support in wine is not an alsa replacement
