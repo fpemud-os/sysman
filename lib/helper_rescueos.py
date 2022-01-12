@@ -182,7 +182,7 @@ class RescueDiskBuilder:
         # hidden step: pick out boot related files
         sp = wdir.get_old_chroot_dir_paths()[-1]
         for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
-            os.makedirs(os.path.dirname(os.path.join(tmpStageDir, p)), exist_ok=True)
+            os.makedirs(os.path.join(tmpStageDir, p), exist_ok=True)
             FmUtil.cmdCall("/bin/cp", "-r", os.path.join(sp, p), os.path.join(tmpStageDir, p))
 
         # step
