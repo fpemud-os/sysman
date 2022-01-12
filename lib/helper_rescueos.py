@@ -183,7 +183,7 @@ class RescueDiskBuilder:
         sp = wdir.get_old_chroot_dir_paths()[-1]
         for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
             os.makedirs(os.path.dirname(os.path.join(tmpStageDir, p)), exist_ok=True)
-            shutil.copytree(os.path.join(sp, p), os.path.join(tmpStageDir, p), symlinks=True, dirs_exist_ok=True)
+            FmUtil.cmdCall("/bin/cp", "-r", os.path.join(sp, p), os.path.join(tmpStageDir, p))
 
         # step
         print("        - Cleaning up...")
