@@ -49,6 +49,39 @@ from gi.repository import GLib
 class FmUtil:
 
     @staticmethod
+    def getKernelVerStr(kernelDir):
+        version = None
+        patchlevel = None
+        sublevel = None
+        extraversion = None
+        with open(os.path.join(kernelDir, "Makefile")) as f:
+            buf = f.read()
+
+            m = re.search("VERSION = ([0-9]+)", buf, re.M)
+            if m is None:
+                raise Exception("illegal kernel source directory")
+            version = int(m.group(1))
+
+            m = re.search("PATCHLEVEL = ([0-9]+)", buf, re.M)
+            if m is None:
+                raise Exception("illegal kernel source directory")
+            patchlevel = int(m.group(1))
+
+            m = re.search("SUBLEVEL = ([0-9]+)", buf, re.M)
+            if m is None:
+                raise Exception("illegal kernel source directory")
+            sublevel = int(m.group(1))
+
+            m = re.search("EXTRAVERSION = (\\S+)", buf, re.M)
+            if m is not None:
+                extraversion = m.group(1)
+
+        if extraversion is not None:
+            return "%d.%d.%d%s" % (version, patchlevel, sublevel, extraversion)
+        else:
+            return "%d.%d.%d" % (version, patchlevel, sublevel)
+
+    @staticmethod
     def syncDirs(srcList, dstDir):
         for fn in os.listdir(dstDir):
             if fn not in srcList:

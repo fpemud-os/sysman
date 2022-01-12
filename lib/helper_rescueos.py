@@ -296,7 +296,7 @@ class RescueDiskBuilder:
             if not os.path.isdir(hostp):
                 raise Exception("directory \"%s\" does not exist in host system" % (hostp))
             s = gstage4.scripts.ScriptPlacingFiles("Install bcachefs kernel")
-            s.append_dir("/usr/src/bcachefs-kernel", 0, 0, hostpath=hostp, recursive=True)
+            s.append_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), 0, 0, hostpath=hostp, recursive=True)
             builder.action_install_kernel(preprocess_script_list=[s])
 
         # step
