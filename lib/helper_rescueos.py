@@ -198,7 +198,6 @@ class RescueDiskBuilder:
                 # "sys-fs/ntfs3g",          # requires FUSE2 which is deprecated
                 "sys-fs/xfsdump",
                 "sys-fs/xfsprogs",
-                "sys-kernel/gentoo-sources",
                 "sys-process/bpytop",
                 "sys-process/lsof",
 
