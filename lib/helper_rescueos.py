@@ -292,7 +292,12 @@ class RescueDiskBuilder:
 
         # step
         with PrintLoadAvgThread("        - Building kernel..."):
-            builder.action_install_kernel()
+            hostp = "/var/cache/bbki/distfiles/git-src/git/bcachefs.git"
+            if not os.path.isdir(hostp):
+                raise Exception("directory \"%s\" does not exist in host system" % (hostp))
+            s = gstage4.scripts.ScriptPlacingFiles("Install bcachefs kernel")
+            s.append_dir("/usr/src/bcachefs-kernel", 0, 0, hostpath=hostp)
+            builder.action_install_kernel(preprocess_script_list=[s])
 
         # step
         print("        - Enabling services...")
