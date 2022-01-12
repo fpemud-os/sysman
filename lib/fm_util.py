@@ -3010,3 +3010,20 @@ class CloudCacheGentoo:
         fn = releaseVariant + "-" + releaseVersion + ".tar.xz"
         fnDigest = fn + ".DIGESTS"
         return (fn, fnDigest)
+
+
+class CcacheLocalService:
+
+    def __init__(self):
+        pass
+
+    def is_enabled(self):
+        pass
+
+    def get_ccache_dir(self):
+        pass
+
+
+
+
+

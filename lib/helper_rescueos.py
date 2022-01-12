@@ -215,10 +215,19 @@ class RescueDiskBuilder:
             assert False
 
     def _exportToUsbStick(self):
-        FmUtil.cmdCall("parted", "--script", self._devPath, "mklabel", "msdos", "mkpart", "primary", "fat32", r"0%", r"100%")
-        FmUtil.cmdCall("mkfs.vfat", "-F", "32", "-n", DISK_LABEL, self._devPath + "1")
+        # create partitions
+        FmUtil.initializeDisk(self._devPath, "mbr", [
+            ("*", "vfat"),
+        ])
+        partDevPath = self._devPath + "1"
 
-        with TmpMount(self._devPath + "1") as mp:
+        # format the new partition and get its UUID
+        FmUtil.cmdCall("/usr/sbin/mkfs.vfat", "-F", "32", "-n", DISK_LABEL, partDevPath)
+        uuid = FmUtil.getBlkDevUuid(partDevPath)
+        if uuid == "":
+            raise Exception("can not get FS-UUID for %s" % (partDevPath))
+
+        with TmpMount(partDevPath) as mp:
             dataDir = os.path.join(mp.mountpoint, "data")
             os.mkdir(dataDir)
 
@@ -249,7 +258,6 @@ class RescueDiskBuilder:
 
             # create grub.cfg
             arch = "amd64"      # FIXME
-            uuid = FmUtil.cmdCall("blkid", "-s", "UUID", "-o", "value", self._devPath).rstrip("\n")
             with open(os.path.join(mp.mountpoint, "grub", "grub.cfg"), "w") as f:
                 f.write("set default=0\n")
                 f.write("set timeout=90\n")
