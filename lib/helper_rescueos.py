@@ -95,6 +95,7 @@ class RescueDiskBuilder:
         ftGenkernel = gstage4.target_features.UseGenkernel()
         ftOpenrc = gstage4.target_features.UseOpenrc()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
+        ftPerferGnu = gstage4.target_features.PreferGnuAndGpl()
         ftSshServer = gstage4.target_features.SshServer()
         ftChronyDaemon = gstage4.target_features.ChronyDaemon()
         ftNetworkManager = gstage4.target_features.NetworkManager()
@@ -119,6 +120,7 @@ class RescueDiskBuilder:
         ftGenkernel.update_target_settings(ts)
         ftOpenrc.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
+        ftPerferGnu.update_target_settings(ts)
 
         if c.is_enabled():
             s.host_ccache_dir = c.get_ccache_dir()
