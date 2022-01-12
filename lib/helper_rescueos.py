@@ -4,6 +4,7 @@
 import os
 import shutil
 import gstage4
+import gstage4.scripts
 import gstage4.seed_stages
 import gstage4.repositories
 import gstage4.target_features
