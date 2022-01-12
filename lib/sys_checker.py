@@ -5,16 +5,18 @@ import os
 import re
 import glob
 import time
+import stat
 import ntplib
 import struct
 import pathlib
 import filecmp
+import platform
 import strict_pgs
 import strict_fsh
 import strict_hdds
 import configparser
 import robust_layer.simple_fops
-from fm_util import FmUtil
+from fm_util import CcacheLocalService, FmUtil
 from fm_util import TmpMount
 from fm_util import BootDirWriter
 from fm_param import FmConst
@@ -117,6 +119,7 @@ class FmSysChecker:
                     self._checkEtcOnlyUserCreatedFiles()
                     self._checkEtcLmSensorsCfgFiles()
                     self._checkEtcUdevRuleFiles()
+                    self._checkCcacheFilesAndDirectories()
                     self._checkServiceFiles()
                     self._checkPortageCfg()
                     self._checkSystemServices()
@@ -436,6 +439,30 @@ class FmSysChecker:
                     self.infoPrinter.printError("\"%s\" should contain only user created files, but \"%s\" is not." % (rulesDir, fullfn))
                 if not FmUtil.udevIsPureUaccessRuleFile(fullfn):
                     self.infoPrinter.printError("\"%s\" is not a pure uaccess udev rule file." % (fullfn))
+
+    def _checkCcacheFilesAndDirectories(self):
+        c = CcacheLocalService()
+        if not c.is_enabled():
+            return
+
+        ccacheRootDir = "/var/cache/ccache"
+        ccacheDir = os.path.join(ccacheRootDir, platform.machine())
+
+        if c.get_ccache_dir() != ccacheDir:
+            self.infoPrinter.printError("invalid ccache directory")
+
+        s = os.stat(ccacheRootDir)
+        if not stat.S_ISDIR(s.st_mode):
+            self.infoPrinter.printError("\"%s\" is not a directory" % (ccacheRootDir))
+        if s.st_mode != 0o40700:
+            self.infoPrinter.printError("invalid mode for \"%s\"" % (ccacheRootDir))
+        if s.st_uid != os.getuid():
+            self.infoPrinter.printError("invalid uid for \"%s\"" % (ccacheRootDir))
+        if s.st_gid != os.getgid():
+            self.infoPrinter.printError("invalid gid for \"%s\"" % (ccacheRootDir))
+
+        if not os.path.isdir(ccacheDir):
+            self.infoPrinter.printError("\"%s\" is not a directory" % (ccacheDir))
 
     def _checkServiceFiles(self):
         mustEnableServiceList = [
