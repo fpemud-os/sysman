@@ -162,7 +162,6 @@ class RescueDiskBuilder:
                 "app-misc/mc",
                 "app-misc/tmux",
                 "dev-lang/python",
-                "dev-lang/ruby",
                 "dev-util/strace",
                 "dev-vcs/git",
                 "net-analyzer/nmap",
@@ -181,6 +180,7 @@ class RescueDiskBuilder:
                 "sys-apps/file",
                 "sys-apps/hdparm",
                 "sys-apps/memtest86+",
+                "sys-apps/memtester",
                 "sys-apps/nvme-cli",
                 "sys-apps/sdparm",
                 "sys-block/ms-sys",
@@ -224,7 +224,6 @@ class RescueDiskBuilder:
                 # grml-zsh-config
                 # # growpart
                 # grsync
-                # htop
                 # iftop
                 # iotop
                 # irssi
@@ -234,10 +233,7 @@ class RescueDiskBuilder:
                 # lftp
                 # lightdm
                 # linux-atm
-                # linux-lts-headers
                 # lzip
-                # mc
-                # memtester
                 # ncdu
                 # ndisc6
                 # network-manager-applet
