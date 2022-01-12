@@ -622,11 +622,11 @@ class FmMain:
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Building target system (amd64)...")
+        self.infoPrinter.printInfo(">> Building target system (%s)..." % (builder.getArchNameAmd64()))
         builder.buildTargetSystemAmd64()
         print("")
 
-        self.infoPrinter.printInfo(">> Building target system (arm64)...")
+        self.infoPrinter.printInfo(">> Building target system (%s)..." % (builder.getArchNameArm64()))
         builder.buildTargetSystemArm64()
         print("")
 

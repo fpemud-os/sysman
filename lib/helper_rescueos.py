@@ -37,7 +37,7 @@ class RescueDiskBuilder:
         }
         self._archDirDict = {
             "amd64": "x86_64",
-            # "arm64": "arm64",
+            "arm64": "arm64",
         }
 
         assert devType in [self.DEV_TYPE_ISO, self.DEV_TYPE_CDROM, self.DEV_TYPE_USB_STICK]
@@ -49,6 +49,12 @@ class RescueDiskBuilder:
                                               10 if "fan" in hwInfo.hwDict else 1)
         self._stage3FilesDict = dict()
         self._snapshotFile = None
+
+    def getArchNameAmd64(self):
+        return self._archDirDict["amd64"]
+
+    def getArchNameArm64(self):
+        return self._archDirDict["arm64"]
 
     def check(self):
         if self._devType == self.DEV_TYPE_ISO:
