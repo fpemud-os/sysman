@@ -10,7 +10,6 @@ import ntplib
 import struct
 import pathlib
 import filecmp
-import platform
 import strict_pgs
 import strict_fsh
 import strict_hdds
