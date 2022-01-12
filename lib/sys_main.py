@@ -547,6 +547,7 @@ class FmMain:
             dcm.updateMirrors()
             dcm.updateDownloadCommand()
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
+            dcm.updateCcache()
         print("")
 
         layout = strict_hdds.get_current_storage_layout()
@@ -593,6 +594,17 @@ class FmMain:
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()
 
+        # modify dynamic config
+        self.infoPrinter.printInfo(">> Refreshing system configuration...")
+        if True:
+            dcm = DynCfgModifier()
+            dcm.updateMirrors()
+            dcm.updateDownloadCommand()
+            dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
+            dcm.updateCcache()
+        print("")
+
+        # determine device type
         if devPath.endswith(".iso"):
             devType = RescueDiskBuilder.DEV_TYPE_ISO
         elif re.fullmatch("/dev/sd.*", devPath) is not None:
@@ -602,6 +614,7 @@ class FmMain:
         else:
             raise Exception("target is not supported")
 
+        # build
         builder = RescueDiskBuilder(devType, devPath, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
         builder.check()
 

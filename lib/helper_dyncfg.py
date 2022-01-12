@@ -6,6 +6,7 @@ import requests
 import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import AvahiServiceBrowser
+from fm_util import CcacheLocalService
 from fm_param import FmConst
 
 
@@ -209,3 +210,15 @@ class DynCfgModifier:
             elif m.group(2) is None or int(m.group(2)) != loadavg:
                 value = value.replace(m.group(0), "--load-average=%d" % (loadavg))
                 FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "EMERGE_DEFAULT_OPTS", value.lstrip())
+
+    def updateCcache(self):
+        valueList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "FEATURES").split(" ")
+        c = CcacheLocalService()
+        if c.is_enabled():
+            if "ccache" not in valueList:
+                valueList.append("ccache")
+                FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "FEATURES", " ".join(valueList))
+        else:
+            if "ccache" in valueList:
+                valueList.remove("ccache")
+                FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "FEATURES", " ".join(valueList))

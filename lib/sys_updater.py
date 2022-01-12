@@ -45,6 +45,7 @@ class FmSysUpdater:
             dcm.updateMirrors()
             dcm.updateDownloadCommand()
             dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
+            dcm.updateCcache()
         print("")
 
         # get build server

@@ -3014,16 +3014,35 @@ class CloudCacheGentoo:
 
 class CcacheLocalService:
 
+    """
+    We think ccache can be used as a local service if the following conditions are met:
+       1. /etc/ccache.conf exists
+       2. ccache_dir is specified in /etc/ccache.conf
+       3. no user specific configuration for root
+    """
+
     def __init__(self):
-        pass
+        self._binFile = "/usr/bin/ccache"
+        self._cfgFile = "/etc/ccache.conf"
+        self._rootCfgDir = "/root/.config/ccache"
+
+        if not os.path.exists(self._cfgFile):
+            self._ccacheDir = None
+        else:
+            if not os.path.exists(self._binFile):
+                raise Exception("%s does not exist while you have a %s" % (self._binFile, self._cfgFile))
+            if os.path.exists(self._rootCfgDir):
+                raise Exception("%s should not exist" % (self._rootCfgDir))
+
+            buf = pathlib.Path(self._cfgFile).read_text()
+            m = re.search("^cache_dir = (.*)$", buf, re.M)
+            if m is None:
+                raise Exception("no \"cache_dir\" specified in %s" % (self._cfgFile))
+            self._ccacheDir = m.group(1)
 
     def is_enabled(self):
-        pass
+        return (self._ccacheDir is not None)
 
     def get_ccache_dir(self):
-        pass
-
-
-
-
-
+        assert self._ccacheDir is not None
+        return self._ccacheDir

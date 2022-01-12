@@ -12,6 +12,7 @@ import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_util import CloudCacheGentoo
+from fm_util import CcacheLocalService
 from fm_param import FmConst
 
 
@@ -86,6 +87,8 @@ class RescueDiskBuilder:
         tmpRootfsDir = self._archDict[arch][2]
         tmpStageDir = self._archDict[arch][3]
 
+        c = CcacheLocalService()
+
         ftPortage = gstage4.target_features.Portage()
         ftGenkernel = gstage4.target_features.Genkernel()
         ftSystemd = gstage4.target_features.Systemd()
@@ -115,12 +118,12 @@ class RescueDiskBuilder:
         ftSystemd.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
 
-        # FIXME
-        if True:
-            s.host_ccache_dir = "/var/tmp/ccache"
-            os.makedirs("/var/tmp/ccache", exist_ok=True)
+        if c.is_enabled():
+            s.host_ccache_dir = c.get_ccache_dir()
             ts.build_opts.ccache = True
-            ts.kernel_manager = "fake"
+
+        # FIXME
+        ts.kernel_manager = "fake"
 
         builder = gstage4.Builder(s, ts, wdir)
 
@@ -146,8 +149,9 @@ class RescueDiskBuilder:
             "sys-boot/grub",
             "sys-apps/memtest86+",
         ]
+        if c.is_enabled():
+            installList.append("dev-util/ccache")
         worldSet = {
-            "dev-util/ccache",      # FIXME
             "app-admin/eselec",
             "app-eselect/eselect-timezone",
             "app-editors/nano",
