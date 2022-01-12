@@ -178,6 +178,7 @@ class RescueDiskBuilder:
                 "sys-apps/sg3_utils",
                 "sys-apps/smartmontools",
                 "sys-boot/grub",
+                "sys-apps/file",
                 "sys-apps/hdparm",
                 "sys-apps/memtest86+",
                 "sys-apps/nvme-cli",

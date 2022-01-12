@@ -130,6 +130,7 @@ net-misc/wget
 sci-geosciences/gpxsee
 sys-apps/dmidecode
 sys-apps/ethtool
+sys-apps/file
 sys-apps/hwloc
 sys-apps/pciutils
 sys-apps/usbutils
