@@ -62,6 +62,7 @@ class FmUtil:
             pType = partitionType
 
         disk = parted.freshDisk(parted.getDevice(devPath), partitionTableType)
+
         assert len(disk.getFreeSpaceRegions()) == 1
         freeRegion = disk.getFreeSpaceRegions()[0]
 
@@ -74,7 +75,7 @@ class FmUtil:
         else:
             partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL,
                                          fs=parted.FileSystem(type=pType, geometry=region),
-                                         geometry=freeRegion)
+                                         geometry=region)
 
         if not disk.addPartition(partition=partition, constraint=disk.device.optimalAlignedConstraint):
             # it sucks that disk.addPartition() won't do the job of restricting region INSIDE constraint
