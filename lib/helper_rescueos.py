@@ -178,7 +178,6 @@ class RescueDiskBuilder:
                 "sys-apps/file",
                 "sys-apps/hdparm",
                 "sys-apps/memtest86+",      # also required by boot-chain in USB stick
-                "sys-apps/memtester",
                 "sys-apps/nvme-cli",
                 "sys-apps/sdparm",
                 "sys-block/ms-sys",
@@ -253,7 +252,7 @@ class RescueDiskBuilder:
         sqfsFile = os.path.join(tmpStageDir, "rootfs.sqfs")
         sqfsSumFile = os.path.join(tmpStageDir, "rootfs.sqfs.sha512")
         os.makedirs(tmpStageDir, exist_ok=True)
-        for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale"]:
+        for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale", "usr/share/memtest86+"]:
             os.makedirs(os.path.join(tmpStageDir, p), exist_ok=True)
             FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p)))
         FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (sp, sqfsFile))
@@ -292,6 +291,7 @@ class RescueDiskBuilder:
                 os.mkdir(dstOsDir)
                 shutil.copy(os.path.join(tmpStageDir, "boot", "vmlinuz"), dstOsDir)
                 shutil.copy(os.path.join(tmpStageDir, "boot", "initramfs.img"), dstOsDir)
+                shutil.copy(os.path.join(tmpStageDir, "usr", "share", "memtest86+", "memtest.bin", dstOsDir))
                 shutil.copy(os.path.join(tmpStageDir, "rootfs.sqfs"), dstOsDir)
                 shutil.copy(os.path.join(tmpStageDir, "rootfs.sqfs.sha512"), dstOsDir)
 
@@ -328,7 +328,6 @@ class RescueDiskBuilder:
                 f.write("\n")
 
                 f.write("menuentry \"Boot %s\" --class gnu-linux --class os {\n" % (DISK_NAME))
-                # f.write("    search --no-floppy --fs-uuid --set %s\n" % (uuid))
                 f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc dev_uuid=%s looptype=squashfs loop=%s/rootfs.sqfs cdroot dokeymap docache\n" % (osArchDir, uuid, osArchDir))
                 f.write("    initrd %s/initramfs.img\n" % (osArchDir))
                 f.write("}\n")
@@ -340,8 +339,9 @@ class RescueDiskBuilder:
                 f.write("}\n")
                 f.write("\n")
 
+                # FIXME: memtest86+ does not work under UEFI?
                 f.write("menuentry \"Run Memtest86+\" {\n")
-                f.write("    linux %s/memtest\n" % (osArchDir))
+                f.write("    linux %s/memtest.bin\n" % (osArchDir))
                 f.write("}\n")
                 f.write("\n")
 
