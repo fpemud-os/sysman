@@ -111,7 +111,7 @@ class RescueDiskBuilder:
         robust_layer.simple_fops.mkdir(tmpStageDir)
 
         s = gstage4.Settings()
-        s.program_name = "fpemud-os-sysman"
+        s.program_name = FmConst.programName
         s.verbose_level = 0
         s.host_computing_power = self._cp
         s.host_distfiles_dir = FmConst.distDir

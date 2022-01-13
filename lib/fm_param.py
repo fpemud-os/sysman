@@ -6,10 +6,11 @@ import os
 
 class FmConst:
 
-    libDir = "/usr/lib64/fpemud-os-sysman"
-    libInitrdDir = os.path.join(libDir, "initramfs")
-    libexecDir = "/usr/libexec/fpemud-os-sysman"
-    dataDir = "/usr/share/fpemud-os-sysman"
+    programName = "fpemud-os-sysman"
+
+    libDir = os.path.join("/usr/lib64", programName)
+    libexecDir = os.path.join("/usr/libexec", programName)
+    dataDir = os.path.join("/usr/share", programName)
 
     defaultGentooMirror = "http://distfiles.gentoo.org"
     defaultRsyncMirror = "rsync://rsync.gentoo.org/gentoo-portage"
