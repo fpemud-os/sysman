@@ -166,6 +166,7 @@ class RescueDiskBuilder:
                 "dev-lang/python",
                 "dev-util/strace",
                 "dev-vcs/git",
+                "dev-vcs/subversion",
                 "net-analyzer/nmap",
                 "net-analyzer/tcpdump",
                 "net-analyzer/traceroute",
@@ -177,10 +178,10 @@ class RescueDiskBuilder:
                 "sys-apps/gptfdisk",
                 "sys-apps/lshw",
                 "sys-apps/smartmontools",
-                "sys-boot/grub",
+                "sys-boot/grub",            # also required by boot-chain in USB stick
                 "sys-apps/file",
                 "sys-apps/hdparm",
-                "sys-apps/memtest86+",
+                "sys-apps/memtest86+",      # also required by boot-chain in USB stick
                 "sys-apps/memtester",
                 "sys-apps/nvme-cli",
                 "sys-apps/sdparm",
