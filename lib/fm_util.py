@@ -28,7 +28,6 @@ import hashlib
 import pyudev
 import tempfile
 import random
-import parted
 import blessed
 import zipfile
 import portage
@@ -933,125 +932,6 @@ class FmUtil:
             if m is not None:
                 return
             time.sleep(1.0)
-
-    @staticmethod
-    def initializeDisk(devPath, partitionTableType, partitionInfoList):
-        assert partitionTableType in ["mbr", "gpt"]
-        assert len(partitionInfoList) >= 1
-
-        if partitionTableType == "mbr":
-            partitionTableType = "msdos"
-
-        def _getFreeRegion(disk):
-            region = None
-            for r in disk.getFreeSpaceRegions():
-                if r.length <= disk.device.optimumAlignment.grainSize:
-                    continue                                                # ignore alignment gaps
-                if region is not None:
-                    assert False                                            # there should be only one free region
-                region = r
-            if region.start < 2048:
-                region.start = 2048
-            return region
-
-        def _addPartition(disk, pType, pStart, pEnd):
-            region = parted.Geometry(device=disk.device, start=pStart, end=pEnd)
-            if pType == "":
-                partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
-            elif pType == "esp":
-                assert partitionTableType == "gpt"
-                partition = parted.Partition(disk=disk,
-                                             type=parted.PARTITION_NORMAL,
-                                             fs=parted.FileSystem(type="fat32", geometry=region),
-                                             geometry=region)
-                partition.setFlag(parted.PARTITION_ESP)     # which also sets flag parted.PARTITION_BOOT
-            elif pType == "bcache":
-                assert partitionTableType == "gpt"
-                partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
-            elif pType == "swap":
-                partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
-                if partitionTableType == "mbr":
-                    partition.setFlag(parted.PARTITION_SWAP)
-                elif partitionTableType == "gpt":
-                    pass            # don't know why, it says gpt partition has no way to setFlag(SWAP)
-                else:
-                    assert False
-            elif pType == "lvm":
-                partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
-                partition.setFlag(parted.PARTITION_LVM)
-            elif pType == "vfat":
-                partition = parted.Partition(disk=disk,
-                                             type=parted.PARTITION_NORMAL,
-                                             fs=parted.FileSystem(type="fat32", geometry=region),
-                                             geometry=region)
-            elif pType in ["ext2", "ext4", "xfs"]:
-                partition = parted.Partition(disk=disk,
-                                             type=parted.PARTITION_NORMAL,
-                                             fs=parted.FileSystem(type=pType, geometry=region),
-                                             geometry=region)
-            else:
-                assert False
-            disk.addPartition(partition=partition,
-                              constraint=disk.device.optimalAlignedConstraint)
-
-        def _erasePartitionSignature(devPath, pStart, pEnd):
-            # fixme: this implementation is very limited
-            with open(devPath, "wb") as f:
-                f.seek(pStart * 512)
-                if pEnd - pStart + 1 < 32:
-                    f.write(bytearray((pEnd - pStart + 1) * 512))
-                else:
-                    f.write(bytearray(32 * 512))
-
-        # partitionInfoList => preList & postList
-        preList = None
-        postList = None
-        for i in range(0, len(partitionInfoList)):
-            pSize, pType = partitionInfoList[i]
-            if pSize == "*":
-                assert preList is None
-                preList = partitionInfoList[:i]
-                postList = partitionInfoList[i:]
-        if preList is None:
-            preList = partitionInfoList
-            postList = []
-
-        # delete all partitions
-        FmUtil.shellCall("/bin/dd if=/dev/zero of=%s bs=512 count=1000" % (devPath))      # FIXME: this job should be done by parted.freshDisk()
-        disk = parted.freshDisk(parted.getDevice(devPath), partitionTableType)
-        disk.commit()
-
-        # process preList
-        for pSize, pType in preList:
-            region = _getFreeRegion(disk)
-            constraint = parted.Constraint(maxGeom=region).intersect(disk.device.optimalAlignedConstraint)
-            pStart = constraint.startAlign.alignUp(region, region.start)
-            pEnd = constraint.endAlign.alignDown(region, region.end)
-
-            m = re.fullmatch("([0-9]+)(MiB|GiB|TiB)", pSize)
-            assert m is not None
-            sectorNum = parted.sizeToSectors(int(m.group(1)), m.group(2), disk.device.sectorSize)
-            if pEnd < pStart + sectorNum - 1:
-                raise Exception("not enough space")
-
-            _addPartition(disk, pType, pStart, pStart + sectorNum - 1)
-            _erasePartitionSignature(devPath, pStart, pEnd)
-
-        # process postList
-        for pSize, pType in postList:
-            region = _getFreeRegion(disk)
-            constraint = parted.Constraint(maxGeom=region).intersect(disk.device.optimalAlignedConstraint)
-            pStart = constraint.startAlign.alignUp(region, region.start)
-            pEnd = constraint.endAlign.alignDown(region, region.end)
-
-            if pSize == "*":
-                _addPartition(disk, pType, pStart, pEnd)
-                _erasePartitionSignature(devPath, pStart, pEnd)
-            else:
-                assert False
-
-        disk.commit()
-        time.sleep(3)           # FIXME, wait kernel picks the change
 
     @staticmethod
     def newBuffer(ch, li):

@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import parted
 import gstage4
 import gstage4.scripts
 import gstage4.seed_stages
@@ -269,12 +270,18 @@ class RescueDiskBuilder:
 
     def _exportToUsbStick(self):
         # create partitions
-        FmUtil.initializeDisk(self._devPath, "mbr", [
-            ("*", "vfat"),
-        ])
-        partDevPath = self._devPath + "1"
+        disk = parted.freshDisk(parted.getDevice(self._devPath), "msdos")
+        assert len(disk.getFreeSpaceRegions()) == 1
+        if not disk.addPartition(partition=parted.Partition(disk=disk, type=parted.PARTITION_NORMAL,
+                                                            fs=parted.FileSystem(type="fat32", geometry=disk.getFreeSpaceRegions()[0]),
+                                                            geometry=disk.getFreeSpaceRegions()[0]),
+                                 constraint=disk.device.optimalAlignedConstraint):
+            raise Exception("failed to format USB stick")
+        if not disk.commit():
+            raise Exception("failed to format USB stick")
 
         # format the new partition and get its UUID
+        partDevPath = self._devPath + "1"
         FmUtil.cmdCall("/usr/sbin/mkfs.vfat", "-F", "32", "-n", DISK_LABEL, partDevPath)
         uuid = FmUtil.getBlkDevUuid(partDevPath)
         if uuid == "":
