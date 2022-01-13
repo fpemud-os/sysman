@@ -296,7 +296,7 @@ class RescueDiskBuilder:
             if not os.path.isdir(hostp):
                 raise Exception("directory \"%s\" does not exist in host system" % (hostp))
             s = gstage4.scripts.ScriptPlacingFiles("Install bcachefs kernel")
-            s.append_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), 0, 0, hostpath=hostp, recursive=True)
+            s.append_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), 0, 0, dmode=0o755, fmode=0o755, hostpath=hostp, recursive=True)    # script files in kernel source needs to be executable, simply make all files rwxrwxrwx
             builder.action_install_kernel(preprocess_script_list=[s])
 
         # step
@@ -311,6 +311,11 @@ class RescueDiskBuilder:
         print("        - Customizing...")
         scriptList = []
         # ftGettyAutoLogin.update_custom_script_list(scriptList)
+        if True:
+            buf = ""
+            buf += "#!/bin/bash\n"
+            buf += "rm -rf /usr/src/*"
+            scriptList.append(gstage4.scripts.ScriptFromBuffer(buf))
         builder.action_customize_system(custom_script_list=scriptList)
 
         # step
