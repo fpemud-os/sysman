@@ -187,6 +187,7 @@ class RescueDiskBuilder:
                 "sys-apps/sdparm",
                 "sys-block/ms-sys",
                 "sys-block/parted",
+                "sys-devel/bc",
                 "sys-fs/btrfs-progs",
                 "sys-fs/dosfstools",
                 "sys-fs/e2fsprogs",
