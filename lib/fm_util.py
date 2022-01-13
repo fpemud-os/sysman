@@ -55,8 +55,11 @@ class FmUtil:
 
         if partitionTableType == "mbr":
             partitionTableType = "msdos"
+
         if partitionType == "vfat":
-            partitionType = "fat32"
+            pType = "fat32"
+        else:
+            pType = partitionType
 
         disk = parted.freshDisk(parted.getDevice(devPath), partitionTableType)
         assert len(disk.getFreeSpaceRegions()) == 1
@@ -66,11 +69,11 @@ class FmUtil:
         pEnd = disk.device.optimalAlignedConstraint.endAlign.alignDown(freeRegion, freeRegion.end)
         region = parted.Geometry(device=disk.device, start=pStart, end=pEnd)
 
-        if partitionType == "":
+        if pType == "":
             partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
         else:
             partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL,
-                                         fs=parted.FileSystem(type=partitionType, geometry=region),
+                                         fs=parted.FileSystem(type=pType, geometry=region),
                                          geometry=freeRegion)
 
         if not disk.addPartition(partition=partition, constraint=disk.device.optimalAlignedConstraint):
