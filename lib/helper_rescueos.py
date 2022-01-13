@@ -235,7 +235,7 @@ class RescueDiskBuilder:
             buf = ""
             buf += "#!/bin/bash\n"
             buf += "rm -rf /usr/src/*"
-            scriptList.append(gstage4.scripts.ScriptFromBuffer(buf))
+            scriptList.append(gstage4.scripts.ScriptFromBuffer("Delete /usr/src content", buf))
         builder.action_customize_system(custom_script_list=scriptList)
 
         # step
