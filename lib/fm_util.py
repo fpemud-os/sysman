@@ -13,6 +13,7 @@ import glob
 import stat
 import errno
 import shutil
+import parted
 import pathlib
 import asyncio
 import asyncio_pool
@@ -46,6 +47,61 @@ from gi.repository import GLib
 
 
 class FmUtil:
+
+    @staticmethod
+    def formatDisk(devPath, partitionTableType="mbr", partitionType="", partitionLabel=""):
+        assert partitionTableType in ["mbr", "gpt"]
+        assert partitionType in ["", "ext2", "ext4", "xfs", "btrfs", "bcachefs", "vfat", "exfat"]
+
+        if partitionTableType == "mbr":
+            partitionTableType = "msdos"
+        if partitionType == "vfat":
+            partitionType = "fat32"
+
+        disk = parted.freshDisk(parted.getDevice(devPath), partitionTableType)
+        assert len(disk.getFreeSpaceRegions()) == 1
+        freeRegion = disk.getFreeSpaceRegions()[0]
+
+        pStart = disk.device.optimalAlignedConstraint.startAlign.alignUp(freeRegion, freeRegion.start)
+        pEnd = disk.device.optimalAlignedConstraint.endAlign.alignDown(freeRegion, freeRegion.end)
+        region = parted.Geometry(device=disk.device, start=pStart, end=pEnd)
+
+        if partitionType == "":
+            partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
+        else:
+            partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL,
+                                         fs=parted.FileSystem(type=partitionType, geometry=region),
+                                         geometry=freeRegion)
+
+        if not disk.addPartition(partition=partition, constraint=disk.device.optimalAlignedConstraint):
+            # it sucks that disk.addPartition() won't do the job of restricting region INSIDE constraint
+            # so we must calculate pStart and pEnd manually beforehand
+            raise Exception("failed to format %s" % (devPath))
+        if not disk.commit():
+            # experiments show that disk.commit() blocks until /dev is updated
+            raise Exception("failed to format %s" % (devPath))
+
+        partDevPath = devPath + "1"
+        if partitionType == "":
+            pass
+        elif partitionType == "ext2":
+            assert False
+        elif partitionType == "ext4":
+            assert False
+        elif partitionType == "xfs":
+            assert False
+        elif partitionType == "btrfs":
+            assert False
+        elif partitionType == "bcachefs":
+            assert False
+        elif partitionType == "vfat":
+            FmUtil.cmdCall("/usr/sbin/mkfs.vfat", "-F", "32", "-n", partitionLabel, partDevPath)
+        elif partitionType == "exfat":
+            assert False
+        else:
+            assert False
+
+        return partDevPath
 
     @staticmethod
     def getKernelVerStr(kernelDir):
