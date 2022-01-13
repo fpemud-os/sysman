@@ -27,8 +27,8 @@ class RescueDiskBuilder:
 
     def __init__(self, devType, devPath, tmpDir, hwInfo):
         self._archInfoDict = {
-            "amd64": ("amd64", "openrc", os.path.join(tmpDir, "rescd-rootfs-amd64"), os.path.join(tmpDir, "rescd-tmp-amd64")),
-            # "arm64": ("arm64", None),
+            "amd64": ["amd64", "openrc", os.path.join(tmpDir, "rescd-rootfs-amd64"), os.path.join(tmpDir, "rescd-tmp-amd64"), False],   # [subarch, variant, rootfs-dir, tmp-stage-dir, complete-flag]
+            # "arm64": ["arm64", None],
         }
         self._archDirDict = {
             "amd64": "x86_64",
@@ -45,11 +45,8 @@ class RescueDiskBuilder:
         self._stage3FilesDict = dict()
         self._snapshotFile = None
 
-    def getArchNameAmd64(self):
-        return self._archDirDict["amd64"]
-
-    def getArchNameArm64(self):
-        return self._archDirDict["arm64"]
+    def getArchName(self, arch):
+        return self._archDirDict[arch]
 
     def check(self):
         if self._devType == self.DEV_TYPE_ISO:
@@ -87,8 +84,7 @@ class RescueDiskBuilder:
         # always use newest snapshot
         self._snapshotFile = cache.get_latest_snapshot()
 
-    def buildTargetSystemAmd64(self):
-        arch = "amd64"
+    def buildTargetSystem(self, arch):
         tmpRootfsDir = self._archInfoDict[arch][2]
         tmpStageDir = self._archInfoDict[arch][3]
 
@@ -255,10 +251,11 @@ class RescueDiskBuilder:
         FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
         FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\?##" % (tmpStageDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
 
-    def buildTargetSystemArm64(self):
-        pass
+        self._archInfoDict[arch][-1] = True
 
     def exportTargetSystem(self):
+        assert all([x[-1] for x in self._archInfoDict.values()])
+
         if self._devType == self.DEV_TYPE_ISO:
             assert False
         elif self._devType == self.DEV_TYPE_CDROM:

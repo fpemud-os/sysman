@@ -622,12 +622,12 @@ class FmMain:
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Building target system (%s)..." % (builder.getArchNameAmd64()))
-        builder.buildTargetSystemAmd64()
+        self.infoPrinter.printInfo(">> Building target system (%s)..." % (builder.getArchName("amd64")))
+        builder.buildTargetSystem("amd64")
         print("")
 
-        self.infoPrinter.printInfo(">> Building target system (%s)..." % (builder.getArchNameArm64()))
-        builder.buildTargetSystemArm64()
+        self.infoPrinter.printInfo(">> Building target system (%s)..." % (builder.getArchName("arm64")))
+        # builder.buildTargetSystem("arm64")
         print("")
 
         if devType == RescueDiskBuilder.DEV_TYPE_ISO:
