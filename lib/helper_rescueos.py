@@ -176,7 +176,6 @@ class RescueDiskBuilder:
                 "sys-apps/dmidecode",
                 "sys-apps/gptfdisk",
                 "sys-apps/lshw",
-                "sys-apps/sg3_utils",
                 "sys-apps/smartmontools",
                 "sys-boot/grub",
                 "sys-apps/file",
@@ -188,6 +187,7 @@ class RescueDiskBuilder:
                 "sys-block/ms-sys",
                 "sys-block/parted",
                 "sys-devel/bc",
+                "sys-fs/bcache-tools",
                 "sys-fs/btrfs-progs",
                 "sys-fs/dosfstools",
                 "sys-fs/e2fsprogs",
@@ -201,87 +201,6 @@ class RescueDiskBuilder:
                 "sys-fs/xfsprogs",
                 "sys-process/bpytop",
                 "sys-process/lsof",
-
-                # atop
-                # b43-fwcutter
-                # borg
-                # chntpw
-                # clonezilla
-                # crda
-                # darkhttpd
-                # ddrescue
-                # dhclient
-                # dialog
-                # dmraid
-                # dnsmasq
-                # dnsutils
-                # elinks
-                # ethtool
-                # # featherpad
-                # # firefox-esr-bin
-                # fsarchiver
-                # geany
-                # gnu-netcat
-                # gpm
-                # grml-zsh-config
-                # # growpart
-                # grsync
-                # iftop
-                # iotop
-                # irssi
-                # iwd
-                # # joe                       # this package disppears
-                # keepassxc
-                # lftp
-                # lightdm
-                # linux-atm
-                # lzip
-                # ncdu
-                # ndisc6
-                # network-manager-applet
-                # networkmanager-openvpn
-                # networkmanager-vpnc
-                # # nwipe
-                # openconnect
-                # openssh
-                # openvpn
-                # partclone
-                # partimage
-                # ppp
-                # pptpclient
-                # pv
-                # rdesktop
-                # # refind-efi                    # this package disappears
-                # rkhunter
-                # rp-pppoe
-                # sudo
-                # sysstat
-                # testdisk
-                # tigervnc
-                # ttf-dejavu
-                # ttf-droid
-                # usb_modeswitch
-                # vim-minimal
-                # vpnc
-                # wipe
-                # wireless-regdb
-                # wireless_tools
-                # wvdial
-                # xarchiver
-                # xfce4
-                # xfce4-battery-plugin
-                # xfce4-taskmanager
-                # xkbsel
-                # xkeyboard-config
-                # xl2tpd
-                # xorg-apps
-                # xorg-drivers
-                # xorg-server
-                # xorg-xinit
-                # yubikey-manager-qt
-                # yubikey-personalization-gui
-                # # zerofree
-                # zile
             }
             ftPortage.update_world_set(worldSet)
             ftGenkernel.update_world_set(worldSet)
