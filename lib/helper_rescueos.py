@@ -195,7 +195,6 @@ class RescueDiskBuilder:
                 # "sys-fs/f2fs-tools",
                 "sys-fs/lsscsi",
                 "sys-fs/mtools",
-                "sys-fs/nilfs-utils",
                 # "sys-fs/ntfs3g",          # requires FUSE2 which is deprecated
                 "sys-fs/xfsdump",
                 "sys-fs/xfsprogs",
