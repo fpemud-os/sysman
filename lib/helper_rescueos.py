@@ -218,9 +218,9 @@ class RescueDiskBuilder:
             if True:
                 buf = ""
                 buf += "#!/bin/bash\n"
-                buf += "echo 'CONFIG_BCACHEFS_FS=y' >> /usr/share/genkernel/arch/x86_64/generated-config"
-                buf += "echo 'CONFIG_BCACHEFS_QUOTA=y' >> /usr/share/genkernel/arch/x86_64/generated-config"
-                buf += "echo 'CONFIG_BCACHEFS_POSIX_ACL=y' >> /usr/share/genkernel/arch/x86_64/generated-config"
+                buf += "echo 'CONFIG_BCACHEFS_FS=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
+                buf += "echo 'CONFIG_BCACHEFS_QUOTA=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
+                buf += "echo 'CONFIG_BCACHEFS_POSIX_ACL=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
                 scriptList.append(gstage4.scripts.ScriptFromBuffer("Add bcachfs kernel config", buf))
             builder.action_install_kernel(preprocess_script_list=scriptList)
 
@@ -236,6 +236,7 @@ class RescueDiskBuilder:
         print("        - Customizing...")
         scriptList = []
         # ftGettyAutoLogin.update_custom_script_list(scriptList)
+        gstage4.target_features.SetPasswordForUserRoot("u5i6m6x2").update_custom_script_list(scriptList)
         if True:
             buf = ""
             buf += "#!/bin/bash\n"
