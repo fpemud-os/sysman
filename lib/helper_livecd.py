@@ -206,7 +206,22 @@ class LiveDiskBuilder:
 
         # step
         with PrintLoadAvgThread("        - Building kernel..."):
-            builder.action_install_kernel()
+            scriptList = []
+            if True:
+                hostp = "/var/cache/bbki/distfiles/git-src/git/bcachefs.git"
+                if not os.path.isdir(hostp):
+                    raise Exception("directory \"%s\" does not exist in host system" % (hostp))
+                s = gstage4.scripts.ScriptPlacingFiles("Install bcachefs kernel")
+                s.append_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), 0, 0, dmode=0o755, fmode=0o755, hostpath=hostp, recursive=True)    # script files in kernel source needs to be executable, simply make all files rwxrwxrwx
+                scriptList.append(s)
+            if True:
+                buf = ""
+                buf += "#!/bin/bash\n"
+                buf += "echo 'CONFIG_BCACHEFS_FS=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
+                buf += "echo 'CONFIG_BCACHEFS_QUOTA=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
+                buf += "echo 'CONFIG_BCACHEFS_POSIX_ACL=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
+                scriptList.append(gstage4.scripts.ScriptFromBuffer("Add bcachfs kernel config", buf))
+            builder.action_install_kernel(preprocess_script_list=scriptList)
 
         # step
         print("        - Enabling services...")
@@ -242,7 +257,7 @@ class LiveDiskBuilder:
             FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p)))
         FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (sp, sqfsFile))
         FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
-        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\\?##" % (tmpStageDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, s/usr/bin/ha512sum sucks
+        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\\?##" % (tmpStageDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
 
         self._archInfoDict[arch][-1] = True
 
