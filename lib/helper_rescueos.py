@@ -291,7 +291,7 @@ class RescueDiskBuilder:
                 os.mkdir(dstOsDir)
                 shutil.copy(os.path.join(tmpStageDir, "boot", "vmlinuz"), dstOsDir)
                 shutil.copy(os.path.join(tmpStageDir, "boot", "initramfs.img"), dstOsDir)
-                shutil.copy(os.path.join(tmpStageDir, "usr", "share", "memtest86+", "memtest.bin", dstOsDir))
+                shutil.copy(os.path.join(tmpStageDir, "usr", "share", "memtest86+", "memtest.bin"), dstOsDir)
                 shutil.copy(os.path.join(tmpStageDir, "rootfs.sqfs"), dstOsDir)
                 shutil.copy(os.path.join(tmpStageDir, "rootfs.sqfs.sha512"), dstOsDir)
 
