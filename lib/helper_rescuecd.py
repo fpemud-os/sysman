@@ -247,14 +247,6 @@ class RescueDiskBuilder:
         print("        - Cleaning up...")
         builder.action_cleanup()
 
-        # hidden step: create rootfs.sqfs and rootfs.sqfs.sha512
-        sp = wdir.get_old_chroot_dir_paths()[-1]
-        os.makedirs(tmpStageDir, exist_ok=True)
-        for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale", "usr/share/memtest86+"]:
-            os.makedirs(os.path.join(tmpStageDir, p), exist_ok=True)
-            FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p)))
-        FmUtil.makeSquashedRootfsFiles(sp, tmpStageDir)
-
         self._archInfoDict[arch][-1] = True
 
     def exportTargetSystem(self):
@@ -280,26 +272,27 @@ class RescueDiskBuilder:
             osDir = os.path.join(mp.mountpoint, "os")
             os.mkdir(osDir)
 
-            # copy rootfs.sqfs and rootfs.sqfs.sha512
+            # install files into usb stick
             for arch, v in self._archInfoDict.items():
-                tmpStageDir = v[3]
+                tmpRootfsDir = v[2]
+                sp = gstage4.WorkDir(tmpRootfsDir).get_old_chroot_dir_paths()[-1]
                 dstOsDir = os.path.join(osDir, self._archDirDict[arch])
+
                 os.mkdir(dstOsDir)
-                shutil.copy(os.path.join(tmpStageDir, "boot", "vmlinuz"), dstOsDir)
-                shutil.copy(os.path.join(tmpStageDir, "boot", "initramfs.img"), dstOsDir)
-                shutil.copy(os.path.join(tmpStageDir, "usr", "share", "memtest86+", "memtest.bin"), dstOsDir)
-                shutil.copy(os.path.join(tmpStageDir, "rootfs.sqfs"), dstOsDir)
-                shutil.copy(os.path.join(tmpStageDir, "rootfs.sqfs.sha512"), dstOsDir)
+                os.rename(os.path.join(sp, "boot", "vmlinuz"), dstOsDir)
+                os.rename(os.path.join(sp, "boot", "initramfs.img"), dstOsDir)
+                shutil.copy(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), dstOsDir)
+                FmUtil.makeSquashedRootfsFiles(sp, dstOsDir)
 
                 # install grub
                 if arch == "amd64":
                     FmUtil.shellCall("/usr/sbin/grub-install --removable --target=x86_64-efi --boot-directory=%s --efi-directory=%s --no-nvram" % (mp.mountpoint, mp.mountpoint))
                     FmUtil.shellCall("/usr/sbin/grub-install --removable --target=i386-pc --boot-directory=%s %s" % (mp.mountpoint, self._devPath))
-                    # src = grub_install.Source(base_dir=self._tmpStageDir)
+                    # src = grub_install.Source(base_dir=sp)
                     # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
                     # grub_install.install(src, dst, ["i386-pc", "x86_64_efi"])
                 elif arch == "arm64":
-                    # src = grub_install.Source(base_dir=self._tmpStageDir)
+                    # src = grub_install.Source(base_dir=sp)
                     # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
                     # grub_install.install(src, dst, ["arm64_efi"])
                     assert False
