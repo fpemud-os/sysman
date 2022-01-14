@@ -189,15 +189,15 @@ class RescueOsBuilder:
     def installRescueOs(self, rescueOsDir):
         sp = gstage4.WorkDir(self._tmpRootDir).get_old_chroot_dir_paths()[-1]
 
-        sqfsFile = os.path.join(rescueOsDir, "rootfs.sqfs")
-        sqfsSumFile = os.path.join(rescueOsDir, "rootfs.sqfs.sha512")
-
         robust_layer.simple_fops.mkdir(rescueOsDir)
 
         os.rename(os.path.join(sp, "boot", "vmlinuz"), rescueOsDir)
         os.rename(os.path.join(sp, "boot", "initramfs.img"), rescueOsDir)
         os.rename(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), rescueOsDir)
 
-        FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (sp, sqfsFile))
-        FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
-        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\\?##" % (rescueOsDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
+        FmUtil.makeSquashedRootfsFiles(sp, rescueOsDir)
+
+        # create rescue-os
+        # FIXME: it sucks that genkernel's initrd requires this file
+        with open(os.path.join(rescueOsDir, "rescue-os"), "W") as f:
+            f.write("")

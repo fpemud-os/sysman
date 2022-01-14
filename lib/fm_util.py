@@ -49,6 +49,19 @@ from gi.repository import GLib
 class FmUtil:
 
     @staticmethod
+    def makeSquashedRootfsFiles(rootfsDir, dstDir):
+        sqfsFile = os.path.join(dstDir, "rootfs.sqfs")
+        sqfsSumFile = os.path.join(dstDir, "rootfs.sqfs.sha512")
+
+        FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet" % (rootfsDir, sqfsFile))
+        FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
+
+        # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
+        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\\?##" % (dstDir), sqfsSumFile)
+
+        return (sqfsFile, sqfsSumFile)
+
+    @staticmethod
     def formatDisk(devPath, partitionTableType="mbr", partitionType="", partitionLabel=""):
         assert partitionTableType in ["mbr", "gpt"]
         assert partitionType in ["", "ext2", "ext4", "xfs", "btrfs", "bcachefs", "vfat", "exfat"]

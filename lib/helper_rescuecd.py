@@ -249,15 +249,11 @@ class RescueDiskBuilder:
 
         # hidden step: create rootfs.sqfs and rootfs.sqfs.sha512
         sp = wdir.get_old_chroot_dir_paths()[-1]
-        sqfsFile = os.path.join(tmpStageDir, "rootfs.sqfs")
-        sqfsSumFile = os.path.join(tmpStageDir, "rootfs.sqfs.sha512")
         os.makedirs(tmpStageDir, exist_ok=True)
         for p in ["boot", "usr/lib/grub", "usr/share/grub", "usr/share/locale", "usr/share/memtest86+"]:
             os.makedirs(os.path.join(tmpStageDir, p), exist_ok=True)
             FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p)))
-        FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (sp, sqfsFile))
-        FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
-        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\\?##" % (tmpStageDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
+        FmUtil.makeSquashedRootfsFiles(sp, tmpStageDir)
 
         self._archInfoDict[arch][-1] = True
 
