@@ -279,8 +279,8 @@ class RescueDiskBuilder:
                 dstOsDir = os.path.join(osDir, self._archDirDict[arch])
 
                 os.mkdir(dstOsDir)
-                os.rename(os.path.join(sp, "boot", "vmlinuz"), dstOsDir)
-                os.rename(os.path.join(sp, "boot", "initramfs.img"), dstOsDir)
+                shutil.move(os.path.join(sp, "boot", "vmlinuz"), dstOsDir)
+                shutil.move(os.path.join(sp, "boot", "initramfs.img"), dstOsDir)
                 shutil.copy(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), dstOsDir)
                 FmUtil.makeSquashedRootfsFiles(sp, dstOsDir)
 

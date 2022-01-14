@@ -191,8 +191,8 @@ class RescueOsBuilder:
         sp = gstage4.WorkDir(self._tmpRootDir).get_old_chroot_dir_paths()[-1]
 
         robust_layer.simple_fops.mkdir(rescueOsDir)
-        os.rename(os.path.join(sp, "boot", "vmlinuz"), rescueOsDir)
-        os.rename(os.path.join(sp, "boot", "initramfs.img"), rescueOsDir)
+        shutil.move(os.path.join(sp, "boot", "vmlinuz"), rescueOsDir)
+        shutil.move(os.path.join(sp, "boot", "initramfs.img"), rescueOsDir)
         shutil.copy(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), rescueOsDir)
         FmUtil.makeSquashedRootfsFiles(sp, rescueOsDir)
 
