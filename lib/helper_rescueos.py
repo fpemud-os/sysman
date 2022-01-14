@@ -20,7 +20,7 @@ class RescueOsBuilder:
     def __init__(self, tmpDir, hwInfo):
         self._arch = "amd64"
         self._subarch = "amd64"
-        self._tmpRootDir = os.path.join(tmpDir, "rescd-rootfs-amd64")
+        self._tmpRootDir = os.path.join(tmpDir, "rescueos-rootfs")
 
         self._cp = gstage4.ComputingPower.new(hwInfo.hwDict["cpu"]["cores"],
                                               hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
@@ -33,10 +33,6 @@ class RescueOsBuilder:
 
         # sync
         cache.sync()
-        if self._arch not in cache.get_arch_list():
-            raise Exception("arch \"%s\" is not supported" % (self._arch))
-        if self._subarch not in cache.get_subarch_list(self._arch):
-            raise Exception("subarch \"%s\" is not supported" % (self._subarch))
 
         # prefer local stage3 file
         try:
@@ -55,9 +51,6 @@ class RescueOsBuilder:
         ftOpenrc = gstage4.target_features.UseOpenrc()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         ftPerferGnu = gstage4.target_features.PreferGnuAndGpl()
-        ftSshServer = gstage4.target_features.SshServer()
-        ftChronyDaemon = gstage4.target_features.ChronyDaemon()
-        ftNetworkManager = gstage4.target_features.NetworkManager()
         ftSetRootPassword = gstage4.target_features.SetPasswordForUserRoot()
 
         # step
@@ -159,9 +152,6 @@ class RescueOsBuilder:
             ftPortage.update_world_set(worldSet)
             ftGenkernel.update_world_set(worldSet)
             ftOpenrc.update_world_set(worldSet)
-            ftSshServer.update_world_set(worldSet)
-            ftChronyDaemon.update_world_set(worldSet)
-            ftNetworkManager.update_world_set(worldSet)
             builder.action_update_world(install_list=installList, world_set=worldSet)
 
         # step
@@ -183,13 +173,8 @@ class RescueOsBuilder:
                 scriptList.append(gstage4.scripts.ScriptFromBuffer("Add bcachfs kernel config", buf))
             builder.action_install_kernel(preprocess_script_list=scriptList)
 
-        # step
-        print("        - Enabling services...")
-        serviceList = []
-        ftSshServer.update_service_list(serviceList)
-        ftChronyDaemon.update_service_list(serviceList)
-        ftNetworkManager.update_service_list(serviceList)
-        builder.action_enable_services(service_list=serviceList)
+        # hidden step
+        builder.action_enable_services(service_list=[])
 
         # step
         print("        - Customizing...")
