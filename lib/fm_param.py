@@ -54,6 +54,9 @@ class FmConst:
 
     userDefaultPassword = "123456"
 
+    rescueDiskName = "FpemudRescueSystem"
+    rescueDiskLabel = "RESSYS"
+
     supportOsProber = True
 
     buildServerDefaultPort = 2108

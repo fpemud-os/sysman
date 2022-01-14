@@ -23,7 +23,7 @@ class RescueDiskBuilder:
     DEV_TYPE_CDROM = "cdrom"
     DEV_TYPE_USB_STICK = "usb-stick"
 
-    def __init__(self, devType, devPath, tmpDir, hwInfo):
+    def __init__(self, devType, devPath, tmpDir, hwInfo, diskName, diskLabel):
         self._archInfoDict = {
             "amd64": ["amd64", "openrc", os.path.join(tmpDir, "rescd-rootfs-amd64"), os.path.join(tmpDir, "rescd-tmp-amd64"), False],   # [subarch, variant, rootfs-dir, tmp-stage-dir, complete-flag]
             # "arm64": ["arm64", None],
@@ -40,6 +40,10 @@ class RescueDiskBuilder:
         self._cp = gstage4.ComputingPower.new(hwInfo.hwDict["cpu"]["cores"],
                                               hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
                                               10 if "fan" in hwInfo.hwDict else 1)
+
+        self._diskName = diskName
+        self._diskLabel = diskLabel
+
         self._stage3FilesDict = dict()
         self._snapshotFile = None
 
@@ -263,7 +267,7 @@ class RescueDiskBuilder:
 
     def _exportToUsbStick(self):
         # format USB stick and get its UUID
-        partDevPath = FmUtil.formatDisk(self._devPath, partitionType="vfat", partitionLabel=DISK_LABEL)
+        partDevPath = FmUtil.formatDisk(self._devPath, partitionType="vfat", partitionLabel=self._diskLabel)
         uuid = FmUtil.getBlkDevUuid(partDevPath)
         if uuid == "":
             raise Exception("can not get FS-UUID for %s" % (partDevPath))
@@ -316,7 +320,7 @@ class RescueDiskBuilder:
                 f.write("terminal_output gfxterm\n")
                 f.write("\n")
 
-                f.write("menuentry \"Boot %s\" --class gnu-linux --class os {\n" % (DISK_NAME))
+                f.write("menuentry \"Boot %s\" --class gnu-linux --class os {\n" % (self._diskName))
                 f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc dev_uuid=%s looptype=squashfs loop=%s/rootfs.sqfs cdroot dokeymap docache gk.hw.use-modules_load=1\n" % (osArchDir, uuid, osArchDir))            # without gk.hw.use-modules_load=1, squashfs module won't load, sucks
                 f.write("    initrd %s/initramfs.img\n" % (osArchDir))
                 f.write("}\n")
@@ -352,7 +356,7 @@ class RescueDiskBuilder:
             # create README.txt
             with open(os.path.join(mp.mountpoint, README_FILENAME), "w") as f:
                 buf = README_CONTENT.strip("\n") + "\n"
-                buf = buf.replace("%DISK_NAME%", DISK_NAME)
+                buf = buf.replace("%DISK_NAME%", self._diskName)
                 f.write(buf)
 
             # create livecd
@@ -360,10 +364,6 @@ class RescueDiskBuilder:
             with open(os.path.join(mp.mountpoint, "livecd"), "W") as f:
                 f.write("")
 
-
-DISK_NAME = "SystemRescueDisk"
-
-DISK_LABEL = "SYSREC"
 
 DEV_MIN_SIZE_IN_GB = 1                      # 1Gib
 

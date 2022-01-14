@@ -633,18 +633,20 @@ class FmMain:
             raise Exception("target is not supported")
 
         # build
-        builder = RescueDiskBuilder(devType, devPath, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
+        builder = RescueDiskBuilder(devType, devPath,
+                                    self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                    FmConst.rescueDiskName, FmConst.rescueDiskLabel)
         builder.check()
 
         self.infoPrinter.printInfo(">> Downloading files...")
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Building target system (%s)..." % (builder.getArchName("amd64")))
+        self.infoPrinter.printInfo(">> Building %s (%s)..." % (FmConst.rescueDiskName, builder.getArchName("amd64")))
         builder.buildTargetSystem("amd64")
         print("")
 
-        self.infoPrinter.printInfo(">> Building target system (%s)..." % (builder.getArchName("arm64")))
+        self.infoPrinter.printInfo(">> Building %s (%s)..." % (FmConst.rescueDiskName, builder.getArchName("arm64")))
         # builder.buildTargetSystem("arm64")
         print("")
 
