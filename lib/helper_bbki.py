@@ -21,11 +21,6 @@ class BbkiWrapper:
             bSelfBoot = True
         self._bbkiObj = bbki.Bbki(bbki.etcdir_cfg.Config(FmConst.portageCfgDir), bSelfBoot)
 
-        self.filesDir = os.path.join(FmConst.dataDir, "rescue", "rescueos")
-        self.pkgListFile = os.path.join(self.filesDir, "packages")
-        self.pkgDir = os.path.join(FmConst.dataDir, "rescue", "pkg")
-        self.mirrorList = FmUtil.getMakeConfVar(FmConst.portageCfgMakeConf, "ARCHLINUX_MIRRORS").split()
-
     @property
     def repositories(self):
         return self._bbkiObj.repositories

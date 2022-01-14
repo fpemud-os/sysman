@@ -570,7 +570,7 @@ class FmMain:
         with BootDirWriter(layout):
             try:
                 self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
-                builder.installRescueOs(bbkiObj.rescue_os_spec.root_dir)
+                builder.installRescueOs(bbkiObj.rescue_os_spec)
                 print("")
 
                 self.infoPrinter.printInfo(">> Updating boot-loader...")

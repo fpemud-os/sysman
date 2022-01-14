@@ -121,10 +121,8 @@ class RescueOsBuilder:
                 "sys-apps/gptfdisk",
                 "sys-apps/lshw",
                 "sys-apps/smartmontools",
-                "sys-boot/grub",            # also required by boot-chain in USB stick
                 "sys-apps/file",
                 "sys-apps/hdparm",
-                "sys-apps/memtest86+",      # also required by boot-chain in USB stick
                 "sys-apps/nvme-cli",
                 "sys-apps/sdparm",
                 "sys-block/ms-sys",
@@ -187,16 +185,15 @@ class RescueOsBuilder:
         print("        - Cleaning up...")
         builder.action_cleanup()
 
-    def installRescueOs(self, rescueOsDir):
+    def installRescueOs(self, bbkiRescueOsSpec):
         sp = gstage4.WorkDir(self._tmpRootDir).get_old_chroot_dir_paths()[-1]
 
-        robust_layer.simple_fops.mkdir(rescueOsDir)
-        shutil.move(os.path.join(sp, "boot", "vmlinuz"), rescueOsDir)
-        shutil.move(os.path.join(sp, "boot", "initramfs.img"), rescueOsDir)
-        shutil.copy(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), rescueOsDir)
-        FmUtil.makeSquashedRootfsFiles(sp, rescueOsDir)
+        robust_layer.simple_fops.mkdir(bbkiRescueOsSpec.root_dir)
+        shutil.move(os.path.join(sp, "boot", "vmlinuz"), bbkiRescueOsSpec.kernel_filepath)
+        shutil.move(os.path.join(sp, "boot", "initramfs.img"), bbkiRescueOsSpec.initrd_filepath)
+        FmUtil.makeSquashedRootfsFiles(sp, bbkiRescueOsSpec.root_dir)
 
         # create rescue-os
         # FIXME: it sucks that genkernel's initrd requires this file
-        with open(os.path.join(rescueOsDir, "rescue-os"), "W") as f:
+        with open(os.path.join(bbkiRescueOsSpec.root_dir, "rescue-os"), "W") as f:
             f.write("")
