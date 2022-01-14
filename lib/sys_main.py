@@ -4,13 +4,16 @@
 import os
 import re
 import sys
+import shutil
 import pyudev
 import strict_pgs
 import strict_hdds
 import bbki.util
+import robust_layer.simple_fops
 from fm_util import BootDirWriter, FmUtil
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
+from helper_rescueos import RescueOsBuilder
 from helper_rescueos import RescueDiskBuilder
 from helper_bbki import BbkiWrapper
 from helper_pkg_warehouse import EbuildRepositories
@@ -550,16 +553,32 @@ class FmMain:
             dcm.updateCcache()
         print("")
 
+        # build
+        builder = RescueOsBuilder(self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
+
+        self.infoPrinter.printInfo(">> Downloading files...")
+        builder.downloadFiles()
+        print("")
+
+        self.infoPrinter.printInfo(">> Building Rescue OS...")
+        builder.buildTargetSystem()
+        print("")
+
+        # install
         layout = strict_hdds.get_current_storage_layout()
         bbkiObj = BbkiWrapper()
         with BootDirWriter(layout):
-            self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
-            bbkiObj.installOrUpdateRescueOs(self.param.tmpDirOnHdd)
-            print("")
+            try:
+                self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
+                builder.installTargetSystem(bbkiObj.rescue_os_spec.root_dir)
+                print("")
 
-            self.infoPrinter.printInfo(">> Updating boot-loader...")
-            bbkiObj.updateBootloaderAfterRescueOsChange()
-            print("")
+                self.infoPrinter.printInfo(">> Updating boot-loader...")
+                bbkiObj.updateBootloaderAfterRescueOsChange()
+                print("")
+            except Exception:
+                shutil.rmtree(bbkiObj.rescue_os_spec.root_dir)
+                raise
 
         return 0
 
@@ -567,7 +586,6 @@ class FmMain:
         if self.param.runMode in ["prepare", "setup"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
-
         self.param.sysChecker.basicCheckWithOverlayContent()
 
         layout = strict_hdds.get_current_storage_layout()
@@ -579,7 +597,7 @@ class FmMain:
 
         with BootDirWriter(layout):
             self.infoPrinter.printInfo(">> Uninstalling Rescue OS...")
-            bbkiObj.uninstallRescueOs()
+            robust_layer.simple_fops.rm(bbkiObj.rescue_os_spec.root_dir)
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")

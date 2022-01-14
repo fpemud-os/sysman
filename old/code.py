@@ -354,3 +354,205 @@ class _InterProcessCounter:
                 # yubikey-personalization-gui
                 # # zerofree
                 # zile
+
+
+
+class ArchLinuxBasedOsBuilder:
+
+    def __init__(self, mirrorList, cacheDir, tmpDir):
+        self.mirrorList = mirrorList
+        self.cacheDir = cacheDir
+        self.pkgCacheDir = os.path.join(cacheDir, "pkg")
+        self.tmpDir = tmpDir
+
+    def bootstrapPrepare(self):
+        try:
+            # get cached file
+            cachedDataFile = None
+            if os.path.exists(self.cacheDir):
+                for fn in sorted(os.listdir(self.cacheDir)):
+                    if re.fullmatch("archlinux-bootstrap-(.*)-x86_64.tar.gz", fn) is None:
+                        continue
+                    if not os.path.exists(os.path.join(self.cacheDir, fn + ".sig")):
+                        continue
+                    cachedDataFile = fn
+
+            # select mirror
+            mr = None
+            if len(self.mirrorList) == 0:
+                if cachedDataFile is not None:
+                    dataFile = cachedDataFile
+                    signFile = cachedDataFile + ".sig"
+                    return False
+                else:
+                    raise Exception("no Arch Linux mirror")
+            else:
+                mr = self.mirrorList[0]
+
+            # get remote file
+            dataFile = None
+            signFile = None
+            if True:
+                url = "%s/iso/latest" % (mr)
+                with urllib.request.urlopen(url, timeout=robust_layer.TIMEOUT) as resp:
+                    root = lxml.html.parse(resp)
+                    for link in root.xpath(".//a"):
+                        fn = os.path.basename(link.get("href"))
+                        if re.fullmatch("archlinux-bootstrap-(.*)-x86_64.tar.gz", fn) is not None:
+                            dataFile = fn
+                            signFile = fn + ".sig"
+
+            # changed?
+            return (cachedDataFile != dataFile)
+        finally:
+            self.dataFile = dataFile
+            self.signFile = signFile
+            self.bootstrapDir = os.path.join(self.tmpDir, "bootstrap")
+            self.rootfsDir = os.path.join(self.tmpDir, "airootfs")
+
+    def bootstrapDownload(self):
+        os.makedirs(self.cacheDir, exist_ok=True)
+        mr = self.mirrorList[0]
+        FmUtil.wgetDownload("%s/iso/latest/%s" % (mr, self.dataFile), os.path.join(self.cacheDir, self.dataFile))
+        FmUtil.wgetDownload("%s/iso/latest/%s" % (mr, self.signFile), os.path.join(self.cacheDir, self.signFile))
+
+    def bootstrapExtract(self):
+        os.makedirs(self.tmpDir, exist_ok=True)
+        FmUtil.cmdCall("/bin/tar", "-xzf", os.path.join(self.cacheDir, self.dataFile), "-C", self.tmpDir)
+        robust_layer.simple_fops.rm(self.bootstrapDir)
+        os.rename(os.path.join(self.tmpDir, "root.x86_64"), self.bootstrapDir)
+
+    def createRootfs(self, initcpioHooksDir=None, pkgList=[], localPkgFileList=[], fileList=[], cmdList=[]):
+        robust_layer.simple_fops.rm(self.rootfsDir)
+        os.mkdir(self.rootfsDir)
+
+        os.makedirs(self.pkgCacheDir, exist_ok=True)
+
+        # copy resolv.conf
+        FmUtil.cmdCall("/bin/cp", "-L", "/etc/resolv.conf", os.path.join(self.bootstrapDir, "etc"))
+
+        # modify mirror
+        with open(os.path.join(self.bootstrapDir, "etc", "pacman.d", "mirrorlist"), "w") as f:
+            for mr in self.mirrorList:
+                f.write("Server = %s/$repo/os/$arch\n" % (mr))
+
+        # initialize, add packages
+        mountList = DirListMount.standardDirList(self.bootstrapDir)
+        tstr = os.path.join(self.bootstrapDir, "var", "cache", "pacman", "pkg")
+        mountList.append((tstr, "--bind %s %s" % (self.pkgCacheDir, tstr)))
+        tstr = os.path.join(self.bootstrapDir, "mnt")
+        mountList.append((tstr, "--bind %s %s" % (self.rootfsDir, tstr)))     # mount rootfs directory as /mnt
+        with DirListMount(mountList):
+            # prepare pacman
+            FmUtil.cmdCall("/usr/bin/chroot", self.bootstrapDir,  "/sbin/pacman-key", "--init")
+            FmUtil.cmdCall("/usr/bin/chroot", self.bootstrapDir,  "/sbin/pacman-key", "--populate", "archlinux")
+
+            # install basic system files
+            FmUtil.cmdExec("/usr/bin/chroot", self.bootstrapDir,  "/sbin/pacstrap", "-c", "/mnt", "base")
+            FmUtil.cmdExec("/usr/bin/chroot", self.bootstrapDir,  "/sbin/pacstrap", "-c", "/mnt", "lvm2")
+
+            # install mkinitcpio and modify it's configuration
+            FmUtil.cmdExec("/usr/bin/chroot", self.bootstrapDir,  "/sbin/pacstrap", "-c", "/mnt", "mkinitcpio")
+            if initcpioHooksDir is not None:
+                # copy /etc/mkinitcpio/hooks files
+                for fullfn in glob.glob(os.path.join(initcpioHooksDir, "hooks", "*")):
+                    dstFn = os.path.join(self.rootfsDir, "etc", "initcpio", "hooks", os.path.basename(fullfn))
+                    shutil.copy(fullfn, dstFn)
+                    os.chmod(dstFn, 0o644)
+
+                # record after information
+                afterDict = dict()
+                for fullfn in glob.glob(os.path.join(initcpioHooksDir, "install", "*.after")):
+                    fn = os.path.basename(fullfn)
+                    name = fn.split(".")[0]
+                    afterDict[name] = pathlib.Path(fullfn).read_text().rstrip("\n")
+
+                # copy /etc/mkinitcpio/install files
+                # add hook to /etc/mkinitcpio.conf
+                confFile = os.path.join(self.rootfsDir, "etc", "mkinitcpio.conf")
+                self._removeMkInitcpioHook(confFile, "fsck")
+                self._addMkInitcpioHook(confFile, "lvm2", "block")
+                for fullfn in glob.glob(os.path.join(initcpioHooksDir, "install", "*")):
+                    if fullfn.endswith(".after"):
+                        continue
+                    name = os.path.basename(fullfn)
+                    dstFn = os.path.join(self.rootfsDir, "etc", "initcpio", "install", name)
+                    shutil.copy(fullfn, dstFn)
+                    os.chmod(dstFn, 0o644)
+                    self._addMkInitcpioHook(confFile, name, afterDict.get(name))
+
+            # install linux kernel
+            FmUtil.cmdExec("/usr/bin/chroot", self.bootstrapDir,  "/sbin/pacstrap", "-c", "/mnt", "linux-lts")
+
+            # install packages
+            for pkg in pkgList:
+                FmUtil.cmdExec("/usr/bin/chroot", self.bootstrapDir,  "/sbin/pacstrap", "-c", "/mnt", pkg)
+
+            # install packages from local repository
+            for fullfn in localPkgFileList:
+                fn = os.path.basename(fullfn)
+                dstFn = os.path.join(self.bootstrapDir, "var", "cache", "pacman", "pkg", fn)
+                shutil.copy(fullfn, dstFn)
+                try:
+                    fn2 = os.path.join("/var", "cache", "pacman", "pkg", fn)
+                    FmUtil.cmdExec("/usr/bin/chroot", self.bootstrapDir,  "/sbin/pacstrap", "-c", "-U", "/mnt", fn2)
+                finally:
+                    os.remove(dstFn)
+
+        # add files
+        for fullfn, mode, dstDir in fileList:
+            assert dstDir.startswith("/")
+            dstDir = self.rootfsDir + dstDir
+            dstFn = os.path.join(dstDir, os.path.basename(fullfn))
+            os.makedirs(dstDir, exist_ok=True)
+            shutil.copy(fullfn, dstFn)
+            os.chmod(dstFn, mode)
+
+        # exec custom script
+        for cmd in cmdList:
+            FmUtil.shellCall("/usr/bin/chroot %s %s" % (self.rootfsDir, cmd))
+
+    def squashRootfs(self, rootfsDataFile, rootfsMd5File, kernelFile, initcpioFile):
+        assert rootfsDataFile.startswith("/")
+        assert rootfsMd5File.startswith("/")
+        assert kernelFile.startswith("/")
+        assert initcpioFile.startswith("/")
+
+        FmUtil.cmdCall("/bin/mv", os.path.join(self.rootfsDir, "boot", "vmlinuz-linux-lts"), kernelFile)
+        FmUtil.cmdCall("/bin/mv", os.path.join(self.rootfsDir, "boot", "initramfs-linux-lts-fallback.img"), initcpioFile)
+        shutil.rmtree(os.path.join(self.rootfsDir, "boot"))
+
+        FmUtil.cmdExec("/usr/bin/mksquashfs", self.rootfsDir, rootfsDataFile, "-no-progress", "-noappend", "-quiet")
+        with TempChdir(os.path.dirname(rootfsDataFile)):
+            FmUtil.shellExec("/usr/bin/sha512sum \"%s\" > \"%s\"" % (os.path.basename(rootfsDataFile), rootfsMd5File))
+
+    def clean(self):
+        robust_layer.simple_fops.rm(self.rootfsDir)
+        robust_layer.simple_fops.rm(self.bootstrapDir)
+        del self.rootfsDir
+        del self.bootstrapDir
+        del self.signFile
+        del self.dataFile
+
+    def _addMkInitcpioHook(self, confFile, name, after=None):
+        buf = pathlib.Path(confFile).read_text()
+        hookList = re.search("^HOOKS=\\((.*)\\)", buf, re.M).group(1).split(" ")
+        assert name not in hookList
+        if after is not None:
+            try:
+                i = hookList.index(after)
+                hookList.insert(i + 1, name)
+            except ValueError:
+                hookList.append(name)
+        else:
+            hookList.append(name)
+        with open(confFile, "w") as f:
+            f.write(re.sub("^HOOKS=\\(.*\\)", "HOOKS=(%s)" % (" ".join(hookList)), buf, 0, re.M))
+
+    def _removeMkInitcpioHook(self, confFile, name):
+        buf = pathlib.Path(confFile).read_text()
+        hookList = re.search("^HOOKS=\\((.*)\\)", buf, re.M).group(1).split(" ")
+        if name in hookList:
+            hookList.remove(name)
+            with open(confFile, "w") as f:
+                f.write(re.sub("^HOOKS=\\(.*\\)", "HOOKS=(%s)" % (" ".join(hookList)), buf, 0, re.M))

@@ -18,6 +18,215 @@ from fm_util import CcacheLocalService
 from fm_param import FmConst
 
 
+class RescueOsBuilder:
+
+    def __init__(self, tmpDir, hwInfo):
+        self._arch = "amd64"
+        self._subarch = "amd64"
+        self._tmpRootDir = os.path.join(tmpDir, "rescd-rootfs-amd64")
+
+        self._cp = gstage4.ComputingPower.new(hwInfo.hwDict["cpu"]["cores"],
+                                              hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
+                                              10 if "fan" in hwInfo.hwDict else 1)
+        self._stage3FilesDict = dict()
+        self._snapshotFile = None
+
+    def downloadFiles(self):
+        cache = CloudCacheGentoo(FmConst.gentooCacheDir)
+
+        # sync
+        cache.sync()
+        if self._arch not in cache.get_arch_list():
+            raise Exception("arch \"%s\" is not supported" % (self._arch))
+        if self._subarch not in cache.get_subarch_list(self._arch):
+            raise Exception("subarch \"%s\" is not supported" % (self._subarch))
+
+        # prefer local stage3 file
+        try:
+            self._stage3FilesDict[self._arch] = cache.get_latest_stage3(self._arch, self._subarch, self._subarch, cached_only=True)
+        except FileNotFoundError:
+            self._stage3FilesDict[self._arch] = cache.get_latest_stage3(self._arch, self._subarch, self._subarch)
+
+        # always use newest snapshot
+        self._snapshotFile = cache.get_latest_snapshot()
+
+    def buildTargetSystem(self):
+        c = CcacheLocalService()
+
+        ftPortage = gstage4.target_features.UsePortage()
+        ftGenkernel = gstage4.target_features.UseGenkernel()
+        ftOpenrc = gstage4.target_features.UseOpenrc()
+        ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
+        ftPerferGnu = gstage4.target_features.PreferGnuAndGpl()
+        ftSshServer = gstage4.target_features.SshServer()
+        ftChronyDaemon = gstage4.target_features.ChronyDaemon()
+        ftNetworkManager = gstage4.target_features.NetworkManager()
+        ftSetRootPassword = gstage4.target_features.SetPasswordForUserRoot()
+
+        # step
+        print("        - Initializing...")
+        wdir = gstage4.WorkDir(self._tmpRootDir)
+        wdir.initialize()
+
+        s = gstage4.Settings()
+        s.program_name = FmConst.programName
+        s.verbose_level = 0
+        s.host_computing_power = self._cp
+        s.host_distfiles_dir = FmConst.distDir
+
+        ts = gstage4.TargetSettings()
+        ts.arch = self._arch
+        ftPortage.update_target_settings(ts)
+        ftGenkernel.update_target_settings(ts)
+        ftOpenrc.update_target_settings(ts)
+        ftNoDeprecate.update_target_settings(ts)
+        ftPerferGnu.update_target_settings(ts)
+
+        if c.is_enabled():
+            s.host_ccache_dir = c.get_ccache_dir()
+            ts.build_opts.ccache = True
+
+        builder = gstage4.Builder(s, ts, wdir)
+
+        # step
+        print("        - Extracting seed stage...")
+        with gstage4.seed_stages.GentooStage3Archive(*self._stage3FilesDict[self._arch]) as ss:
+            builder.action_unpack(ss)
+
+        # step
+        print("        - Installing repositories...")
+        repos = [
+            gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
+        ]
+        builder.action_init_repositories(repos)
+
+        # step
+        print("        - Generating configurations...")
+        builder.action_init_confdir()
+
+        # step
+        with PrintLoadAvgThread("        - Updating world..."):
+            installList = []
+            if c.is_enabled():
+                installList.append("dev-util/ccache")
+            worldSet = {
+                "app-admin/eselect",
+                "app-arch/cpio",
+                "app-arch/gzip",
+                "app-arch/p7zip",
+                "app-arch/rar",
+                "app-arch/unzip",
+                "app-arch/zip",
+                "app-eselect/eselect-timezone",
+                "app-editors/nano",
+                "app-misc/mc",
+                "app-misc/tmux",
+                "dev-lang/python",
+                "dev-util/strace",
+                "dev-vcs/git",
+                "dev-vcs/subversion",
+                "net-analyzer/nmap",
+                "net-analyzer/tcpdump",
+                "net-analyzer/traceroute",
+                "net-fs/cifs-utils",
+                "net-fs/nfs-utils",
+                "net-misc/rsync",
+                "net-misc/wget",
+                "sys-apps/dmidecode",
+                "sys-apps/gptfdisk",
+                "sys-apps/lshw",
+                "sys-apps/smartmontools",
+                "sys-boot/grub",            # also required by boot-chain in USB stick
+                "sys-apps/file",
+                "sys-apps/hdparm",
+                "sys-apps/memtest86+",      # also required by boot-chain in USB stick
+                "sys-apps/nvme-cli",
+                "sys-apps/sdparm",
+                "sys-block/ms-sys",
+                "sys-block/parted",
+                "sys-devel/bc",
+                "sys-fs/bcache-tools",
+                "sys-fs/btrfs-progs",
+                "sys-fs/dosfstools",
+                "sys-fs/e2fsprogs",
+                "sys-fs/exfat-utils",
+                # "sys-fs/f2fs-tools",
+                "sys-fs/lsscsi",
+                "sys-fs/mtools",
+                # "sys-fs/ntfs3g",          # requires FUSE2 which is deprecated
+                "sys-fs/xfsdump",
+                "sys-fs/xfsprogs",
+                "sys-process/bpytop",
+                "sys-process/lsof",
+            }
+            ftPortage.update_world_set(worldSet)
+            ftGenkernel.update_world_set(worldSet)
+            ftOpenrc.update_world_set(worldSet)
+            ftSshServer.update_world_set(worldSet)
+            ftChronyDaemon.update_world_set(worldSet)
+            ftNetworkManager.update_world_set(worldSet)
+            builder.action_update_world(install_list=installList, world_set=worldSet)
+
+        # step
+        with PrintLoadAvgThread("        - Building kernel..."):
+            scriptList = []
+            if True:
+                hostp = "/var/cache/bbki/distfiles/git-src/git/bcachefs.git"
+                if not os.path.isdir(hostp):
+                    raise Exception("directory \"%s\" does not exist in host system" % (hostp))
+                s = gstage4.scripts.ScriptPlacingFiles("Install bcachefs kernel")
+                s.append_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), 0, 0, dmode=0o755, fmode=0o755, hostpath=hostp, recursive=True)    # script files in kernel source needs to be executable, simply make all files rwxrwxrwx
+                scriptList.append(s)
+            if True:
+                buf = ""
+                buf += "#!/bin/bash\n"
+                buf += "echo 'CONFIG_BCACHEFS_FS=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
+                buf += "echo 'CONFIG_BCACHEFS_QUOTA=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
+                buf += "echo 'CONFIG_BCACHEFS_POSIX_ACL=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
+                scriptList.append(gstage4.scripts.ScriptFromBuffer("Add bcachfs kernel config", buf))
+            builder.action_install_kernel(preprocess_script_list=scriptList)
+
+        # step
+        print("        - Enabling services...")
+        serviceList = []
+        ftSshServer.update_service_list(serviceList)
+        ftChronyDaemon.update_service_list(serviceList)
+        ftNetworkManager.update_service_list(serviceList)
+        builder.action_enable_services(service_list=serviceList)
+
+        # step
+        print("        - Customizing...")
+        scriptList = []
+        # ftGettyAutoLogin.update_custom_script_list(scriptList)
+        gstage4.target_features.SetPasswordForUserRoot("u5i6m6x2").update_custom_script_list(scriptList)
+        if True:
+            buf = ""
+            buf += "#!/bin/bash\n"
+            buf += "rm -rf /usr/src/*"
+            scriptList.append(gstage4.scripts.ScriptFromBuffer("Delete /usr/src content", buf))
+        builder.action_customize_system(custom_script_list=scriptList)
+
+        # step
+        print("        - Cleaning up...")
+        builder.action_cleanup()
+
+    def installTargetSystem(self, rescueOsDir):
+        sp = gstage4.WorkDir(self._tmpRootDir).get_old_chroot_dir_paths()[-1]
+
+        sqfsFile = os.path.join(rescueOsDir, "rootfs.sqfs")
+        sqfsSumFile = os.path.join(rescueOsDir, "rootfs.sqfs.sha512")
+
+        robust_layer.simple_fops.mkdir(rescueOsDir)
+
+        os.rename(os.path.join(sp, "boot", "vmlinuz"), rescueOsDir)
+        os.rename(os.path.join(sp, "boot", "initramfs.img"), rescueOsDir)
+        os.rename(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), rescueOsDir)
+
+        FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (sp, sqfsFile))
+        FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
+        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\\?##" % (rescueOsDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
+
+
 class RescueDiskBuilder:
 
     DEV_TYPE_ISO = "iso"
@@ -258,7 +467,7 @@ class RescueDiskBuilder:
             FmUtil.shellCall("/bin/cp -r %s %s" % (os.path.join(sp, p, "*"), os.path.join(tmpStageDir, p)))
         FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet -e boot/*" % (sp, sqfsFile))
         FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
-        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\?##" % (tmpStageDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
+        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\\?##" % (tmpStageDir), sqfsSumFile)   # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
 
         self._archInfoDict[arch][-1] = True
 

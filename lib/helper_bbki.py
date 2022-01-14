@@ -5,13 +5,9 @@ import os
 import re
 import bbki
 import bbki.etcdir_cfg
-import glob
-import shutil
 import strict_hdds
-import robust_layer.simple_fops
 from fm_param import FmConst
 from fm_util import FmUtil
-from fm_util import ArchLinuxBasedOsBuilder
 
 
 class BbkiWrapper:
@@ -33,6 +29,10 @@ class BbkiWrapper:
     @property
     def repositories(self):
         return self._bbkiObj.repositories
+
+    @property
+    def rescue_os_spec(self):
+        return self._bbkiObj.rescue_os_spec
 
     def isStable(self):
         return self._bbkiObj.get_stable_flag()
@@ -64,36 +64,6 @@ class BbkiWrapper:
 
     def isRescueOsInstalled(self):
         return os.path.exists(self._bbkiObj.rescue_os_spec.root_dir)
-
-    def installOrUpdateRescueOs(self, tmpDir):
-        robust_layer.simple_fops.mkdir(self._bbkiObj.rescue_os_spec.root_dir)
-        builder = ArchLinuxBasedOsBuilder(self.mirrorList, FmConst.archLinuxCacheDir, tmpDir)
-        try:
-            if builder.bootstrapPrepare():
-                builder.bootstrapDownload()
-
-            builder.bootstrapExtract()
-
-            localPkgFileList = glob.glob(os.path.join(self.pkgDir, "*.pkg.tar.xz"))
-
-            fileList = []
-            for x in glob.glob(os.path.join(FmConst.libexecDir, "rescue-*")):
-                fileList.append((x, 0o755, "/root"))
-            fileList.append((os.path.join(self.filesDir, "getty-autologin.conf"), 0o644, "/etc/systemd/system/getty@.service.d"))
-
-            builder.createRootfs(initcpioHooksDir=os.path.join(self.filesDir, "initcpio"),
-                                 pkgList=FmUtil.readListFile(self.pkgListFile),
-                                 localPkgFileList=localPkgFileList, fileList=fileList)
-
-            rootfsFn = os.path.join(self._bbkiObj.rescue_os_spec.root_dir, "airootfs.sfs")
-            rootfsMd5Fn = os.path.join(self._bbkiObj.rescue_os_spec.root_dir, "airootfs.sha512")
-            builder.squashRootfs(rootfsFn, rootfsMd5Fn, self._bbkiObj.rescue_os_spec.kernel_filepath, self._bbkiObj.rescue_os_spec.initrd_filepath)
-        except Exception:
-            shutil.rmtree(self._bbkiObj.rescue_os_spec.root_dir)
-            raise
-
-    def uninstallRescueOs(self):
-        robust_layer.simple_fops.rm(self._bbkiObj.rescue_os_spec.root_dir)
 
     def updateBootloaderAfterRescueOsChange(self):
         self._bbkiObj.update_bootloader()
