@@ -51,7 +51,7 @@ class RescueOsBuilder:
         ftOpenrc = gstage4.target_features.UseOpenrc()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
         ftPerferGnu = gstage4.target_features.PreferGnuAndGpl()
-        ftSetRootPassword = gstage4.target_features.SetPasswordForUserRoot()
+        ftSetRootPassword = gstage4.target_features.SetPasswordForUserRoot("123456")
 
         # step
         print("        - Initializing...")
@@ -115,13 +115,7 @@ class RescueOsBuilder:
                 "dev-util/strace",
                 "dev-vcs/git",
                 "dev-vcs/subversion",
-                "net-analyzer/nmap",
-                "net-analyzer/tcpdump",
-                "net-analyzer/traceroute",
-                "net-fs/cifs-utils",
-                "net-fs/nfs-utils",
                 "net-misc/rsync",
-                "net-misc/wget",
                 "sys-apps/dmidecode",
                 "sys-apps/gptfdisk",
                 "sys-apps/lshw",
@@ -180,7 +174,7 @@ class RescueOsBuilder:
         print("        - Customizing...")
         scriptList = []
         # ftGettyAutoLogin.update_custom_script_list(scriptList)
-        gstage4.target_features.SetPasswordForUserRoot("u5i6m6x2").update_custom_script_list(scriptList)
+        ftSetRootPassword.update_custom_script_list(scriptList)
         if True:
             buf = ""
             buf += "#!/bin/bash\n"
