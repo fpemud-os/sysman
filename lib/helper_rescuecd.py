@@ -361,7 +361,7 @@ class RescueDiskBuilder:
 
             # create livecd
             # FIXME: it sucks that genkernel's initrd requires this file
-            with open(os.path.join(mp.mountpoint, "livecd"), "W") as f:
+            with open(os.path.join(mp.mountpoint, "livecd"), "w") as f:
                 f.write("")
 
 
