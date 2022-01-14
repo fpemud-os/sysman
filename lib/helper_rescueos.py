@@ -328,7 +328,7 @@ class RescueDiskBuilder:
                 f.write("\n")
 
                 f.write("menuentry \"Boot %s\" --class gnu-linux --class os {\n" % (DISK_NAME))
-                f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc dev_uuid=%s looptype=squashfs loop=%s/rootfs.sqfs cdroot dokeymap docache\n" % (osArchDir, uuid, osArchDir))
+                f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc dev_uuid=%s looptype=squashfs loop=%s/rootfs.sqfs cdroot dokeymap docache gk.hw.use-modules_load=1\n" % (osArchDir, uuid, osArchDir))            # without gk.hw.use-modules_load=1, squashfs module won't load, sucks
                 f.write("    initrd %s/initramfs.img\n" % (osArchDir))
                 f.write("}\n")
                 f.write("\n")
@@ -365,6 +365,11 @@ class RescueDiskBuilder:
                 buf = README_CONTENT.strip("\n") + "\n"
                 buf = buf.replace("%DISK_NAME%", DISK_NAME)
                 f.write(buf)
+
+            # create livecd
+            # FIXME: it sucks that genkernel's initrd requires this file
+            with open(os.path.join(mp.mountpoint, "livecd"), "W") as f:
+                f.write("")
 
 
 DISK_NAME = "SystemRescueDisk"
