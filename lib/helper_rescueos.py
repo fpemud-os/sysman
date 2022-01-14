@@ -9,7 +9,6 @@ import gstage4.seed_stages
 import gstage4.repositories
 import gstage4.target_features
 import robust_layer.simple_fops
-#import grub_install
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_util import CloudCacheGentoo
@@ -50,7 +49,7 @@ class RescueOsBuilder:
         # always use newest snapshot
         self._snapshotFile = cache.get_latest_snapshot()
 
-    def buildTargetSystem(self):
+    def buildRescueOs(self):
         c = CcacheLocalService()
 
         ftPortage = gstage4.target_features.UsePortage()
@@ -210,7 +209,7 @@ class RescueOsBuilder:
         print("        - Cleaning up...")
         builder.action_cleanup()
 
-    def installTargetSystem(self, rescueOsDir):
+    def installRescueOs(self, rescueOsDir):
         sp = gstage4.WorkDir(self._tmpRootDir).get_old_chroot_dir_paths()[-1]
 
         sqfsFile = os.path.join(rescueOsDir, "rootfs.sqfs")
