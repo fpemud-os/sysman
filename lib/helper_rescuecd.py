@@ -206,22 +206,7 @@ class RescueDiskBuilder:
 
         # step
         with PrintLoadAvgThread("        - Building kernel..."):
-            scriptList = []
-            if True:
-                hostp = "/var/cache/bbki/distfiles/git-src/git/bcachefs.git"
-                if not os.path.isdir(hostp):
-                    raise Exception("directory \"%s\" does not exist in host system" % (hostp))
-                s = gstage4.scripts.ScriptPlacingFiles("Install bcachefs kernel")
-                s.append_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), 0, 0, dmode=0o755, fmode=0o755, hostpath=hostp, recursive=True)    # script files in kernel source needs to be executable, simply make all files rwxrwxrwx
-                scriptList.append(s)
-            if True:
-                buf = ""
-                buf += "#!/bin/bash\n"
-                buf += "echo 'CONFIG_BCACHEFS_FS=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
-                buf += "echo 'CONFIG_BCACHEFS_QUOTA=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
-                buf += "echo 'CONFIG_BCACHEFS_POSIX_ACL=y' >> /usr/share/genkernel/arch/x86_64/generated-config\n"
-                scriptList.append(gstage4.scripts.ScriptFromBuffer("Add bcachfs kernel config", buf))
-            builder.action_install_kernel(preprocess_script_list=scriptList)
+            builder.action_install_kernel()
 
         # step
         print("        - Enabling services...")
