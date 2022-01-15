@@ -220,7 +220,7 @@ class RescueDiskBuilder:
                 hostp = "/var/cache/bbki/distfiles/git-src/git/bcachefs.git"
                 if not os.path.isdir(hostp):
                     raise Exception("directory \"%s\" does not exist in host system" % (hostp))
-                s = gstage4.scripts.ScriptPlacingFiles("Install bcachefs kernel")
+                s = gstage4.scripts.PlacingFilesScript("Install bcachefs kernel")
                 s.append_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), 0, 0, dmode=0o755, fmode=0o755, hostpath=hostp, recursive=True)    # script files in kernel source needs to be executable, simply make all files rwxrwxrwx
                 scriptList.append(s)
             if True:
