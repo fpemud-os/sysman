@@ -2836,7 +2836,7 @@ class CcacheLocalService:
 
 class Stage4Overlay(gstage4.ManualSyncRepository):
 
-    """download overlay files using host robust_layer.git"""
+    """download overlay files using robust_layer.git in host system, "emerge --sync" is not robust enough"""
 
     def __init__(self, name, url):
         self._name = name
