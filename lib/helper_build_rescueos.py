@@ -8,6 +8,7 @@ import gstage4.scripts
 import gstage4.seed_stages
 import gstage4.repositories
 import gstage4.target_features
+import robust_layer.git
 import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import CloudCacheGentoo
@@ -197,3 +198,4 @@ class RescueOsBuilder:
         # FIXME: it sucks that genkernel's initrd requires this file
         with open(os.path.join(bbkiRescueOsSpec.root_dir, "rescue-os"), "w") as f:
             f.write("")
+

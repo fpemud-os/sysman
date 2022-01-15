@@ -40,6 +40,7 @@ import passlib.hosts
 import robust_layer
 import robust_layer.wget
 import robust_layer.simple_fops
+import gstage4.repositories
 from datetime import datetime
 from OpenSSL import crypto
 from gi.repository import Gio
@@ -2831,3 +2832,21 @@ class CcacheLocalService:
     def get_ccache_dir(self):
         assert self._ccacheDir is not None
         return self._ccacheDir
+
+
+class Stage4Overlay(gstage4.repositories.ManualSyncRepository):
+
+    """download overlay files using host robust_layer.git"""
+
+    def __init__(self, name, url):
+        self._name = name
+        self._url = url
+
+    def get_name(self):
+        return self._name
+
+    def get_datadir_path(self):
+        return "/var/db/overlays/%s" % (self._name)
+
+    def sync(self, datadir_hostpath):
+        robust_layer.git.clone("--depth", "1", self._url, datadir_hostpath)

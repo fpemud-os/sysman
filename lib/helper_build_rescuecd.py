@@ -14,6 +14,7 @@ from fm_util import TmpMount
 from fm_util import CloudCacheGentoo
 from fm_util import PrintLoadAvgThread
 from fm_util import CcacheLocalService
+from fm_util import Stage4Overlay
 from fm_param import FmConst
 
 
@@ -145,7 +146,7 @@ class RescueDiskBuilder:
         # step
         print("        - Installing overlays...")
         builder.action_create_overlays(overlay_list=[
-            gstage4.repositories.UserDefinedOverlay("fpemud-os", "git", "https://github.com/fpemud-os/gentoo-overlay"),
+            Stage4Overlay("fpemud-os", "https://github.com/fpemud-os/gentoo-overlay"),
         ])
 
         # step
