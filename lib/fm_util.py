@@ -20,6 +20,7 @@ import asyncio_pool
 import filecmp
 import fnmatch
 import socket
+import gstage4
 import subprocess
 import struct
 import time
@@ -40,7 +41,6 @@ import passlib.hosts
 import robust_layer
 import robust_layer.wget
 import robust_layer.simple_fops
-import gstage4.repositories
 from datetime import datetime
 from OpenSSL import crypto
 from gi.repository import Gio
@@ -2834,7 +2834,7 @@ class CcacheLocalService:
         return self._ccacheDir
 
 
-class Stage4Overlay(gstage4.repositories.ManualSyncRepository):
+class Stage4Overlay(gstage4.ManualSyncRepository):
 
     """download overlay files using host robust_layer.git"""
 
