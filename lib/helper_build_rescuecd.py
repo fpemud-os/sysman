@@ -72,10 +72,8 @@ class RescueDiskBuilder:
         # sync
         cache.sync()
         for arch, v in self._archInfoDict.items():
-            if arch not in cache.get_arch_list():
-                raise Exception("arch \"%s\" is not supported" % (arch))
-            if v[0] not in cache.get_subarch_list(arch):
-                raise Exception("subarch \"%s\" is not supported" % (v[0]))
+            assert arch in cache.get_arch_list()
+            assert v[0] in cache.get_subarch_list(arch)
 
         # prefer local stage3 file
         for arch, v in self._archInfoDict.items():
