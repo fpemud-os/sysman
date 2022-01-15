@@ -135,16 +135,18 @@ class RescueDiskBuilder:
             builder.action_unpack(ss)
 
         # step
-        print("        - Installing repositories...")
-        repos = [
-            gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
-            gstage4.repositories.WildOverlay("fpemud-os", "git", "https://github.com/fpemud-os/gentoo-overlay"),
-        ]
-        builder.action_init_repositories(repos)
+        print("        - Installing gentoo repository...")
+        builder.action_create_gentoo_repository(gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile))
 
         # step
         print("        - Generating configurations...")
         builder.action_init_confdir()
+
+        # step
+        print("        - Installing overlays...")
+        builder.action_create_overlays([
+            gstage4.repositories.WildOverlay("fpemud-os", "git", "https://github.com/fpemud-os/gentoo-overlay"),
+        ])
 
         # step
         with PrintLoadAvgThread("        - Updating world..."):
