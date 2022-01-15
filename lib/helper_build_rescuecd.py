@@ -145,7 +145,7 @@ class RescueDiskBuilder:
         # step
         print("        - Installing overlays...")
         builder.action_create_overlays([
-            gstage4.repositories.WildOverlay("fpemud-os", "git", "https://github.com/fpemud-os/gentoo-overlay"),
+            gstage4.repositories.UserDefinedOverlay("fpemud-os", "git", "https://github.com/fpemud-os/gentoo-overlay"),
         ])
 
         # step
