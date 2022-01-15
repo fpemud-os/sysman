@@ -244,7 +244,7 @@ class RescueDiskBuilder:
         print("        - Customizing...")
         scriptList = []
         # ftGettyAutoLogin.update_custom_script_list(scriptList)
-        gstage4.target_features.SetPasswordForUserRoot("u5i6m6x2").update_custom_script_list(scriptList)
+        gstage4.target_features.SetPasswordForUserRoot("123456").update_custom_script_list(scriptList)
         if True:
             buf = ""
             buf += "#!/bin/bash\n"
