@@ -13,8 +13,8 @@ import robust_layer.simple_fops
 from fm_util import BootDirWriter, FmUtil
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
-from helper_rescueos import RescueOsBuilder
-from helper_rescuecd import RescueDiskBuilder
+from helper_build_rescueos import RescueOsBuilder
+from helper_build_rescuecd import RescueDiskBuilder
 from helper_bbki import BbkiWrapper
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
