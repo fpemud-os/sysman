@@ -138,6 +138,7 @@ class RescueDiskBuilder:
         print("        - Installing repositories...")
         repos = [
             gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
+            gstage4.repositories.WildOverlay("fpemud-os", "git", "https://github.com/fpemud-os/gentoo-overlay"),
         ]
         builder.action_init_repositories(repos)
 
@@ -152,6 +153,7 @@ class RescueDiskBuilder:
                 installList.append("dev-util/ccache")
             worldSet = {
                 "app-admin/eselect",
+                "app-admin/fpemud-os-rescuecd-meta",
                 "app-arch/cpio",
                 "app-arch/gzip",
                 "app-arch/p7zip",
