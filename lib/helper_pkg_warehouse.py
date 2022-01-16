@@ -4,7 +4,6 @@
 import os
 import re
 import glob
-from subprocess import CalledProcessError
 import time
 import shutil
 import portage
@@ -14,6 +13,7 @@ import configparser
 import lxml.etree
 import urllib.request
 import robust_layer.git
+import robust_layer.simple_git
 import robust_layer.subversion
 import robust_layer.simple_subversion
 import robust_layer.rsync
@@ -442,7 +442,7 @@ class EbuildRepositories:
             self._repoGentooCreate(self.getRepoDir("gentoo"))
         else:
             if repoName in self._repoGitUrlDict:
-                FmUtil.cmdExec("/usr/libexec/robust_layer/simple_git", "pull", self.getRepoDir(repoName), self._repoGitUrlDict[repoName])
+                robust_layer.simple_git.pull(self.getRepoDir(repoName), reclone_on_failure=True, url=self._repoGitUrlDict[repoName])
             else:
                 assert False
 
@@ -462,7 +462,7 @@ class EbuildRepositories:
             self._repoGentooSync(self.getRepoDir("gentoo"))
         else:
             if repoName in self._repoGitUrlDict:
-                FmUtil.cmdExec("/usr/libexec/robust_layer/simple_git", "pull", self.getRepoDir(repoName), self._repoGitUrlDict[repoName])
+                robust_layer.simple_git.pull(self.getRepoDir(repoName), reclone_on_failure=True, url=self._repoGitUrlDict[repoName])
             else:
                 assert False
 
@@ -842,15 +842,15 @@ class EbuildOverlays:
             try:
                 self._syncOverlaySourceDir(overlayName, overlayDir, vcsType, overlayUrl)
                 self._removeDuplicatePackage(overlayDir)
-            except OverlayNotAccessiableError:
-                pass
+            except PrivateOverlayNotAccessiableError:
+                print("Overlay not accessible, ignored.")
         elif overlayType == "transient":
             overlayFilesDir = self.getOverlayFilesDir(overlayName)
             try:
                 self._syncOverlaySourceDir(overlayName, overlayFilesDir, vcsType, overlayUrl)
                 self._refreshTransientOverlayDir(overlayName, overlayDir, overlayFilesDir)
-            except OverlayNotAccessiableError:
-                pass
+            except PrivateOverlayNotAccessiableError:
+                print("Overlay not accessible, ignored.")
         else:
             assert False
 
@@ -900,7 +900,7 @@ class EbuildOverlays:
     def _createOverlaySourceDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
             # overlayFilesDir may already exist
-            FmUtil.cmdExec("/usr/libexec/robust_layer/simple_git", "pull", overlayFilesDir, url)
+            robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
         elif vcsType == "svn":
             # overlayFilesDir may already exist
             robust_layer.simple_subversion.update(overlayFilesDir, recheckout_on_failure=True, url=url)
@@ -922,14 +922,14 @@ class EbuildOverlays:
     def _syncOverlaySourceDir(self, overlayName, overlayFilesDir, vcsType, url):
         if vcsType == "git":
             try:
-                FmUtil.cmdExec("/usr/libexec/robust_layer/simple_git", "pull", overlayFilesDir, url)
-            except CalledProcessError:
-                raise OverlayNotAccessiableError()
+                robust_layer.simple_git.pull(overlayFilesDir, reclone_on_failure=True, url=url)
+            except robust_layer.git.PrivateUrlNotExistError:
+                raise PrivateOverlayNotAccessiableError()
         elif vcsType == "svn":
             try:
                 robust_layer.simple_subversion.update(overlayFilesDir, recheckout_on_failure=True, url=url)
             except robust_layer.subversion.PrivateUrlNotExistError:
-                raise OverlayNotAccessiableError()
+                raise PrivateOverlayNotAccessiableError()
         else:
             assert False
 
@@ -1155,7 +1155,7 @@ class OverlayCheckError(Exception):
         self.message = message
 
 
-class OverlayNotAccessiableError(Exception):
+class PrivateOverlayNotAccessiableError(Exception):
     pass
 
 
