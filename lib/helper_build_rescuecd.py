@@ -198,11 +198,12 @@ class RescueDiskBuilder:
                 "sys-block/parted",
                 "sys-devel/bc",
                 "sys-fs/bcache-tools",
+                "sys-fs/bcachefs-tools",
                 "sys-fs/btrfs-progs",
                 "sys-fs/dosfstools",
                 "sys-fs/e2fsprogs",
                 "sys-fs/exfat-utils",
-                # "sys-fs/f2fs-tools",
+                "sys-fs/f2fs-tools",
                 "sys-fs/lsscsi",
                 "sys-fs/mtools",
                 # "sys-fs/ntfs3g",          # requires FUSE2 which is deprecated
