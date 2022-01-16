@@ -135,7 +135,8 @@ class RescueDiskBuilder:
 
         # step
         print("        - Installing gentoo repository...")
-        builder.action_create_gentoo_repository(gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile))
+        gentooRepo = gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile)
+        builder.action_create_gentoo_repository(gentooRepo)
 
         # step
         print("        - Generating configurations...")
@@ -144,6 +145,7 @@ class RescueDiskBuilder:
         # step
         print("        - Installing overlays...")
         builder.action_create_overlays(overlay_list=[
+            Stage4Overlay("mirrorshq-overlay", "https://github.com/mirrorshq/gentoo-overlay"),
             Stage4Overlay("fpemud-os-overlay", "https://github.com/fpemud-os/gentoo-overlay"),
         ])
 
@@ -152,6 +154,7 @@ class RescueDiskBuilder:
             installList = []
             if c.is_enabled():
                 installList.append("dev-util/ccache")
+
             worldSet = {
                 "app-admin/eselect",
                 "app-admin/fpemud-os-rescuecd-meta",
@@ -209,7 +212,14 @@ class RescueDiskBuilder:
             ftSshServer.update_world_set(worldSet)
             ftChronyDaemon.update_world_set(worldSet)
             ftNetworkManager.update_world_set(worldSet)
-            builder.action_update_world(install_list=installList, world_set=worldSet)
+
+            scriptList = []
+            if True:
+                targetFile = os.path.join(gentooRepo.get_datadir_path(), "eclass", "git-r3.eclass")
+                cmd = "sed -i 's#git fetch#/usr/libexec/robust_layer/git fetch#' %s" % (targetFile)
+                scriptList.append(gstage4.scripts.OneLinerScript("Modify git-r3.eclass", cmd))
+
+            builder.action_update_world(preprocess_script_list=scriptList, install_list=installList, world_set=worldSet)
 
         # step
         with PrintLoadAvgThread("        - Building kernel..."):
@@ -243,11 +253,7 @@ class RescueDiskBuilder:
         scriptList = []
         # ftGettyAutoLogin.update_custom_script_list(scriptList)
         gstage4.target_features.SetPasswordForUserRoot("123456").update_custom_script_list(scriptList)  # FIXME
-        if True:
-            buf = ""
-            buf += "#!/bin/bash\n"
-            buf += "rm -rf /usr/src/*"
-            scriptList.append(gstage4.scripts.ScriptFromBuffer("Delete /usr/src content", buf))
+        scriptList.append(gstage4.scripts.OneLinerScript("Delete /usr/src content", "rm -rf /usr/src/*"))
         builder.action_customize_system(custom_script_list=scriptList)
 
         # step
