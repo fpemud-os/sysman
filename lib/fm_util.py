@@ -2861,7 +2861,8 @@ class Stage4ScriptUseRobustLayer(gstage4.ScriptInChroot):
         srcDir = os.path.join(script_dir_hostpath, "robust_layer")
         FmUtil.cmdCall("/usr/libexec/robust_layer/git", "clone", "--depth", "1", "https://github.com/mirrorshq/robust_layer", srcDir)
 
-        with open(os.path.join(script_dir_hostpath, "main.sh"), "w") as f:
+        fullfn = os.path.join(script_dir_hostpath, "main.sh")
+        with open(fullfn, "w") as f:
             f.write("#!/bin/sh\n")
             f.write("\n")
 
@@ -2882,6 +2883,7 @@ class Stage4ScriptUseRobustLayer(gstage4.ScriptInChroot):
             f.write("cd %s\n" % (self._gentooRepoDir))
             f.write("sed -i 's#git fetch#/usr/libexec/robust_layer/git fetch#' eclass/git-r3.eclass\n")
             f.write("\n")
+        os.chmod(fullfn, 0o755)
 
     def get_description(self):
         return "Use robust_layer"
