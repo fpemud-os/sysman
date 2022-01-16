@@ -2849,4 +2849,4 @@ class Stage4Overlay(gstage4.ManualSyncRepository):
         return "/var/db/overlays/%s" % (self._name)
 
     def sync(self, datadir_hostpath):
-        robust_layer.git.clone("--depth", "1", self._url, datadir_hostpath)
+        FmUtil.cmdCall("/usr/libexec/robust_layer/git", "clone", "--depth", "1", self._url, datadir_hostpath)
