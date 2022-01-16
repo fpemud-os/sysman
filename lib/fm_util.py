@@ -2876,7 +2876,7 @@ class Stage4ScriptUseRobustLayer(gstage4.ScriptInChroot):
             # modify make.conf
             f.write("cd /etc/portage\n")
             f.write("echo '%s' >> make.conf\n" % (r'FETCHCOMMAND="/usr/libexec/robust_layer/wget -q --show-progress -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""'))
-            f.write("echo '%s' >> make.conf\n" % (r'RESUMECOMMAND="/usr/libexec/robust_layer/wget -q --show-progress -c  -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""'))
+            f.write("echo '%s' >> make.conf\n" % (r'RESUMECOMMAND="/usr/libexec/robust_layer/wget -q --show-progress -c -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""'))
             f.write("\n")
 
             # modify git-r3.eclass
