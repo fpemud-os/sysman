@@ -126,7 +126,7 @@ class DynCfgModifier:
 
     def updateDownloadCommand(self):
         fetchCmd = "/usr/libexec/robust_layer/wget -q --show-progress -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""
-        resumeCmd = "/usr/libexec/robust_layer/wget -q --show-progress -c  -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""
+        resumeCmd = "/usr/libexec/robust_layer/wget -q --show-progress -c -O \\\"\\${DISTDIR}/\\${FILE}\\\" \\\"\\${URI}\\\""
         FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "FETCHCOMMAND", fetchCmd)
         FmUtil.setMakeConfVar(FmConst.portageCfgMakeConf, "RESUMECOMMAND", resumeCmd)
 

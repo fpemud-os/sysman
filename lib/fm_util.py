@@ -2850,3 +2850,41 @@ class Stage4Overlay(gstage4.ManualSyncRepository):
 
     def sync(self, datadir_hostpath):
         FmUtil.cmdCall("/usr/libexec/robust_layer/git", "clone", "--depth", "1", self._url, datadir_hostpath)
+
+
+class Stage4ScriptRobustLayer(gstage4.ScriptInChroot):
+
+    def __init__(self, gentoo_repo_dirpath):
+        self._gentooRepoDir = gentoo_repo_dirpath
+
+    def fill_script_dir(self, script_dir_hostpath):
+        srcDir = os.path.join(script_dir_hostpath, "robust_layer")
+        FmUtil.cmdCall("/usr/libexec/robust_layer/git", "clone", "--depth", "1", "https://github.com/mirrorshq/robust_layer", srcDir)
+
+        with open(os.path.join(script_dir_hostpath, "main.sh"), "w") as f:
+            f.write("#!/bin/sh\n")
+            f.write("\n")
+
+            # install robust_layer
+            f.write("cd robust_layer\n")
+            f.write("python setup.py install\n")
+            f.write("cp -r libexec /usr/libexec/robust_layer\n")
+            f.write("chmod -R 755 /usr/libexec/robust_layer\n")
+            f.write("\n")
+
+            # modify make.conf
+            f.write("cd /etc/portage\n")
+            f.write("echo '%s' >> make.conf\n" % (r'FETCHCOMMAND="/usr/libexec/robust_layer/wget -q --show-progress -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""'))
+            f.write("echo '%s' >> make.conf\n" % (r'RESUMECOMMAND="/usr/libexec/robust_layer/wget -q --show-progress -c  -O \"\${DISTDIR}/\${FILE}\" \"\${URI}\""'))
+            f.write("\n")
+
+            # modify git-r3.eclass
+            f.write("cd %s\n" % (self._gentooRepoDir))
+            f.write("sed -i 's#git fetch#/usr/libexec/robust_layer/git fetch#' eclass/git-r3.eclass\n")
+            f.write("\n")
+
+    def get_description(self):
+        return "Use robust_layer"
+
+    def get_script(self):
+        return "main.sh"

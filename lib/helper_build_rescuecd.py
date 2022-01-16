@@ -15,6 +15,7 @@ from fm_util import CloudCacheGentoo
 from fm_util import PrintLoadAvgThread
 from fm_util import CcacheLocalService
 from fm_util import Stage4Overlay
+from fm_util import Stage4ScriptUseRobustLayer
 from fm_param import FmConst
 
 
@@ -151,6 +152,10 @@ class RescueDiskBuilder:
 
         # step
         with PrintLoadAvgThread("        - Updating world..."):
+            scriptList = [
+                Stage4ScriptUseRobustLayer(gentooRepo.get_datadir_path())
+            ]
+
             installList = []
             if c.is_enabled():
                 installList.append("dev-util/ccache")
@@ -212,12 +217,6 @@ class RescueDiskBuilder:
             ftSshServer.update_world_set(worldSet)
             ftChronyDaemon.update_world_set(worldSet)
             ftNetworkManager.update_world_set(worldSet)
-
-            scriptList = []
-            if True:
-                targetFile = os.path.join(gentooRepo.get_datadir_path(), "eclass", "git-r3.eclass")
-                cmd = "sed -i 's#git fetch#/usr/libexec/robust_layer/git fetch#' %s" % (targetFile)
-                scriptList.append(gstage4.scripts.OneLinerScript("Modify git-r3.eclass", cmd))
 
             builder.action_update_world(preprocess_script_list=scriptList, install_list=installList, world_set=worldSet)
 
