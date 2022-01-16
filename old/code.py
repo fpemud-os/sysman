@@ -556,3 +556,24 @@ class ArchLinuxBasedOsBuilder:
             hookList.remove(name)
             with open(confFile, "w") as f:
                 f.write(re.sub("^HOOKS=\\(.*\\)", "HOOKS=(%s)" % (" ".join(hookList)), buf, 0, re.M))
+
+
+
+# class Stage4GentooSnapshot(gstage4.ManualSyncRepository):
+
+#     """modify git-r3.eclass to use /usr/libexec/robust_layer/git"""
+
+#     def __init__(self, filepath):
+#         self._path = filepath
+
+#     def get_name(self):
+#         return "gentoo"
+
+#     def get_datadir_path(self):
+#         return "/var/db/repos/gentoo"
+
+#     def sync(self, datadir_hostpath):
+#         FmUtil.cmdCall("/usr/bin/unsquashfs", "-f", "-q", "-n", "-d", datadir_hostpath, self._path)
+#         FmUtil.cmdCall("/bin/sed -i 's#git fetch#/usr/libexec/robust_layer/git fetch#' %s" % (os.path.join(datadir_hostpath, "eclass", "git-r3.eclass")))
+
+
