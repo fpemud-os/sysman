@@ -135,7 +135,7 @@ class RescueDiskBuilder:
 
         # step
         print("        - Installing gentoo repository...")
-        gentooRepo = gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile)
+        gentooRepo = gstage4.repositories.GentooSnapshot(self._snapshotFile)
         builder.action_create_gentoo_repository(gentooRepo)
 
         # step

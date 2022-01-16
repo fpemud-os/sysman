@@ -88,7 +88,7 @@ class RescueOsBuilder:
         # step
         print("        - Installing repositories...")
         repos = [
-            gstage4.repositories.GentooSquashedSnapshot(self._snapshotFile),
+            gstage4.repositories.GentooSnapshot(self._snapshotFile),
         ]
         builder.action_init_repositories(repos)
 
