@@ -2852,7 +2852,7 @@ class Stage4Overlay(gstage4.ManualSyncRepository):
         FmUtil.cmdCall("/usr/libexec/robust_layer/git", "clone", "--depth", "1", self._url, datadir_hostpath)
 
 
-class Stage4ScriptRobustLayer(gstage4.ScriptInChroot):
+class Stage4ScriptUseRobustLayer(gstage4.ScriptInChroot):
 
     def __init__(self, gentoo_repo_dirpath):
         self._gentooRepoDir = gentoo_repo_dirpath
