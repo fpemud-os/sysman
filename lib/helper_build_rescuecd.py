@@ -186,6 +186,7 @@ class RescueDiskBuilder:
                 "net-misc/wget",
                 "sys-apps/dmidecode",
                 "sys-apps/gptfdisk",
+                "sys-apps/lm-sensors",
                 "sys-apps/lshw",
                 "sys-apps/smartmontools",
                 "sys-boot/grub",            # also required by boot-chain in USB stick
