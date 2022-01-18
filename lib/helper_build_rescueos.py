@@ -198,4 +198,3 @@ class RescueOsBuilder:
         # FIXME: it sucks that genkernel's initrd requires this file
         with open(os.path.join(bbkiRescueOsSpec.root_dir, "rescue-os"), "w") as f:
             f.write("")
-

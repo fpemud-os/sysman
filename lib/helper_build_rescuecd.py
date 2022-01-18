@@ -8,7 +8,6 @@ import gstage4.scripts
 import gstage4.seed_stages
 import gstage4.repositories
 import gstage4.target_features
-import robust_layer.simple_fops
 from fm_util import FmUtil
 from fm_util import TmpMount
 from fm_util import CloudCacheGentoo
@@ -27,7 +26,7 @@ class RescueDiskBuilder:
 
     def __init__(self, devType, devPath, tmpDir, hwInfo, diskName, diskLabel):
         self._archInfoDict = {
-            "amd64": ["amd64", "openrc", os.path.join(tmpDir, "rescd-rootfs-amd64"), os.path.join(tmpDir, "rescd-tmp-amd64"), False],   # [subarch, variant, rootfs-dir, tmp-stage-dir, complete-flag]
+            "amd64": ["amd64", "openrc", "default/linux/amd64/17.1/no-multilib", os.path.join(tmpDir, "rescd-rootfs-amd64"), False],   # [subarch, variant, profile, rootfs-dir, complete-flag]
             # "arm64": ["arm64", None],
         }
         self._archDirDict = {
@@ -87,8 +86,7 @@ class RescueDiskBuilder:
         self._snapshotFile = cache.get_latest_snapshot()
 
     def buildTargetSystem(self, arch):
-        tmpRootfsDir = self._archInfoDict[arch][2]
-        tmpStageDir = self._archInfoDict[arch][3]
+        tmpRootfsDir = self._archInfoDict[arch][3]
 
         c = CcacheLocalService()
 
@@ -107,8 +105,6 @@ class RescueDiskBuilder:
         wdir = gstage4.WorkDir(tmpRootfsDir)
         wdir.initialize()
 
-        robust_layer.simple_fops.mkdir(tmpStageDir)
-
         s = gstage4.Settings()
         s.program_name = FmConst.programName
         s.verbose_level = 0
@@ -117,6 +113,7 @@ class RescueDiskBuilder:
 
         ts = gstage4.TargetSettings()
         ts.arch = arch
+        ts.profile = self._archInfoDict[arch][2]
         ftPortage.update_target_settings(ts)
         ftGenkernel.update_target_settings(ts)
         ftOpenrc.update_target_settings(ts)
@@ -288,7 +285,7 @@ class RescueDiskBuilder:
 
             # install files into usb stick
             for arch, v in self._archInfoDict.items():
-                tmpRootfsDir = v[2]
+                tmpRootfsDir = v[3]
                 sp = gstage4.WorkDir(tmpRootfsDir).get_old_chroot_dir_paths()[-1]
                 dstOsDir = os.path.join(osDir, self._archDirDict[arch])
 
