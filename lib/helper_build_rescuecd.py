@@ -227,7 +227,9 @@ class RescueDiskBuilder:
                 if not os.path.isdir(hostp):
                     raise Exception("directory \"%s\" does not exist in host system" % (hostp))
                 s = gstage4.scripts.PlacingFilesScript("Install bcachefs kernel")
-                s.append_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), 0, 0, dmode=0o755, fmode=0o755, hostpath=hostp, recursive=True)    # script files in kernel source needs to be executable, simply make all files rwxrwxrwx
+                s.append_dir("/usr")
+                s.append_dir("/usr/src")
+                s.append_host_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), hostp, dmode=0o755, fmode=0o755)    # script files in kernel source needs to be executable, simply make all files rwxrwxrwx
                 scriptList.append(s)
             if True:
                 buf = ""
@@ -237,7 +239,9 @@ class RescueDiskBuilder:
                 buf += "CONFIG_BCACHEFS_QUOTA=y\n"
                 buf += "CONFIG_BCACHEFS_POSIX_ACL=y\n"
                 s = gstage4.scripts.PlacingFilesScript("Install bcachefs kernel config file")
-                s.append_file("/usr/src/dot-config", 0, 0, buf=buf)
+                s.append_dir("/usr")
+                s.append_dir("/usr/src")
+                s.append_file("/usr/src/dot-config", buf)
                 scriptList.append(s)
             builder.action_install_kernel(preprocess_script_list=scriptList)
 
