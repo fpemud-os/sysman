@@ -258,7 +258,7 @@ class RescueDiskBuilder:
         scriptList = []
         # ftGettyAutoLogin.update_custom_script_list(scriptList)
         gstage4.target_features.SetPasswordForUserRoot("123456").update_custom_script_list(scriptList)  # FIXME
-        scriptList.append(gstage4.scripts.OneLinerScript("Delete /usr/src content", "rm -rf /usr/src/*"))
+        # scriptList.append(gstage4.scripts.OneLinerScript("Delete /usr/src content", "rm -rf /usr/src/*"))
         builder.action_customize_system(custom_script_list=scriptList)
 
         # step
