@@ -6,6 +6,7 @@ import re
 import glob
 import time
 import stat
+import parted
 import ntplib
 import struct
 import pathlib
@@ -28,9 +29,6 @@ from helper_pkg_merger import PkgMerger
 
 
 # TODO:
-# *. no 512 disk check
-# 1. partition 4k align check
-# 2. disk 2048 reserve check
 # 3. ssd io scheduler check
 # 7. systemd unit files reference not-exist service or target file
 # 8. check mount option for boot device
@@ -1457,6 +1455,7 @@ class _DiskPartitionTableChecker:
         assert struct.calcsize(self.mbrHeaderFmt) == 512
 
     def checkDisk(self, devPath):
+        # check partition table itself
         pttype = FmUtil.getBlkDevPartitionTableType(devPath)
         if pttype == "gpt":
             self._checkGptDisk(devPath)
@@ -1464,6 +1463,24 @@ class _DiskPartitionTableChecker:
             self._checkMbrDisk(devPath)
         else:
             raise _DiskPartitionTableCheckerFailure("Unknown disk partition table type")
+
+        # all partitions should be aligned by 4K
+        if pttype == "gpt":
+            pass
+        elif pttype == "dos":
+            pttype = "msdos"
+        else:
+            assert False
+        disk = parted.newDisk(parted.getDevice(devPath))
+        partList = disk.getPrimaryPartitions()
+        for i in range(0, len(partList)):
+            par = partList[i]
+            startByte = par.geometry.start * disk.device.sectorSize
+            if startByte % 4096 != 0:
+                raise _DiskPartitionTableCheckerFailure("Partition %d is not 4K aligned" % (i + 1))
+            lenByte = (par.geometry.end - par.geometry.start + 1) * disk.device.sectorSize
+            if lenByte % 4096 != 0:
+                raise _DiskPartitionTableCheckerFailure("Partition %d is not 4K aligned" % (i + 1))
 
     def _checkGptDisk(self, devPath):
         # get Protective MBR header
@@ -1484,13 +1501,13 @@ class _DiskPartitionTableChecker:
         if True:
             pRec = struct.unpack_from(self.mbrPartitionRecordFmt, mbrHeader[3], 0)
             if pRec[4] != 0xEE:
-                raise _DiskPartitionTableCheckerFailure("the first Partition Record should be Protective MBR Partition Record (OS Type == 0xEE)")
+                raise _DiskPartitionTableCheckerFailure("The first Partition Record should be Protective MBR Partition Record (OS Type == 0xEE)")
             if pRec[0] != 0:
                 raise _DiskPartitionTableCheckerFailure("Boot Indicator in Protective MBR Partition Record should be zero")
 
         # other Partition Record should be filled with zero
         if not FmUtil.isBufferAllZero(mbrHeader[struct.calcsize(self.mbrPartitionRecordFmt):]):
-            raise _DiskPartitionTableCheckerFailure("all the Partition Record should be filled with zero")
+            raise _DiskPartitionTableCheckerFailure("All Partition Records should be filled with zero")
 
         # ghnt and check primary and backup GPT header
         pass
