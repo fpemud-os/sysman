@@ -1,4 +1,3 @@
 [main]
-name = wreathe
-url = https://github.com/ethus3h/wreathe-overlay
+name = superposition
 package = games-kids/scratch
