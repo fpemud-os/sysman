@@ -229,6 +229,12 @@ class FmSysChecker:
             self.infoPrinter.printError("No valid storage layout.")
             return
 
+        with self.infoPrinter.printInfoAndIndent("- Checking harddisk sector size"):
+            for hdd in tlist:
+                pss, lss = FmUtil.getBlkDevPhysicalAndLogicalSectorSize(hdd)
+                if pss != lss:
+                    self.infoPrinter.printError("Physical sector size (%d) and logical sector size (%d) are different for %s(%s)" % (pss, lss, hdd, FmUtil.getBlkDevModel(hdd)))
+
         obj = _DiskPartitionTableChecker()
         for hdd in tlist:
             with self.infoPrinter.printInfoAndIndent("- Checking partition table for %s(%s)" % (hdd, FmUtil.getBlkDevModel(hdd))):
