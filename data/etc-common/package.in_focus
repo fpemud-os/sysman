@@ -241,6 +241,7 @@ x11-terms/cool-retro-term
 
 ## application: small games ########################################
 games-action/spacewar
+games-kids/scratch
 games-misc/katawa-shoujo
 games-puzzle/2048-qt
 games-puzzle/crayon-physics-deluxe
