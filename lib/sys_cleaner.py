@@ -77,7 +77,7 @@ class FmSysCleaner:
                         bbkiObj.updateBootloaderAfterCleaning()
                     print("")
 
-            if layout.name in ["efi-bcache-lvm-ext4"]:
+            if layout.name in ["efi-bcache-lvm-ext4", "efi-bcachefs"]:
                 dstList = layout.get_pending_esp_list()
                 if bFileRemoved and len(dstList) > 0:
                     with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):

@@ -127,7 +127,7 @@ class BbkiWrapper:
         mpList.append(bbki.HostMountPoint(bbki.HostMountPoint.NAME_ROOT, "/", layout.dev_rootfs))
         if layout.name == "bios-ext4":
             bootDisk = layout.boot_disk
-        elif layout.name in ["efi-ext4", "efi-bcache-lvm-ext4"]:
+        elif layout.name in ["efi-ext4", "efi-bcache-lvm-ext4", "efi-bcachefs"]:
             mpList.append(bbki.HostMountPoint(bbki.HostMountPoint.NAME_ESP, "/boot", layout.get_esp()))
             bootDisk = None
         return bbki.HostStorage(self._bbkiBootMode(layout), mpList, bootDisk)
