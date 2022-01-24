@@ -6,9 +6,7 @@ import re
 import glob
 import time
 import stat
-import parted
 import ntplib
-import struct
 import pathlib
 import filecmp
 import strict_pgs
@@ -226,22 +224,6 @@ class FmSysChecker:
         if layout is None:
             self.infoPrinter.printError("No valid storage layout.")
             return
-
-        with self.infoPrinter.printInfoAndIndent("- Checking harddisk sector size"):
-            for hdd in tlist:
-                pss, lss = FmUtil.getBlkDevPhysicalAndLogicalSectorSize(hdd)
-                if pss != lss:
-                    self.infoPrinter.printError("Physical sector size (%d) and logical sector size (%d) are different for %s(%s)" % (pss, lss, hdd, FmUtil.getBlkDevModel(hdd)))
-
-        obj = _DiskPartitionTableChecker()
-        for hdd in tlist:
-            with self.infoPrinter.printInfoAndIndent("- Checking partition table for %s(%s)" % (hdd, FmUtil.getBlkDevModel(hdd))):
-                try:
-                    obj.checkDisk(hdd)
-                except _DiskPartitionTableCheckerFailure as e:
-                    self.infoPrinter.printError(e.message)
-                if len(glob.glob(hdd + "*")) == 1:
-                    self.infoPrinter.printError("Harddisk %s has no partition." % (hdd))
 
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
             def __errCb(self, checkCode, message):
@@ -1424,99 +1406,3 @@ class FmCheckException(Exception):
 
     def __init__(self, message):
         super(FmCheckException, self).__init__(message)
-
-
-class _DiskPartitionTableChecker:
-
-    def __init__(self):
-        # struct mbr_partition_record {
-        #     uint8_t  boot_indicator;
-        #     uint8_t  start_head;
-        #     uint8_t  start_sector;
-        #     uint8_t  start_track;
-        #     uint8_t  os_type;
-        #     uint8_t  end_head;
-        #     uint8_t  end_sector;
-        #     uint8_t  end_track;
-        #     uint32_t starting_lba;
-        #     uint32_t size_in_lba;
-        # };
-        self.mbrPartitionRecordFmt = "8BII"
-        assert struct.calcsize(self.mbrPartitionRecordFmt) == 16
-
-        # struct mbr_header {
-        #     uint8_t                     boot_code[440];
-        #     uint32_t                    unique_mbr_signature;
-        #     uint16_t                    unknown;
-        #     struct mbr_partition_record partition_record[4];
-        #     uint16_t                    signature;
-        # };
-        self.mbrHeaderFmt = "440sIH%dsH" % (struct.calcsize(self.mbrPartitionRecordFmt) * 4)
-        assert struct.calcsize(self.mbrHeaderFmt) == 512
-
-    def checkDisk(self, devPath):
-        # check partition table itself
-        pttype = FmUtil.getBlkDevPartitionTableType(devPath)
-        if pttype == "gpt":
-            self._checkGptDisk(devPath)
-        elif pttype == "dos":
-            self._checkMbrDisk(devPath)
-        else:
-            raise _DiskPartitionTableCheckerFailure("Unknown disk partition table type")
-
-        # all partitions should be aligned by 4K
-        if pttype == "gpt":
-            pass
-        elif pttype == "dos":
-            pttype = "msdos"
-        else:
-            assert False
-        disk = parted.newDisk(parted.getDevice(devPath))
-        partList = disk.getPrimaryPartitions()
-        for i in range(0, len(partList)):
-            par = partList[i]
-            startByte = par.geometry.start * disk.device.sectorSize
-            if startByte % 4096 != 0:
-                raise _DiskPartitionTableCheckerFailure("Partition %d is not 4K aligned" % (i + 1))
-            lenByte = (par.geometry.end - par.geometry.start + 1) * disk.device.sectorSize
-            if lenByte % 4096 != 0:
-                raise _DiskPartitionTableCheckerFailure("Partition %d is not 4K aligned" % (i + 1))
-
-    def _checkGptDisk(self, devPath):
-        # get Protective MBR header
-        mbrHeader = None
-        with open(devPath, "rb") as f:
-            buf = f.read(struct.calcsize(self.mbrHeaderFmt))
-            mbrHeader = struct.unpack(self.mbrHeaderFmt, buf)
-
-        # check Protective MBR header
-        if not FmUtil.isBufferAllZero(mbrHeader[0]):
-            raise _DiskPartitionTableCheckerFailure("Protective MBR Boot Code should be empty")
-        if mbrHeader[1] != 0:
-            raise _DiskPartitionTableCheckerFailure("Protective MBR Disk Signature should be zero")
-        if mbrHeader[2] != 0:
-            raise _DiskPartitionTableCheckerFailure("reserved area in Protective MBR should be zero")
-
-        # check Protective MBR Partition Record
-        if True:
-            pRec = struct.unpack_from(self.mbrPartitionRecordFmt, mbrHeader[3], 0)
-            if pRec[4] != 0xEE:
-                raise _DiskPartitionTableCheckerFailure("The first Partition Record should be Protective MBR Partition Record (OS Type == 0xEE)")
-            if pRec[0] != 0:
-                raise _DiskPartitionTableCheckerFailure("Boot Indicator in Protective MBR Partition Record should be zero")
-
-        # other Partition Record should be filled with zero
-        if not FmUtil.isBufferAllZero(mbrHeader[struct.calcsize(self.mbrPartitionRecordFmt):]):
-            raise _DiskPartitionTableCheckerFailure("All Partition Records should be filled with zero")
-
-        # ghnt and check primary and backup GPT header
-        pass
-
-    def _checkMbrDisk(self, devPath):
-        pass
-
-
-class _DiskPartitionTableCheckerFailure(Exception):
-
-    def __init__(self, message):
-        self.message = message

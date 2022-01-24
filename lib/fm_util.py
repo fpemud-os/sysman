@@ -671,15 +671,6 @@ class FmUtil:
             return ""
 
     @staticmethod
-    def getBlkDevPhysicalAndLogicalSectorSize(devPath):
-        devName = os.path.basename(devPath)
-        fullfn = "/sys/block/%s/queue/physical_block_size" % (devName)
-        r1 = int(pathlib.Path(fullfn).read_text().rstrip("\n"))
-        fullfn = "/sys/block/%s/queue/logical_block_size" % (devName)
-        r2 = int(pathlib.Path(fullfn).read_text().rstrip("\n"))
-        return (r1, r2)
-
-    @staticmethod
     def scsiGetHostControllerPath(devPath):
         ctx = pyudev.Context()
         dev = pyudev.Device.from_device_file(ctx, devPath)
