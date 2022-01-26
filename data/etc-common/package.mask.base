@@ -78,6 +78,3 @@ media-sound/apulse
 
 # it is a standalone program, somehow conflicts with net-p2p/bitcoind
 #net-p2p/bitcoin-qt
-
-# why not use sys-libs/ncurses
-sys-libs/slang
