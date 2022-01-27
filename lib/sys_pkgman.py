@@ -15,7 +15,7 @@ class FmPkgman:
 
     def installPackage(self, pkgName, tmpOp):
         # modify dynamic config
-        self.infoPrinter.printInfo(">> Refreshing system configuration...")
+        self.infoPrinter.printInfo(">> Preparing...")
         if True:
             dcm = DynCfgModifier()
             dcm.updateMirrors()

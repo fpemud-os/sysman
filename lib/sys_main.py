@@ -562,7 +562,7 @@ class FmMain:
         self.param.sysChecker.basicCheckWithOverlayContent()
 
         # modify dynamic config
-        self.infoPrinter.printInfo(">> Refreshing system configuration...")
+        self.infoPrinter.printInfo(">> Preparing...")
         if True:
             dcm = DynCfgModifier()
             dcm.updateMirrors()
@@ -631,7 +631,7 @@ class FmMain:
         self.param.sysChecker.basicCheckWithOverlayContent()
 
         # modify dynamic config
-        self.infoPrinter.printInfo(">> Refreshing system configuration...")
+        self.infoPrinter.printInfo(">> Preparing...")
         if True:
             dcm = DynCfgModifier()
             dcm.updateMirrors()
