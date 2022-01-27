@@ -701,6 +701,7 @@ class FmMain:
             raise Exception("%s is already mounted" % (devPath))
 
         obj = strict_fsh.RootFs()
+
         wildcards = []
         wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_LAYOUT))
         wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_CFG))
@@ -709,23 +710,14 @@ class FmMain:
         wildcards = strict_fsh.deduct_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER_CACHE))
         wildcards = strict_fsh.deduct_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER_TRASH))
 
-        for w in wildcards:
-            print(wildcards)
-
         fileList = obj.wildcards_glob(wildcards)
-
-        print(len(fileList))
-        import time
-        time.sleep(3)
 
         with TmpMount(parti) as mp:
             tarfilepath = os.path.join(mp.mountpoint, "backup-%s.tar.gz" % (datetime.now().strftime("%Y%m%d%H%M%S")))
-            with tarfile.open(tarfilepath, mode="x:gz") as tf:
-                i = 0
+            with tarfile.open(tarfilepath, mode="x") as tf:
                 for fullfn in fileList:
-                    print(i)
+                    print(fullfn)
                     tf.add(fullfn, recursive=False)
-                    i += 1
 
     def logToMemory(self):
         assert False
