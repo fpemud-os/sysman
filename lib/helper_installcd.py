@@ -3,4 +3,10 @@
 
 
 class InstallCdBuilder:
-    pass
+
+    DEV_TYPE_ISO = "iso"
+    DEV_TYPE_CDROM = "cdrom"
+    DEV_TYPE_USB_STICK = "usb-stick"
+
+    def __init__(self, devType, tmpDir, hwInfo, **kwargs):
+        pass

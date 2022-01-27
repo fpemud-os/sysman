@@ -42,18 +42,15 @@ class RescueCdBuilder:
             raise NotImplementedError()
         elif self._devType == self.DEV_TYPE_USB_STICK:
             assert len(kwargs) == 3 and "dev_path" in kwargs and "disk_name" in kwargs and "disk_label" in kwargs
-
             self._devPath = kwargs["dev_path"]
             self._diskName = kwargs["disk_name"]
             self._diskLabel = kwargs["disk_label"]
-
             if not FmUtil.isBlkDevUsbStick(self._devPath):
                 raise Exception("device %s does not seem to be an usb-stick." % (self._devPath))
             if FmUtil.getBlkDevSize(self._devPath) < DEV_MIN_SIZE:
                 raise Exception("device %s needs to be at least %d GB." % (self._devPath, DEV_MIN_SIZE_IN_GB))
             if FmUtil.isMountPoint(self._devPath):
                 raise Exception("device %s or any of its partitions is already mounted, umount it first." % (self._devPath))
-
         elif self._devType == self.DEV_TYPE_RESCUE_OS:
             assert len(kwargs) == 1 and "rescue_os_spec" in kwargs
             self._rescueOsSpec = kwargs["rescue_os_spec"]
