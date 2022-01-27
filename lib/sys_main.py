@@ -689,6 +689,8 @@ class FmMain:
         pass
 
     def backup(self, devPath):
+        # FIMXE: a very simple backup process
+
         if re.fullmatch("/dev/[a-z]", devPath) is None:
             raise Exception("invalid backup device %s" % (devPath))
 
