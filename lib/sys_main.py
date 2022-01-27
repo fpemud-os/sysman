@@ -691,7 +691,7 @@ class FmMain:
     def backup(self, devPath):
         # FIXME: a very simple backup process
 
-        if re.fullmatch("/dev/[a-z]", devPath) is None:
+        if re.fullmatch("/dev/[a-z]+", devPath) is None:
             raise Exception("invalid backup device %s" % (devPath))
 
         parti = devPath + "1"
