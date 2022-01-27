@@ -1163,10 +1163,10 @@ class FmSysChecker:
         wildcards = []
         if True:
             obj = strict_fsh.RootFs()
+            wilecards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_BOOT))
             wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_DATA))
             wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_CACHE))
             wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER))
-            wilecards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_BOOT))
             wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_RUNTIME))
 
         # get file list for this package
@@ -1258,11 +1258,11 @@ class FmSysChecker:
         # filter wildcards: filter layout files
         wildcards = strict_fsh.deduct_wildcards(wildcards, rootFs.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_LAYOUT))
 
+        # filter wildcards: filter boot files, which we manage by ourself
+        wildcards = strict_fsh.deduct_wildcards(wildcards, rootFs.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_BOOT))
+
         # filter wildcards: filter trash files
         wildcards = strict_fsh.deduct_wildcards(wildcards, rootFs.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER_TRASH))
-
-        # filter wildcards: filter boot files, which we manage by ourself
-        wildcards = strict_fsh.deduct_wildcards(wildcards, rootFs.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_BOOT))
 
         # filter wildcards: filter all package extra files
         for pkgAtom in FmUtil.portageGetInstalledPkgAtomList(FmConst.portageDbDir):
