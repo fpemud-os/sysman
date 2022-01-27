@@ -54,8 +54,8 @@ class FmUtil:
         sqfsFile = os.path.join(dstDir, "rootfs.sqfs")
         sqfsSumFile = os.path.join(dstDir, "rootfs.sqfs.sha512")
 
-        FmUtil.shellCall("/usr/bin/mksquashfs %s %s -no-progress -noappend -quiet" % (rootfsDir, sqfsFile))
-        FmUtil.shellCall("/usr/bin/sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
+        FmUtil.shellCall("mksquashfs %s %s -no-progress -noappend -quiet" % (rootfsDir, sqfsFile))
+        FmUtil.shellCall("sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
 
         # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
         FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\\?##" % (dstDir), sqfsSumFile)
@@ -113,7 +113,7 @@ class FmUtil:
         elif partitionType == "bcachefs":
             assert False
         elif partitionType == "vfat":
-            FmUtil.cmdCall("/usr/sbin/mkfs.vfat", "-F", "32", "-n", partitionLabel, partDevPath)
+            FmUtil.cmdCall("mkfs.vfat", "-F", "32", "-n", partitionLabel, partDevPath)
         elif partitionType == "exfat":
             assert False
         else:
@@ -174,7 +174,7 @@ class FmUtil:
 
     @staticmethod
     def getDirLastUpdateTime(dirpath):
-        out = FmUtil.shellCall("/usr/bin/find \"%s\" -printf \"%%TY%%Tm%%Td%%TH%%TM%%TS\\n\" | /bin/sort | /bin/tail -1" % (dirpath))
+        out = FmUtil.shellCall("find \"%s\" -printf \"%%TY%%Tm%%Td%%TH%%TM%%TS\\n\" | /bin/sort | /bin/tail -1" % (dirpath))
         out = re.search(r'^(.*)\.', out).group(1)
         return datetime.strptime(out, "%Y%m%d%H%M%S")
 
@@ -211,7 +211,7 @@ class FmUtil:
         if key in FmUtil._dmiDecodeCache:
             return FmUtil._dmiDecodeCache[key]
 
-        ret = FmUtil.cmdCall("/usr/sbin/dmidecode", "-s", key)
+        ret = FmUtil.cmdCall("dmidecode", "-s", key)
         FmUtil._dmiDecodeCache[key] = ret
         return ret
 
@@ -256,7 +256,7 @@ class FmUtil:
     def githubGetFileContent(user, repo, filepath):
         with TempCreateFile() as tmpFile:
             url = "https://github.com/%s/%s/trunk/%s" % (user, repo, filepath)
-            FmUtil.cmdCall("/usr/bin/svn", "export", "-q", "--force", url, tmpFile)
+            FmUtil.cmdCall("svn", "export", "-q", "--force", url, tmpFile)
             return pathlib.Path(tmpFile).read_text()
 
     @staticmethod
@@ -700,7 +700,7 @@ class FmUtil:
         #                                -e s/s390x/s390/ -e s/parisc64/parisc/
         #                                -e s/ppc.*/powerpc/ -e s/mips.*/mips/
         #                                -e s/sh.*/sh/
-        ret = FmUtil.cmdCall("/usr/bin/uname", "-m")
+        ret = FmUtil.cmdCall("uname", "-m")
         ret = re.sub("i.86", "i386", ret)
         ret = re.sub("sun4u", "sparc64", ret)
         ret = re.sub("arm.*", "arm", ret)
@@ -715,7 +715,7 @@ class FmUtil:
     @staticmethod
     def isTwoDirSame(dir1, dir2):
         # FIXME: we could use python to do this
-        return FmUtil.cmdCallWithRetCode("/usr/bin/diff", "-r", dir1, dir2)[0] == 0
+        return FmUtil.cmdCallWithRetCode("diff", "-r", dir1, dir2)[0] == 0
 
     @staticmethod
     def fileHasSameContent(filename1, filename2):
@@ -1149,7 +1149,7 @@ class FmUtil:
 
     @staticmethod
     def getCpuArch():
-        ret = FmUtil.cmdCall("/usr/bin/uname", "-m")
+        ret = FmUtil.cmdCall("uname", "-m")
         if ret == "x86_64":
             return "amd64"
         else:
@@ -1157,7 +1157,7 @@ class FmUtil:
 
     @staticmethod
     def getCpuModel():
-        return FmUtil.cmdCall("/usr/bin/uname", "-p")
+        return FmUtil.cmdCall("uname", "-p")
 
     @staticmethod
     def repoIsSysFile(fbasename):
@@ -1249,14 +1249,14 @@ class FmUtil:
 
     @staticmethod
     def wgetSpider(url):
-        return FmUtil.cmdCallTestSuccess("/usr/bin/wget", "--spider", url)
+        return FmUtil.cmdCallTestSuccess("wget", "--spider", url)
 
     @staticmethod
     def wgetDownload(url, localFile=None):
         if localFile is None:
-            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), url)
+            FmUtil.cmdExec("wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), url)
         else:
-            FmUtil.cmdExec("/usr/bin/wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), "-O", localFile, url)
+            FmUtil.cmdExec("wget", "-q", "--show-progress", *robust_layer.wget.additional_param(), "-O", localFile, url)
 
     @staticmethod
     def downloadIfNewer(url, fullfn):
@@ -1443,7 +1443,7 @@ class FmUtil:
 
             # deal with __pycache__
             for dn in ["/usr/lib", "/usr/lib64", "/usr/libexec"]:
-                ret = FmUtil.cmdCall("/usr/bin/find", dn, "-regex", r'.*/__pycache__\(/.*\)?')
+                ret = FmUtil.cmdCall("find", dn, "-regex", r'.*/__pycache__\(/.*\)?')
                 fileSet |= set(ret.split("\n"))
 
             # deal with directory symlink
@@ -1575,7 +1575,7 @@ class FmUtil:
 
     @staticmethod
     def portageGetChost():
-        return FmUtil.shellCall("/usr/bin/portageq envvar CHOST 2>/dev/null").rstrip("\n")
+        return FmUtil.shellCall("portageq envvar CHOST 2>/dev/null").rstrip("\n")
 
     @staticmethod
     def portageGetJobCount(makeConf):
@@ -1697,7 +1697,7 @@ class FmUtil:
     async def _portagePatchRepositoryGenEbuildManifest(ebuildDir):
         # operate on any ebuild file generates manifest for the whole ebuild directory
         fn = glob.glob(os.path.join(ebuildDir, "*.ebuild"))[0]
-        args = ["/usr/bin/ebuild", fn, "manifest"]
+        args = ["ebuild", fn, "manifest"]
         proc = await asyncio.create_subprocess_exec(*args, stdout=asyncio.subprocess.DEVNULL)
         retcode = await proc.wait()
         if retcode != 0:
@@ -1877,7 +1877,7 @@ class FmUtil:
     @staticmethod
     def gitGetUrl(dirName):
         gitDir = os.path.join(dirName, ".git")
-        cmdStr = "/usr/bin/git --git-dir=\"%s\" --work-tree=\"%s\" config --get remote.origin.url" % (gitDir, dirName)
+        cmdStr = "git --git-dir=\"%s\" --work-tree=\"%s\" config --get remote.origin.url" % (gitDir, dirName)
         return FmUtil.shellCall(cmdStr)
 
     @staticmethod
@@ -1890,12 +1890,12 @@ class FmUtil:
     @staticmethod
     def _gitCall(dirName, command):
         gitDir = os.path.join(dirName, ".git")
-        cmdStr = "/usr/bin/git --git-dir=\"%s\" --work-tree=\"%s\" %s" % (gitDir, dirName, command)
+        cmdStr = "git --git-dir=\"%s\" --work-tree=\"%s\" %s" % (gitDir, dirName, command)
         return FmUtil.shellCall(cmdStr)
 
     @staticmethod
     def svnGetUrl(dirName):
-        ret = FmUtil.cmdCall("/usr/bin/svn", "info", dirName)
+        ret = FmUtil.cmdCall("svn", "info", dirName)
         m = re.search("^URL: (.*)$", ret, re.M)
         return m.group(1)
 
@@ -1990,7 +1990,7 @@ class FmUtil:
         LDD_STYLE2 = re.compile(r'^\t(.+?)\s\(0x.+?\)$')
 
         try:
-            raw_output = FmUtil.cmdCall("/usr/bin/ldd", "--", binFile)
+            raw_output = FmUtil.cmdCall("ldd", "--", binFile)
         except subprocess.CalledProcessError as e:
             if 'not a dynamic executable' in e.output:
                 raise Exception("not a dynamic executable")
@@ -2159,7 +2159,7 @@ class TmpHttpDirFs:
         self._tmppath = tempfile.mkdtemp()
 
         try:
-            cmd = ["/usr/bin/httpdirfs"]
+            cmd = ["httpdirfs"]
             if options is not None:
                 cmd.append("-o")
                 cmd.append(options)

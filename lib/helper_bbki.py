@@ -95,7 +95,7 @@ class BbkiWrapper:
             return []
 
         ret = []
-        for line in FmUtil.cmdCall("/usr/bin/os-prober").split("\n"):
+        for line in FmUtil.cmdCall("os-prober").split("\n"):
             itemList = line.split(":")
             if len(itemList) != 4:
                 continue

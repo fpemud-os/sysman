@@ -154,7 +154,7 @@ class FmSysChecker:
         if not deepCheck:
             for hdd in tlist:
                 with self.infoPrinter.printInfoAndIndent("- Doing basic hardware check for %s(%s)" % (hdd, FmUtil.getBlkDevModel(hdd))):
-                    rc, out = FmUtil.cmdCallWithRetCode("/usr/sbin/smartctl", "-H", hdd)
+                    rc, out = FmUtil.cmdCallWithRetCode("smartctl", "-H", hdd)
                     if re.search("failure", out, re.I) is not None:
                         self.infoPrinter.printError("HDD health check failed! Run \"smartctl -H %s\" to do future inspection!" % (hdd))
         else:
@@ -162,7 +162,7 @@ class FmSysChecker:
                 tlist2 = list(tlist)
                 for hdd in tlist:
                     try:
-                        rc, out = FmUtil.cmdCallWithRetCode("/usr/sbin/smartctl", "-t", "long", hdd)
+                        rc, out = FmUtil.cmdCallWithRetCode("smartctl", "-t", "long", hdd)
                         if rc == 0:
                             m = re.search("Please wait ([0-9]+) minutes for test to complete\\.", out, re.M)
                             if m is None:
@@ -174,7 +174,7 @@ class FmSysChecker:
                             raise Exception("")
                     except:
                         self.infoPrinter.printError("Failed to start test on %s(%s)!" % (hdd, FmUtil.getBlkDevModel(hdd)))
-                        FmUtil.cmdCallIgnoreResult("/usr/sbin/smartctl", "-X", hdd)
+                        FmUtil.cmdCallIgnoreResult("smartctl", "-X", hdd)
                         tlist2.remove(hdd)
 
             with self.infoPrinter.printInfoAndIndent("- Waiting..."):
@@ -184,7 +184,7 @@ class FmSysChecker:
                         time.sleep(60 * 5)
                         min_progress = None
                         for hdd in list(tlist2):
-                            out = FmUtil.cmdCall("/usr/sbin/smartctl", "-l", "selftest", hdd)
+                            out = FmUtil.cmdCall("smartctl", "-l", "selftest", hdd)
                             if re.search("# 1\\s+Extended offline\\s+Completed without error\\s+.*", out, re.M) is not None:
                                 self.infoPrinter.printInfo("Test on %s finished." % (hdd))
                                 tlist2.remove(hdd)
@@ -202,7 +202,7 @@ class FmSysChecker:
                             last_progress = min_progress
                 finally:
                     for hdd in tlist2:
-                        FmUtil.cmdCallIgnoreResult("/usr/sbin/smartctl", "-X", hdd)
+                        FmUtil.cmdCallIgnoreResult("smartctl", "-X", hdd)
 
     def _checkCooling(self):
         # FIXME: check temperature event, too high, cpu throttle, gpu throttle... (_checkCooling)
@@ -309,7 +309,7 @@ class FmSysChecker:
         #     self.infoPrinter.printError("CPU vendor is %s, can not check cpu-freq driver.")
         #     return
 
-        # flist = FmUtil.shellCall("/usr/bin/find /sys/devices/system/cpu/cpufreq -name scaling_driver").split("\n")
+        # flist = FmUtil.shellCall("find /sys/devices/system/cpu/cpufreq -name scaling_driver").split("\n")
         # flist = [x for x in flist if x != ""]
         # if len(flist) != hwInfo.hwDict["cpu"]["cores"]:
         #     self.infoPrinter.printError("Incorrent number of scaling_driver files (%d/%d) found in sysfs." % (hwInfo.hwDict["cpu"]["cores"], len(flist)))
@@ -1001,9 +1001,9 @@ class FmSysChecker:
 
     def _checkNews(self):
         # check unread news
-        if FmUtil.cmdCall("/usr/bin/eselect", "news", "count") != "0":
+        if FmUtil.cmdCall("eselect", "news", "count") != "0":
             if self.bAutoFix:
-                FmUtil.cmdCallIgnoreResult("/usr/bin/eselect", "news", "read", "all")
+                FmUtil.cmdCallIgnoreResult("eselect", "news", "read", "all")
             else:
                 self.infoPrinter.printError("There are unread portage news items, please use \"eselect news read all\".")
 

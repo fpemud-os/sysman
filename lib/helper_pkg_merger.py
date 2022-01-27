@@ -16,29 +16,29 @@ from fm_param import FmConst
 class PkgMerger:
 
     def touchPortageTree(self):
-        FmUtil.cmdCallIgnoreResult("/usr/bin/emerge", "-s", "non-exist-package")
+        FmUtil.cmdCallIgnoreResult("emerge", "-s", "non-exist-package")
 
     def fetchPkg(self, pkgName):
         with _FakeUsrSrcLinuxDirectory():
-            while self._updateUseFlag("/usr/bin/emerge -p %s" % (pkgName)):
+            while self._updateUseFlag("emerge -p %s" % (pkgName)):
                 pass
-            FmUtil.cmdExec("/usr/bin/emerge", "--fetchonly", pkgName)
+            FmUtil.cmdExec("emerge", "--fetchonly", pkgName)
 
     def installPkg(self, pkgName):
         with _FakeUsrSrcLinuxDirectory():
-            while self._updateUseFlag("/usr/bin/emerge -p %s" % (pkgName)):
+            while self._updateUseFlag("emerge -p %s" % (pkgName)):
                 pass
-            FmUtil.cmdExec("/usr/bin/emerge", pkgName)
+            FmUtil.cmdExec("emerge", pkgName)
 
     def reInstallPkg(self, pkgNameVer):
         with _FakeUsrSrcLinuxDirectory():
-            FmUtil.cmdCallIgnoreResult("/usr/bin/emerge", "-1", "=%s" % (pkgNameVer))
+            FmUtil.cmdCallIgnoreResult("emerge", "-1", "=%s" % (pkgNameVer))
 
     def emergePkg(self, cmd, autouse=True):
         with _FakeUsrSrcLinuxDirectory():
-            while autouse and self._updateUseFlag("/usr/bin/emerge -p %s" % (cmd)):
+            while autouse and self._updateUseFlag("emerge -p %s" % (cmd)):
                 pass
-            FmUtil.shellExec("/usr/bin/emerge %s" % (cmd))
+            FmUtil.shellExec("emerge %s" % (cmd))
 
     # this function is not used
     def smartEmergePkg(self, pretendCmd, realCmd, cfgProtect=True, quietFail=False, pkgName=None):
@@ -50,7 +50,7 @@ class PkgMerger:
             cpStr = "CONFIG_PROTECT=\"-* /.fpemud-refsystem\""          # FIXME
         else:
             cpStr = ""
-        pretendCmd2 = "/usr/bin/emerge -p %s" % (pretendCmd)
+        pretendCmd2 = "emerge -p %s" % (pretendCmd)
         realCmd2 = "%s /usr/bin/emerge %s" % (cpStr, realCmd)
 
         rc, out = FmUtil.shellCallWithRetCode(pretendCmd2)
@@ -86,12 +86,12 @@ class PkgMerger:
                             # this is the target package
                             FmUtil.shellExec(realCmd2)
                         else:
-                            rc2, out2 = FmUtil.shellCallWithRetCode("/usr/bin/emerge -p -uN -1 =%s" % (pkgAtom))
+                            rc2, out2 = FmUtil.shellCallWithRetCode("emerge -p -uN -1 =%s" % (pkgAtom))
                             if rc2 != 0:
                                 if "Multiple package instances within a single package slot" in out2:
                                     # ignore slot conflict package currently
                                     continue
-                            FmUtil.shellExec("/usr/bin/emerge -uN -1 =%s" % (pkgAtom))
+                            FmUtil.shellExec("emerge -uN -1 =%s" % (pkgAtom))
             else:
                 # we need user intervention
                 FmUtil.shellExec(realCmd2)
@@ -130,11 +130,11 @@ class PkgMerger:
 
                             if rc2 != 0:
                                 # we need this specific package version
-                                FmUtil.shellExec("/usr/bin/emerge -uN -1 =%s" % (pkgAtom))
+                                FmUtil.shellExec("emerge -uN -1 =%s" % (pkgAtom))
                             else:
                                 # alternative package version exists
                                 try:
-                                    FmUtil.shellExec("/usr/bin/emerge -uN -1 =%s" % (pkgAtom))
+                                    FmUtil.shellExec("emerge -uN -1 =%s" % (pkgAtom))
                                 except subprocess.CalledProcessError as e:
                                     # terminated by signal, no further processing needed
                                     if e.returncode > 128:
@@ -157,7 +157,7 @@ class PkgMerger:
                                     break
 
     def unmergePkg(self, pkgName):
-        FmUtil.cmdExec("/usr/bin/emerge", "-C", pkgName)
+        FmUtil.cmdExec("emerge", "-C", pkgName)
 
     def _updateUseFlag(self, pretendCmd2):
         fn = os.path.join(FmConst.portageCfgUseDir, "99-autouse")
@@ -252,9 +252,9 @@ class _FakeUsrSrcLinuxDirectory:
             with gzip.open("/proc/config.gz", "rb") as f_in:
                 with open(os.path.join(dstDir, ".config"), "wb") as f_out:
                     shutil.copyfileobj(f_in, f_out)
-            version = FmUtil.shellCall("/usr/bin/uname -r | /usr/bin/cut -d '.' -f 1")
-            patchlevel = FmUtil.shellCall("/usr/bin/uname -r | /usr/bin/cut -d '.' -f 2")
-            sublevel = FmUtil.shellCall("/usr/bin/uname -r | /usr/bin/cut -d '.' -f 3")
+            version = FmUtil.shellCall("uname -r | /usr/bin/cut -d '.' -f 1")
+            patchlevel = FmUtil.shellCall("uname -r | /usr/bin/cut -d '.' -f 2")
+            sublevel = FmUtil.shellCall("uname -r | /usr/bin/cut -d '.' -f 3")
 
         with open(os.path.join(dstDir, "Makefile"), "w") as f:
             f.write("# Faked by fpemud-refsystem to fool linux-info.eclass\n")

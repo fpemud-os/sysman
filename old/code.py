@@ -193,9 +193,9 @@ class _InterProcessCounter:
             #     # 1. no way to fsck ext4 root partition when it's on-line
             #     # 2. fscking vfat partition when it's on-line always finds dirty-bit
             #     if self.bAutoFix:
-            #         fatFsckCmd = "/usr/sbin/fsck.vfat -a"
+            #         fatFsckCmd = "fsck.vfat -a"
             #     else:
-            #         fatFsckCmd = "/usr/sbin/fsck.vfat -n"
+            #         fatFsckCmd = "fsck.vfat -n"
 
             #     if isinstance(layout, FmStorageLayoutBiosSimple):
             #         pass

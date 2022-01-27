@@ -76,7 +76,7 @@ class SambaPassdbFile:
 
     def __init__(self):
         self.filename = "/var/lib/samba/private/passdb.tdb"
-        if not os.path.exists("/usr/bin/pdbedit") or not os.path.exists("/usr/bin/tdbtool"):
+        if not os.path.exists("pdbedit") or not os.path.exists("tdbtool"):
             self.filename = None              # samba is not installed
         if not os.path.exists("/etc/samba/smb.conf"):
             self.filename = None              # samba is not being used
@@ -86,7 +86,7 @@ class SambaPassdbFile:
             return False
         if not os.path.exists(self.filename):
             return False
-        ret = FmUtil.cmdCall("/usr/bin/pdbedit", "-d", "0", "-b", "tdbsam:%s" % (self.filename), "-L")
+        ret = FmUtil.cmdCall("pdbedit", "-d", "0", "-b", "tdbsam:%s" % (self.filename), "-L")
         return re.search("^%s:[0-9]+:$" % (username), ret, re.M) is not None
 
     def setUser(self, username, password):
@@ -101,21 +101,21 @@ class SambaPassdbFile:
         inStr = ""
         inStr += "%s\n" % (password)
         inStr += "%s\n" % (password)
-        FmUtil.cmdCallWithInput("/usr/bin/pdbedit", inStr, "-d", "0", "-b", "tdbsam:%s" % (self.filename), "-a", username, "-t")
+        FmUtil.cmdCallWithInput("pdbedit", inStr, "-d", "0", "-b", "tdbsam:%s" % (self.filename), "-a", username, "-t")
 
     def removeUser(self, username):
         """do nothing if the user doesn't exist"""
 
         if not self.hasUser(username):
             return
-        FmUtil.cmdCall("/usr/bin/pdbedit", "-d", "0", "-b", "tdbsam:%s" % (self.filename), "-x", username)
+        FmUtil.cmdCall("pdbedit", "-d", "0", "-b", "tdbsam:%s" % (self.filename), "-x", username)
 
     def _tdbFileCreate(self):
         FmUtil.ensureAncesterDir(self.filename)
         inStr = ""
         inStr += "create %s\n" % (self.filename)
         inStr += "quit\n"
-        FmUtil.cmdCallWithInput("/usr/bin/tdbtool", inStr)
+        FmUtil.cmdCallWithInput("tdbtool", inStr)
 
 
 class FpemudVpnServerAccountFile:

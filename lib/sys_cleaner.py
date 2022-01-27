@@ -105,7 +105,7 @@ class FmSysCleaner:
         # clean distfiles
         # sync down distfiles directory quietly since there's only deletion
         self.infoPrinter.printInfo(">> Cleaning %s..." % (FmConst.distDir))
-        self._execAndSyncDownQuietly(buildServer, "/usr/bin/eclean-dist", directory=FmConst.distDir)
+        self._execAndSyncDownQuietly(buildServer, "eclean-dist", directory=FmConst.distDir)
         print("")
 
         # end remote build

@@ -236,7 +236,7 @@ class PkgWarehouse:
         return ret
 
     def __pythonGetDefaultTargetsUseFlag(self):
-        rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/eselect", "python", "show")
+        rc, out = FmUtil.cmdCallWithRetCode("eselect", "python", "show")
         if rc == 0:
             return "python_targets_" + out.replace(".", "_")
         else:
@@ -294,7 +294,7 @@ class PkgWarehouse:
         assert False
 
     def __rubyGetDefaultTargetsUseFlag(self):
-        rc, out = FmUtil.cmdCallWithRetCode("/usr/bin/eselect", "ruby", "show")
+        rc, out = FmUtil.cmdCallWithRetCode("eselect", "ruby", "show")
         if rc == 0:
             m = re.search("ruby[0-9]+", out, re.M)
             return "ruby_targets_" + m.group(0)

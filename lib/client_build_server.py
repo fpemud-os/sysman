@@ -192,7 +192,7 @@ class BuildServer:
         stunnelCfgFile, newPort, proc = self._createStunnelProcess(resp["return"]["rsync-port"])
         try:
             cmd = ""
-            cmd += "/usr/bin/rsync -a -z -hhh --delete --delete-excluded --partial --info=progress2 "
+            cmd += "rsync -a -z -hhh --delete --delete-excluded --partial --info=progress2 "
             for fn in self._ignoredPatternsWhenSyncUp():
                 cmd += "-f '- %s' " % (fn)
             cmd += "-f '+ /bin' "                                       # /bin may be a symlink or directory
@@ -275,14 +275,14 @@ class BuildServer:
 
         # "-t" can get Ctrl+C controls remote process
         # XXXXX so that we forward signal to remote process, FIXME
-        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, " ".join(args2))
+        cmd = "ssh -t -e none -p %d -F %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, " ".join(args2))
         FmUtil.shellExec(cmd)
 
     async def asyncStartSshExec(self, cmd, *kargs, loop=None):
         assert self.wSshPort is not None
         assert loop is not None
 
-        cmd = "/usr/bin/ssh -t -e none -p %d -F %s %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd, " ".join(kargs))
+        cmd = "ssh -t -e none -p %d -F %s %s %s %s" % (self.wSshPort, self.cfgFile, self.hostname, cmd, " ".join(kargs))
         proc = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT, loop=loop)
         self.asyncJobCount += 1
         return (proc, proc.stdout)
@@ -324,7 +324,7 @@ class BuildServer:
         stunnelCfgFile, newPort, proc = self._createStunnelProcess(self.wRsyncPort)
         try:
             cmd = ""
-            cmd += "/usr/bin/rsync -a -z -hhh --delete --info=progress2 "
+            cmd += "rsync -a -z -hhh --delete --info=progress2 "
             cmd += "-f '+ /boot' "
             cmd += "-f '+ /boot/config-*' "
             cmd += "-f '+ /boot/initramfs-*' "
@@ -348,7 +348,7 @@ class BuildServer:
         stunnelCfgFile, newPort, proc = self._createStunnelProcess(self.wRsyncPort)
         try:
             cmd = ""
-            cmd += "/usr/bin/rsync -a -z -hhh --delete --info=progress2 "
+            cmd += "rsync -a -z -hhh --delete --info=progress2 "
             for fn in self._ignoredPatternsWhenSyncDown():
                 cmd += "-f '- %s' " % (fn)
             cmd += "-f '+ /bin' "                                       # /bin may be a symlink or directory
@@ -388,7 +388,7 @@ class BuildServer:
         stunnelCfgFile, newPort, proc = self._createStunnelProcess(self.wRsyncPort)
         try:
             cmd = ""
-            cmd += "/usr/bin/rsync -a -z -hhh --delete %s " % ("--quiet" if quiet else "--info=progress2")
+            cmd += "rsync -a -z -hhh --delete %s " % ("--quiet" if quiet else "--info=progress2")
             for fn in self._ignoredPatternsWhenSyncDown():
                 cmd += "-f '- %s' " % (fn)
             if True:
@@ -413,7 +413,7 @@ class BuildServer:
         stunnelCfgFile, newPort, proc = self._createStunnelProcess(self.wRsyncPort)
         try:
             cmd = ""
-            cmd += "/usr/bin/rsync -a -z -hhh --delete %s " % ("--quiet" if quiet else "--info=progress2")
+            cmd += "rsync -a -z -hhh --delete %s " % ("--quiet" if quiet else "--info=progress2")
             for fn in self._ignoredPatternsWhenSyncDown():
                 cmd += "-f '- %s' " % (fn)
             for wildcard in wildcardList:
@@ -462,7 +462,7 @@ class BuildServer:
             with open(stunnelCfgFile, "w") as f:
                 f.write(buf)
 
-            proc = subprocess.Popen("/usr/sbin/stunnel %s 2>/dev/null" % (stunnelCfgFile), shell=True)
+            proc = subprocess.Popen("stunnel %s 2>/dev/null" % (stunnelCfgFile), shell=True)
             FmUtil.waitTcpService("0.0.0.0", newPort)
 
             return (stunnelCfgFile, newPort, proc)

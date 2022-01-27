@@ -292,8 +292,8 @@ class RescueDiskBuilder:
 
                 # install grub
                 if arch == "amd64":
-                    FmUtil.shellCall("/usr/sbin/grub-install --removable --target=x86_64-efi --boot-directory=%s --efi-directory=%s --no-nvram" % (mp.mountpoint, mp.mountpoint))
-                    FmUtil.shellCall("/usr/sbin/grub-install --removable --target=i386-pc --boot-directory=%s %s" % (mp.mountpoint, self._devPath))
+                    FmUtil.shellCall("grub-install --removable --target=x86_64-efi --boot-directory=%s --efi-directory=%s --no-nvram" % (mp.mountpoint, mp.mountpoint))
+                    FmUtil.shellCall("grub-install --removable --target=i386-pc --boot-directory=%s %s" % (mp.mountpoint, self._devPath))
                     # src = grub_install.Source(base_dir=sp)
                     # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
                     # grub_install.install(src, dst, ["i386-pc", "x86_64_efi"])
