@@ -1164,6 +1164,7 @@ class FmSysChecker:
         if True:
             obj = strict_fsh.RootFs()
             wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_DATA))
+            wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_CACHE))
             wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER))
             wilecards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_BOOT))
             wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_RUNTIME))
@@ -1253,7 +1254,6 @@ class FmSysChecker:
 
         # get wildcards
         wildcards = rootFs.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM)
-        wildcards = strict_fsh.merge_wildcards(wildcards, rootFs.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_DATA))
 
         # filter wildcards: filter layout files
         wildcards = strict_fsh.deduct_wildcards(wildcards, rootFs.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_LAYOUT))
