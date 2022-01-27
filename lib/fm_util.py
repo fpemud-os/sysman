@@ -58,7 +58,7 @@ class FmUtil:
         FmUtil.shellCall("sha512sum %s > %s" % (sqfsFile, sqfsSumFile))
 
         # remove directory prefix in rootfs.sqfs.sha512, sha512sum sucks
-        FmUtil.cmdCall("/bin/sed", "-i", "s#%s/\\?##" % (dstDir), sqfsSumFile)
+        FmUtil.cmdCall("sed", "-i", "s#%s/\\?##" % (dstDir), sqfsSumFile)
 
         return (sqfsFile, sqfsSumFile)
 
@@ -352,14 +352,14 @@ class FmUtil:
     @staticmethod
     def path2SwapServiceName(path):
         path = path[1:]                                     # path[1:] is to remove the starting "/"
-        path = FmUtil.cmdCall("/bin/systemd-escape", path)
+        path = FmUtil.cmdCall("systemd-escape", path)
         path = path + ".swap"
         return path
 
     @staticmethod
     def swapServiceName2Path(serviceName):
         serviceName = serviceName[:-5]                          # item[:-5] is to remove ".swap"
-        path = FmUtil.cmdCall("/bin/systemd-escape", "-u", serviceName)
+        path = FmUtil.cmdCall("systemd-escape", "-u", serviceName)
         path = os.path.join("/", path)
         return path
 
@@ -599,7 +599,7 @@ class FmUtil:
 
     @staticmethod
     def devPathTrivialToByUuid(devPath):
-        ret = FmUtil.cmdCall("/sbin/blkid", devPath)
+        ret = FmUtil.cmdCall("blkid", devPath)
         m = re.search("UUID=\"(\\S*)\"", ret, re.M)
         if m is None:
             raise Exception("the specified device has no UUID")
@@ -626,7 +626,7 @@ class FmUtil:
 
     @staticmethod
     def getBlkDevModel(devPath):
-        ret = FmUtil.cmdCall("/bin/lsblk", "-o", "MODEL", "-n", devPath)
+        ret = FmUtil.cmdCall("lsblk", "-o", "MODEL", "-n", devPath)
         ret = ret.strip("\r\n")
         if ret == "":
             return "unknown"
@@ -635,14 +635,14 @@ class FmUtil:
 
     @staticmethod
     def getBlkDevSize(devPath):
-        out = FmUtil.cmdCall("/sbin/blockdev", "--getsz", devPath)
+        out = FmUtil.cmdCall("blockdev", "--getsz", devPath)
         return int(out) * 512        # unit is byte
 
     @staticmethod
     def getBlkDevUuid(devPath):
         """UUID is also called FS-UUID, PARTUUID is another thing"""
 
-        ret = FmUtil.cmdCall("/sbin/blkid", devPath)
+        ret = FmUtil.cmdCall("blkid", devPath)
         m = re.search("UUID=\"(\\S*)\"", ret, re.M)
         if m is not None:
             return m.group(1)
@@ -654,7 +654,7 @@ class FmUtil:
         if not FmUtil.devPathIsDiskOrPartition(devPath):
             devPath = FmUtil.devPathPartitionToDisk(devPath)
 
-        ret = FmUtil.cmdCall("/sbin/blkid", "-o", "export", devPath)
+        ret = FmUtil.cmdCall("blkid", "-o", "export", devPath)
         m = re.search("^PTTYPE=(\\S+)$", ret, re.M)
         if m is not None:
             return m.group(1)
@@ -663,7 +663,7 @@ class FmUtil:
 
     @staticmethod
     def getBlkDevFsType(devPath):
-        ret = FmUtil.cmdCall("/sbin/blkid", "-o", "export", devPath)
+        ret = FmUtil.cmdCall("blkid", "-o", "export", devPath)
         m = re.search("^TYPE=(\\S+)$", ret, re.M)
         if m is not None:
             return m.group(1).lower()
@@ -822,13 +822,13 @@ class FmUtil:
     def getDirFreeSpace(dirname):
         """Returns free space in MB"""
 
-        ret = FmUtil.cmdCall("/bin/df", "-m", dirname)
+        ret = FmUtil.cmdCall("df", "-m", dirname)
         m = re.search("^.* + [0-9]+ +[0-9]+ +([0-9]+) + [0-9]+% .*$", ret, re.M)
         return int(m.group(1))
 
     @staticmethod
     def getMountDeviceForPath(pathname):
-        buf = FmUtil.cmdCall("/bin/mount")
+        buf = FmUtil.cmdCall("mount")
         for line in buf.split("\n"):
             m = re.search("^(.*) on (.*) type ", line)
             if m is not None and m.group(2) == pathname:
@@ -1001,7 +1001,7 @@ class FmUtil:
     def waitTcpService(ip, port):
         ip = ip.replace(".", "\\.")
         while True:
-            out = FmUtil.cmdCall("/bin/netstat", "-lant")
+            out = FmUtil.cmdCall("netstat", "-lant")
             m = re.search("tcp +[0-9]+ +[0-9]+ +(%s:%d) +.*" % (ip, port), out)
             if m is not None:
                 return
@@ -1231,7 +1231,7 @@ class FmUtil:
         # run pkg_extra_files(), get the result
         # FIXME: not the context only have CHOST, it lacks a lot
         funcContent = "\n".join(lineList[startIdx:endIdx+1])
-        ret = FmUtil.cmdCall("/bin/bash", "-c", "%s\nexport CHOST=%s\npkg_extra_files" % (funcContent, FmUtil.portageGetChost()))
+        ret = FmUtil.cmdCall("bash", "-c", "%s\nexport CHOST=%s\npkg_extra_files" % (funcContent, FmUtil.portageGetChost()))
 
         # convert the result to wildcards
         wildcards = []
@@ -1416,7 +1416,7 @@ class FmUtil:
         fileSet = set()
 
         if True:
-            cmdStr = r"/bin/cat /var/db/pkg/*/*/CONTENTS "
+            cmdStr = r"cat /var/db/pkg/*/*/CONTENTS "
             cmdStr += r'| /bin/sed -e "s:^obj \(.*\) [[:xdigit:]]\+ [[:digit:]]\+$:\1:" '
             cmdStr += r'| /bin/sed -e "s:^sym \(.*\) -> .* .*$:\1:" '
             cmdStr += r'| /bin/sed -e "s:^dir \(.*\)$:\1:" '
@@ -1971,7 +1971,7 @@ class FmUtil:
     @staticmethod
     def getDevPathListForFixedHdd():
         ret = []
-        for line in FmUtil.cmdCall("/bin/lsblk", "-o", "NAME,TYPE", "-n").split("\n"):
+        for line in FmUtil.cmdCall("lsblk", "-o", "NAME,TYPE", "-n").split("\n"):
             m = re.fullmatch("(\\S+)\\s+(\\S+)", line)
             if m is None:
                 continue
@@ -2182,7 +2182,7 @@ class TmpHttpDirFs:
         return self._tmppath
 
     def close(self):
-        subprocess.run(["/bin/umount", self._tmppath], check=True)
+        subprocess.run(["umount", self._tmppath], check=True)
         os.rmdir(self._tmppath)
 
 
@@ -2193,7 +2193,7 @@ class TmpMount:
         self._tmppath = tempfile.mkdtemp()
 
         try:
-            cmd = ["/bin/mount"]
+            cmd = ["mount"]
             if options is not None:
                 cmd.append("-o")
                 cmd.append(options)
@@ -2215,7 +2215,7 @@ class TmpMount:
         return self._tmppath
 
     def close(self):
-        subprocess.run(["/bin/umount", self._tmppath], check=True, universal_newlines=True)
+        subprocess.run(["umount", self._tmppath], check=True, universal_newlines=True)
         os.rmdir(self._tmppath)
 
 
@@ -2248,13 +2248,13 @@ class DirListMount:
             if not os.path.exists(dir):
                 os.makedirs(dir)
             for i in range(1, len(item)):
-                mcmd = "/bin/mount %s" % (item[i])
+                mcmd = "mount %s" % (item[i])
                 rc, out = FmUtil.shellCallWithRetCode(mcmd)
                 if rc == 0:
                     self.okList.insert(0, dir)
                 else:
                     for dir2 in self.okList:
-                        FmUtil.cmdCallIgnoreResult("/bin/umount", "-l", dir2)
+                        FmUtil.cmdCallIgnoreResult("umount", "-l", dir2)
                     raise Exception("error when executing \"%s\"" % (mcmd))
 
     def __enter__(self):
@@ -2262,7 +2262,7 @@ class DirListMount:
 
     def __exit__(self, type, value, traceback):
         for d in self.okList:
-            FmUtil.cmdCallIgnoreResult("/bin/umount", "-l", d)
+            FmUtil.cmdCallIgnoreResult("umount", "-l", d)
 
 
 class StructUtil:

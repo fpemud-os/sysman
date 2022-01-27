@@ -985,7 +985,7 @@ class EbuildOverlays:
         srcProfileDir = os.path.join(overlayFilesDir, "profiles")
         profileDir = os.path.join(overlayDir, "profiles")
         if os.path.exists(srcProfileDir):
-            FmUtil.cmdCall("/bin/cp", "-r", srcProfileDir, profileDir)
+            FmUtil.cmdCall("cp", "-r", srcProfileDir, profileDir)
             robust_layer.simple_fops.rm(os.path.join(profileDir, "profiles.desc"))
         else:
             os.mkdir(profileDir)
@@ -1023,7 +1023,7 @@ class EbuildOverlays:
         # refresh profile directory
         srcProfileDir = os.path.join(overlayFilesDir, "profiles")
         if os.path.exists(srcProfileDir):
-            FmUtil.cmdCall("/bin/cp", "-r", srcProfileDir, profileDir)
+            FmUtil.cmdCall("cp", "-r", srcProfileDir, profileDir)
             robust_layer.simple_fops.rm(os.path.join(profileDir, "profiles.desc"))
         else:
             os.mkdir(profileDir)

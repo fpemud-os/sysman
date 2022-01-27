@@ -63,13 +63,13 @@ class FmSwapManager:
         os.unlink(os.path.join("/etc/systemd/system", serviceName))
 
     def _enableSwapService(self, path, serviceName):
-        FmUtil.cmdCall("/bin/systemctl", "enable", serviceName)
+        FmUtil.cmdCall("systemctl", "enable", serviceName)
         if self.param.runMode == "prepare":
             assert False
         elif self.param.runMode == "setup":
-            FmUtil.cmdCall("/sbin/swapon", path)
+            FmUtil.cmdCall("swapon", path)
         elif self.param.runMode == "normal":
-            FmUtil.cmdCall("/bin/systemctl", "start", serviceName)
+            FmUtil.cmdCall("systemctl", "start", serviceName)
         else:
             assert False
 
@@ -77,12 +77,12 @@ class FmSwapManager:
         if self.param.runMode == "prepare":
             assert False
         elif self.param.runMode == "setup":
-            FmUtil.cmdCall("/sbin/swapoff", path)
+            FmUtil.cmdCall("swapoff", path)
         elif self.param.runMode == "normal":
-            FmUtil.cmdCall("/bin/systemctl", "stop", serviceName)
+            FmUtil.cmdCall("systemctl", "stop", serviceName)
         else:
             assert False
-        FmUtil.cmdCall("/bin/systemctl", "disable", serviceName)
+        FmUtil.cmdCall("systemctl", "disable", serviceName)
 
     def __genSwapServFile(self, swapfile):
         buf = ""

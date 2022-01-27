@@ -1169,7 +1169,7 @@ class FmSysChecker:
             wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_RUNTIME))
 
         # get file list for this package
-        cmdStr = r"/bin/cat /var/db/pkg/%s/CONTENTS " % (pkgNameVer)
+        cmdStr = r"cat /var/db/pkg/%s/CONTENTS " % (pkgNameVer)
         cmdStr += r'| /bin/sed -e "s:^obj \(.*\) [[:xdigit:]]\+ [[:digit:]]\+$:\1:" '
         cmdStr += r'| /bin/sed -e "s:^sym \(.*\) -> .* .*$:\1:" '
         cmdStr += r'| /bin/sed -e "s:^dir \(.*\)$:\1:" '
