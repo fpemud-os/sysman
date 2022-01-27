@@ -704,7 +704,7 @@ class FmMain:
         wildcards = []
         wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_DATA))
         wildcards = strict_fsh.deduct_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_CACHE))
-        wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER_DATA))
+        wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER))
         wildcards = strict_fsh.deduct_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER_CACHE))
         wildcards = strict_fsh.deduct_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER_TRASH))
 
