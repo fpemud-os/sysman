@@ -94,6 +94,7 @@ class RescueDiskBuilder:
         ftGenkernel = gstage4.target_features.UseGenkernel()
         ftOpenrc = gstage4.target_features.UseOpenrc()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
+        ftUsrMerge = gstage4.target_features.UsrMerge()
         ftPerferGnu = gstage4.target_features.PreferGnuAndGpl()
         ftSshServer = gstage4.target_features.SshServer()
         ftChronyDaemon = gstage4.target_features.ChronyDaemon()
@@ -114,6 +115,7 @@ class RescueDiskBuilder:
         ts = gstage4.TargetSettings()
         ts.arch = arch
         ts.profile = self._archInfoDict[arch][2]
+        ftUsrMerge.update_target_settings(ts)
         ftPortage.update_target_settings(ts)
         ftGenkernel.update_target_settings(ts)
         ftOpenrc.update_target_settings(ts)
@@ -152,6 +154,7 @@ class RescueDiskBuilder:
             scriptList = [
                 Stage4ScriptUseRobustLayer(gentooRepo.get_datadir_path())
             ]
+            ftUsrMerge.update_preprocess_script_list_for_update_world(scriptList)
 
             installList = []
             if c.is_enabled():
