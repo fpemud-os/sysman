@@ -138,6 +138,13 @@ def getArgParser():
     parser2.set_defaults(op="build-rescue-disk")
     parser2.add_argument("devpath")
 
+    parser2 = subparsers.add_parser("build-install-disk", help="Build a install disk")
+    parser2.set_defaults(op="build-install-disk")
+    parser2.add_argument("devpath")
+
+    parser2 = subparsers.add_parser("backup", help="Do backup")
+    parser2.set_defaults(op="backup")
+
     ###########################################################################
 
     parser2 = subparsers.add_parser("log-to-memory", help="Log to memory")
@@ -242,6 +249,10 @@ try:
                 ret = FmMain(param).uninstallRescueOs()
             elif args.op == "build-rescue-disk":
                 ret = FmMain(param).buildRescueDisk(args.devpath)
+            elif args.op == "build-install-disk":
+                ret = FmMain(param).buildInstallDisk(args.devpath)
+            elif args.op == "backup":
+                ret = FmMain(param).backup(args.devpath)
             else:
                 assert False
 

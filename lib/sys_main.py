@@ -680,6 +680,12 @@ class FmMain:
 
         return 0
 
+    def buildInstallDisk(self, devPath):
+        pass
+
+    def backup(self):
+        pass
+
     def logToMemory(self):
         assert False
 
