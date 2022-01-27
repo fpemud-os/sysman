@@ -13,8 +13,7 @@ import robust_layer.simple_fops
 from fm_util import BootDirWriter, FmUtil
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
-from helper_build_rescueos import RescueOsBuilder
-from helper_build_rescuecd import RescueDiskBuilder
+from helper_rescue import RescueCdBuilder
 from helper_bbki import BbkiWrapper
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
@@ -572,23 +571,25 @@ class FmMain:
         print("")
 
         # build
-        builder = RescueOsBuilder(self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo())
+        bbkiObj = BbkiWrapper()
+        builder = RescueCdBuilder(RescueCdBuilder.DEV_TYPE_RESCUE_OS,
+                                  self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                  rescue_os_spec=bbkiObj.rescue_os_spec)
 
         self.infoPrinter.printInfo(">> Downloading files...")
         builder.downloadFiles()
         print("")
 
         self.infoPrinter.printInfo(">> Building Rescue OS...")
-        builder.buildRescueOs()
+        builder.buildTargetSystem("amd64")
         print("")
 
         # install
         layout = strict_hdds.get_current_storage_layout()
-        bbkiObj = BbkiWrapper()
         with BootDirWriter(layout):
             try:
                 self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
-                builder.installRescueOs(bbkiObj.rescue_os_spec)
+                builder.exportTargetSystem()
                 print("")
 
                 self.infoPrinter.printInfo(">> Updating boot-loader...")
@@ -642,19 +643,17 @@ class FmMain:
 
         # determine device type
         if devPath.endswith(".iso"):
-            devType = RescueDiskBuilder.DEV_TYPE_ISO
+            devType = RescueCdBuilder.DEV_TYPE_ISO
         elif re.fullmatch("/dev/sd.*", devPath) is not None:
-            devType = RescueDiskBuilder.DEV_TYPE_USB_STICK
+            devType = RescueCdBuilder.DEV_TYPE_USB_STICK
         elif re.fullmatch("/dev/sr.*", devPath) is not None:
-            devType = RescueDiskBuilder.DEV_TYPE_CDROM
+            devType = RescueCdBuilder.DEV_TYPE_CDROM
         else:
             raise Exception("target is not supported")
 
         # build
-        builder = RescueDiskBuilder(devType, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
-                                    FmConst.rescueDiskName, FmConst.rescueDiskLabel,
-                                    dev_path=devPath)
-        builder.check()
+        builder = RescueCdBuilder(devType, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                  dev_path=devPath, disk_name=FmConst.rescueDiskName, disk_label=FmConst.rescueDiskLabel)
 
         self.infoPrinter.printInfo(">> Downloading files...")
         builder.downloadFiles()
@@ -668,11 +667,11 @@ class FmMain:
         # builder.buildTargetSystem("arm64")
         print("")
 
-        if devType == RescueDiskBuilder.DEV_TYPE_ISO:
+        if devType == RescueCdBuilder.DEV_TYPE_ISO:
             self.infoPrinter.printInfo(">> Creating %s..." % (devPath))
-        elif devType == RescueDiskBuilder.DEV_TYPE_USB_STICK:
+        elif devType == RescueCdBuilder.DEV_TYPE_USB_STICK:
             self.infoPrinter.printInfo(">> Installing into USB stick %s..." % (devPath))
-        elif devType == RescueDiskBuilder.DEV_TYPE_CDROM:
+        elif devType == RescueCdBuilder.DEV_TYPE_CDROM:
             self.infoPrinter.printInfo(">> Burning CD in %s..." % (devPath))
         else:
             assert False
