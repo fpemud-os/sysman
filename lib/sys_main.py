@@ -651,9 +651,9 @@ class FmMain:
             raise Exception("target is not supported")
 
         # build
-        builder = RescueDiskBuilder(devType, devPath,
-                                    self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
-                                    FmConst.rescueDiskName, FmConst.rescueDiskLabel)
+        builder = RescueDiskBuilder(devType, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                    FmConst.rescueDiskName, FmConst.rescueDiskLabel,
+                                    dev_path=devPath)
         builder.check()
 
         self.infoPrinter.printInfo(">> Downloading files...")

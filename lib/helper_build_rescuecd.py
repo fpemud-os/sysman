@@ -23,8 +23,9 @@ class RescueDiskBuilder:
     DEV_TYPE_ISO = "iso"
     DEV_TYPE_CDROM = "cdrom"
     DEV_TYPE_USB_STICK = "usb-stick"
+    DEV_TYPE_RESCUE_OS = "rescue-os"
 
-    def __init__(self, devType, devPath, tmpDir, hwInfo, diskName, diskLabel):
+    def __init__(self, devType, tmpDir, hwInfo, diskName, diskLabel, **kwargs):
         self._archInfoDict = {
             "amd64": ["amd64", "openrc", "default/linux/amd64/17.1/no-multilib", os.path.join(tmpDir, "rescd-rootfs-amd64"), False],   # [subarch, variant, profile, rootfs-dir, complete-flag]
             # "arm64": ["arm64", None],
@@ -34,9 +35,18 @@ class RescueDiskBuilder:
             "arm64": "arm64",
         }
 
-        assert devType in [self.DEV_TYPE_ISO, self.DEV_TYPE_CDROM, self.DEV_TYPE_USB_STICK]
         self._devType = devType
-        self._devPath = devPath
+        if self._devType == self.DEV_TYPE_ISO:
+            raise NotImplementedError()
+        elif self._devType == self.DEV_TYPE_CDROM:
+            raise NotImplementedError()
+        elif self._devType == self.DEV_TYPE_USB_STICK:
+            assert len(kwargs) == 1 and "dev_path" in kwargs
+            self._devPath = kwargs["dev_path"]
+        elif self._devType == self.DEV_TYPE_RESCUE_OS:
+            assert len(kwargs) == 0
+        else:
+            assert False
 
         self._cp = gstage4.ComputingPower.new(hwInfo.hwDict["cpu"]["cores"],
                                               hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
@@ -63,6 +73,8 @@ class RescueDiskBuilder:
                 raise Exception("device %s needs to be at least %d GB." % (self._devPath, DEV_MIN_SIZE_IN_GB))
             if FmUtil.isMountPoint(self._devPath):
                 raise Exception("device %s or any of its partitions is already mounted, umount it first." % (self._devPath))
+        elif self._devType == self.DEV_TYPE_RESCUE_OS:
+            raise NotImplementedError()
         else:
             assert False
 
@@ -267,6 +279,8 @@ class RescueDiskBuilder:
             assert False
         elif self._devType == self.DEV_TYPE_USB_STICK:
             self._exportToUsbStick()
+        elif self._devType == self.DEV_TYPE_RESCUE_OS:
+            assert False
         else:
             assert False
 
