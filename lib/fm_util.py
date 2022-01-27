@@ -1418,9 +1418,9 @@ class FmUtil:
 
         if True:
             cmdStr = r"cat /var/db/pkg/*/*/CONTENTS "
-            cmdStr += r'| /bin/sed -e "s:^obj \(.*\) [[:xdigit:]]\+ [[:digit:]]\+$:\1:" '
-            cmdStr += r'| /bin/sed -e "s:^sym \(.*\) -> .* .*$:\1:" '
-            cmdStr += r'| /bin/sed -e "s:^dir \(.*\)$:\1:" '
+            cmdStr += r'| sed -e "s:^obj \(.*\) [[:xdigit:]]\+ [[:digit:]]\+$:\1:" '
+            cmdStr += r'| sed -e "s:^sym \(.*\) -> .* .*$:\1:" '
+            cmdStr += r'| sed -e "s:^dir \(.*\)$:\1:" '
             ret = FmUtil.shellCall(cmdStr)
             fileSet = set(ret.split("\n"))
 

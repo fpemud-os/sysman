@@ -144,6 +144,7 @@ def getArgParser():
 
     parser2 = subparsers.add_parser("backup", help="Do backup")
     parser2.set_defaults(op="backup")
+    parser2.add_argument("devpath")
 
     ###########################################################################
 

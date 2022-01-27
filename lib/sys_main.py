@@ -6,11 +6,16 @@ import re
 import sys
 import shutil
 import pyudev
+import tarfile
 import strict_pgs
+import strict_fsh
 import strict_hdds
 import bbki.util
 import robust_layer.simple_fops
-from fm_util import BootDirWriter, FmUtil
+from datetime import datetime
+from fm_util import FmUtil
+from fm_util import BootDirWriter
+from fm_util import TmpMount
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
 from helper_rescue import RescueCdBuilder
@@ -683,8 +688,41 @@ class FmMain:
     def buildInstallDisk(self, devPath):
         pass
 
-    def backup(self):
-        pass
+    def backup(self, devPath):
+        if re.fullmatch("/dev/[a-z]", devPath) is None:
+            raise Exception("invalid backup device %s" % (devPath))
+
+        parti = devPath + "1"
+        if not os.path.exists(parti):
+            raise Exception("backup partition %s does not exist" % (devPath))
+        if FmUtil.isMountPoint(parti):
+            raise Exception("%s is already mounted" % (devPath))
+
+        obj = strict_fsh.RootFs()
+        wildcards = []
+        wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_DATA))
+        wildcards = strict_fsh.deduct_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_SYSTEM_CACHE))
+        wildcards = strict_fsh.merge_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER_DATA))
+        wildcards = strict_fsh.deduct_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER_CACHE))
+        wildcards = strict_fsh.deduct_wildcards(wildcards, obj.get_wildcards(wildcards_flag=strict_fsh.WILDCARDS_USER_TRASH))
+
+        for w in wildcards:
+            print(wildcards)
+
+        fileList = obj.wildcards_glob(wildcards)
+
+        print(len(fileList))
+        import time
+        time.sleep(3)
+
+        with TmpMount(parti) as mp:
+            tarfilepath = os.path.join(mp.mountpoint, "backup-%s.tar.gz" % (datetime.now().strftime("%Y%m%d%H%M%S")))
+            with tarfile.open(tarfilepath, mode="x:gz") as tf:
+                i = 0
+                for fullfn in fileList:
+                    print(i)
+                    tf.add(fullfn, recursive=False)
+                    i += 1
 
     def logToMemory(self):
         assert False

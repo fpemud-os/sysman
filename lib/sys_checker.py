@@ -1170,9 +1170,9 @@ class FmSysChecker:
 
         # get file list for this package
         cmdStr = r"cat /var/db/pkg/%s/CONTENTS " % (pkgNameVer)
-        cmdStr += r'| /bin/sed -e "s:^obj \(.*\) [[:xdigit:]]\+ [[:digit:]]\+$:\1:" '
-        cmdStr += r'| /bin/sed -e "s:^sym \(.*\) -> .* .*$:\1:" '
-        cmdStr += r'| /bin/sed -e "s:^dir \(.*\)$:\1:" '
+        cmdStr += r'| sed -e "s:^obj \(.*\) [[:xdigit:]]\+ [[:digit:]]\+$:\1:" '
+        cmdStr += r'| sed -e "s:^sym \(.*\) -> .* .*$:\1:" '
+        cmdStr += r'| sed -e "s:^dir \(.*\)$:\1:" '
         ret = FmUtil.shellCall(cmdStr).split("\n")
 
         # check
