@@ -11,33 +11,34 @@ import spwd
 import json
 import glob
 import stat
+import time
 import errno
+import fcntl
 import shutil
 import parted
 import pathlib
 import asyncio
 import asyncio_pool
+import socket
+import struct
 import filecmp
 import fnmatch
-import socket
 import gstage4
-import subprocess
-import struct
-import time
-import fcntl
+import pyudev
+import random
 import termios
 import hashlib
-import pyudev
 import tempfile
-import random
 import blessed
 import zipfile
 import portage
+import platform
 import threading
-import urllib.request
-import urllib.error
+import subprocess
 import lxml.html
 import passlib.hosts
+import urllib.request
+import urllib.error
 import robust_layer
 import robust_layer.wget
 import robust_layer.simple_fops
@@ -700,7 +701,7 @@ class FmUtil:
         #                                -e s/s390x/s390/ -e s/parisc64/parisc/
         #                                -e s/ppc.*/powerpc/ -e s/mips.*/mips/
         #                                -e s/sh.*/sh/
-        ret = FmUtil.cmdCall("uname", "-m")
+        ret = platform.machine()
         ret = re.sub("i.86", "i386", ret)
         ret = re.sub("sun4u", "sparc64", ret)
         ret = re.sub("arm.*", "arm", ret)
@@ -1149,7 +1150,7 @@ class FmUtil:
 
     @staticmethod
     def getCpuArch():
-        ret = FmUtil.cmdCall("uname", "-m")
+        ret = platform.machine()
         if ret == "x86_64":
             return "amd64"
         else:
