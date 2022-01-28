@@ -37,9 +37,17 @@ class RescueCdBuilder:
 
         self._devType = devType
         if self._devType == self.DEV_TYPE_ISO:
-            raise NotImplementedError()
+            assert len(kwargs) == 3 and "file_path" in kwargs and "disk_name" in kwargs and "disk_label" in kwargs
+            self._filePath = kwargs["file_path"]
+            self._diskName = kwargs["disk_name"]
+            self._diskLabel = kwargs["disk_label"]
+            # FIXME: check
         elif self._devType == self.DEV_TYPE_CDROM:
-            raise NotImplementedError()
+            assert len(kwargs) == 3 and "dev_path" in kwargs and "disk_name" in kwargs and "disk_label" in kwargs
+            self._devPath = kwargs["dev_path"]
+            self._diskName = kwargs["disk_name"]
+            self._diskLabel = kwargs["disk_label"]
+            # FIXME: check
         elif self._devType == self.DEV_TYPE_USB_STICK:
             assert len(kwargs) == 3 and "dev_path" in kwargs and "disk_name" in kwargs and "disk_label" in kwargs
             self._devPath = kwargs["dev_path"]
@@ -63,6 +71,9 @@ class RescueCdBuilder:
 
         self._stage3FilesDict = dict()
         self._snapshotFile = None
+
+    def getDevType(self):
+        return self._devType
 
     def getArchName(self, arch):
         return self._archDirDict[arch]

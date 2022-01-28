@@ -646,19 +646,21 @@ class FmMain:
             dcm.updateCcache()
         print("")
 
-        # determine device type
+        # build
         if devPath.endswith(".iso"):
-            devType = RescueCdBuilder.DEV_TYPE_ISO
+            builder = RescueCdBuilder(RescueCdBuilder.DEV_TYPE_ISO,
+                                      self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                      file_path=devPath, disk_name=FmConst.rescueDiskName, disk_label=FmConst.rescueDiskLabel)
         elif re.fullmatch("/dev/sd.*", devPath) is not None:
-            devType = RescueCdBuilder.DEV_TYPE_USB_STICK
+            builder = RescueCdBuilder(RescueCdBuilder.DEV_TYPE_USB_STICK,
+                                      self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                      dev_path=devPath, disk_name=FmConst.rescueDiskName, disk_label=FmConst.rescueDiskLabel)
         elif re.fullmatch("/dev/sr.*", devPath) is not None:
-            devType = RescueCdBuilder.DEV_TYPE_CDROM
+            builder = RescueCdBuilder(RescueCdBuilder.DEV_TYPE_CDROM,
+                                      self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                      dev_path=devPath, disk_name=FmConst.rescueDiskName, disk_label=FmConst.rescueDiskLabel)
         else:
             raise Exception("target is not supported")
-
-        # build
-        builder = RescueCdBuilder(devType, self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
-                                  dev_path=devPath, disk_name=FmConst.rescueDiskName, disk_label=FmConst.rescueDiskLabel)
 
         self.infoPrinter.printInfo(">> Downloading files...")
         builder.downloadFiles()
@@ -672,11 +674,11 @@ class FmMain:
         # builder.buildTargetSystem("arm64")
         print("")
 
-        if devType == RescueCdBuilder.DEV_TYPE_ISO:
+        if builder.getDevType() == RescueCdBuilder.DEV_TYPE_ISO:
             self.infoPrinter.printInfo(">> Creating %s..." % (devPath))
-        elif devType == RescueCdBuilder.DEV_TYPE_USB_STICK:
+        elif builder.getDevType() == RescueCdBuilder.DEV_TYPE_USB_STICK:
             self.infoPrinter.printInfo(">> Installing into USB stick %s..." % (devPath))
-        elif devType == RescueCdBuilder.DEV_TYPE_CDROM:
+        elif builder.getDevType() == RescueCdBuilder.DEV_TYPE_CDROM:
             self.infoPrinter.printInfo(">> Burning CD in %s..." % (devPath))
         else:
             assert False
