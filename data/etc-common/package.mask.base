@@ -73,6 +73,9 @@ net-vpn/i2p
 media-sound/pulseaudio
 media-sound/apulse
 
+# LVM would be good if it doesn't use config files in /etc
+sys-fs/lvm2
+
 # don't redirect alsa to sound servers, so that overall architecture can be simpler
 # media-plugins/alsa-plugins
 
