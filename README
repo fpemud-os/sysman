@@ -236,7 +236,6 @@ Directory structure:
   fpemud-os apply custom patches for the following packages:
     sys-auth/pambase
     sys-apps/portage
-    sys-fs/lvm2
     ...
 
   fpemud-os uses auxiliary ebuild files which contains:

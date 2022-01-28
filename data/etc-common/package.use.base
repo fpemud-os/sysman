@@ -20,7 +20,6 @@
 */*                                                        aio
 */*                                                        cairo
 */*                                                        caps
-*/*                                                        device-mapper
 */*                                                        glade qml
 */*                                                        gnutls
 */*                                                        gudev introspection
