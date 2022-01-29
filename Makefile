@@ -5,6 +5,7 @@ all:
 install:
 	install -d -m 0755 "$(DESTDIR)/$(prefix)/bin"
 	install -m 0755 sysman "$(DESTDIR)/$(prefix)/bin"
+	install -m 0755 bin/* "$(DESTDIR)/$(prefix)/bin"
 
 	install -d -m 0755 "$(DESTDIR)/$(prefix)/lib64/fpemud-os-sysman"
 	cp -r lib/* "$(DESTDIR)/$(prefix)/lib64/fpemud-os-sysman"
