@@ -210,6 +210,7 @@ class RescueCdBuilder:
                 "sys-fs/lsscsi",
                 "sys-fs/mtools",
                 # "sys-fs/ntfs3g",          # FIXME: requires FUSE2 which is deprecated
+                "sys-kernel/gentoo-sources",
                 "sys-process/bpytop",
                 "sys-process/lsof",
             }
