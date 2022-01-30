@@ -577,3 +577,26 @@ class ArchLinuxBasedOsBuilder:
 #         FmUtil.cmdCall("/bin/sed -i 's#git fetch#/usr/libexec/robust_layer/git fetch#' %s" % (os.path.join(datadir_hostpath, "eclass", "git-r3.eclass")))
 
 
+
+            # scriptList = []
+            # if True:
+            #     hostp = "/var/cache/bbki/distfiles/git-src/git/bcachefs.git"
+            #     if not os.path.isdir(hostp):
+            #         raise Exception("directory \"%s\" does not exist in host system" % (hostp))
+            #     s = gstage4.scripts.PlacingFilesScript("Install bcachefs kernel")
+            #     s.append_dir("/usr")
+            #     s.append_dir("/usr/src")
+            #     s.append_host_dir("/usr/src/linux-%s-bcachefs" % (FmUtil.getKernelVerStr(hostp)), hostp, dmode=0o755, fmode=0o755)    # script files in kernel source needs to be executable, simply make all files rwxrwxrwx
+            #     scriptList.append(s)
+            # if True:
+            #     buf = ""
+            #     buf += TMP_DOT_CONFIG
+            #     buf += "\n"
+            #     buf += "CONFIG_BCACHEFS_FS=y\n"
+            #     buf += "CONFIG_BCACHEFS_QUOTA=y\n"
+            #     buf += "CONFIG_BCACHEFS_POSIX_ACL=y\n"
+            #     s = gstage4.scripts.PlacingFilesScript("Install bcachefs kernel config file")
+            #     s.append_dir("/usr")
+            #     s.append_dir("/usr/src")
+            #     s.append_file("/usr/src/dot-config", buf)
+            #     scriptList.append(s)

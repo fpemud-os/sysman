@@ -235,9 +235,9 @@ class FmSysChecker:
                 self.infoPrinter.printError(message)
 
             layout.check(self.bAutoFix, __errCb)
-            if layout.name in ["bios-ext4", "efi-ext4", "efi-bcache-lvm-ext4", "efi-bcachefs"]:
+            if layout.name in ["bios-ext4", "efi-ext4", "efi-btrfs", "efi-bcachefs"]:
                 layout.opt_check("swap", self.bAutoFix, __errCb)
-            if layout.name == "efi-bcache-lvm-ext4":
+            if layout.name == "efi-bcache-btrfs":
                 layout.opt_check("bcache-write-mode", "writeback", self.bAutoFix, __errCb)
 
         with self.infoPrinter.printInfoAndIndent("- Checking swap service"):
@@ -247,7 +247,7 @@ class FmSysChecker:
                     for sname in FmUtil.systemdFindAllSwapServicesInDirectory(td):
                         self.infoPrinter.printError("Swap service \"%s\" should not exist." % (os.path.join(td, sname)))
 
-            if layout.name in ["bios-ext4", "efi-ext4", "efi-bcache-lvm-ext4", "efi-bcachefs"]:
+            if layout.name in ["bios-ext4", "efi-ext4", "efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
                 # only standard swap service should exist
                 for sname in FmUtil.systemdFindAllSwapServicesInDirectory("/etc/systemd/system"):
                     if layout.dev_swap is not None and sname == FmUtil.path2SwapServiceName(layout.dev_swap):

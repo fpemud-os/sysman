@@ -208,7 +208,7 @@ class FmSysUpdater:
                 print("")
 
             # synchronize boot partitions
-            if layout.name in ["efi-bcache-lvm-ext4", "efi-bcachefs"]:
+            if layout.name in ["efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
                 dstList = layout.get_pending_esp_list()
                 if len(dstList) > 0:
                     with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
@@ -254,7 +254,7 @@ class FmSysUpdater:
             bbkiObj.setStable(True)
         print("")
 
-        if layout.name in ["efi-bcache-lvm-ext4", "efi-bcachefs"]:
+        if layout.name in ["efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
             dstList = layout.get_pending_esp_list()
             if len(dstList) > 0:
                 with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
@@ -279,7 +279,7 @@ class FmSysUpdater:
             print("")
 
         # synchronize boot partitions
-        if layout.name in ["efi-bcache-lvm-ext4", "efi-bcachefs"]:
+        if layout.name in ["efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
             dstList = layout.get_pending_esp_list()
             if len(dstList) > 0:
                 with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):

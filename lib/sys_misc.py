@@ -23,7 +23,7 @@ class FmSwapManager:
             self._enableSwapService(layout.dev_swap, serviceName)
             return
 
-        if layout.name in ["efi-bcache-lvm-ext4", "efi-bcachefs"]:
+        if layout.name in ["efi-bcache-btrfs", "efi-bcachefs"]:
             if layout.dev_swap is None:
                 raise Exception("no swap partition")
             if FmUtil.getBlkDevSize(layout.dev_swap) < layout.get_suggestted_swap_size():
@@ -42,7 +42,7 @@ class FmSwapManager:
 
         if layout.name in ["bios-ext4", "efi-ext4"]:
             layout.remove_swap_file()
-        elif layout.name in ["efi-bcache-lvm-ext4", "efi-bcachefs"]:
+        elif layout.name in ["efi-bcache-btrfs", "efi-bcachefs"]:
             pass
         else:
             assert False

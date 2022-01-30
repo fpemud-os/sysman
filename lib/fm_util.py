@@ -66,7 +66,7 @@ class FmUtil:
     @staticmethod
     def formatDisk(devPath, partitionTableType="mbr", partitionType="", partitionLabel=""):
         assert partitionTableType in ["mbr", "gpt"]
-        assert partitionType in ["", "ext2", "ext4", "btrfs", "bcachefs", "vfat", "exfat"]
+        assert partitionType in ["", "ext4", "btrfs", "bcachefs", "vfat", "exfat"]
 
         if partitionTableType == "mbr":
             partitionTableType = "msdos"
@@ -103,11 +103,7 @@ class FmUtil:
         partDevPath = devPath + "1"
         if partitionType == "":
             pass
-        elif partitionType == "ext2":
-            assert False
         elif partitionType == "ext4":
-            assert False
-        elif partitionType == "xfs":
             assert False
         elif partitionType == "btrfs":
             assert False

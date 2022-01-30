@@ -148,12 +148,11 @@ Rescue Facility:
 
 
 Storage layout:
-  there're 5 storage layouts:
-    1. bios-simple:
-    2. efi-simple:
+  there're 4 storage layouts:
+    1. bios-ext4:
+    2. efi-ext4:
     3. efi-btrfs:
     4. efi-bcache-btrfs:
-    3. efi-lvm-bcache:
 
 
 Kernel flag:
