@@ -206,10 +206,10 @@ class RescueCdBuilder:
                 "sys-fs/dosfstools",
                 "sys-fs/e2fsprogs",
                 "sys-fs/exfat-utils",
-                "sys-fs/f2fs-tools",
+                # "sys-fs/f2fs-tools",      # FIXME: /sbin/sg_write_buffer from sys-fs/f2fs-tools collides with /usr/sbin/sg_write_buffer from sys-apps/sg3_utils under usr-merge
                 "sys-fs/lsscsi",
                 "sys-fs/mtools",
-                # "sys-fs/ntfs3g",          # requires FUSE2 which is deprecated
+                # "sys-fs/ntfs3g",          # FIXME: requires FUSE2 which is deprecated
                 "sys-process/bpytop",
                 "sys-process/lsof",
             }
