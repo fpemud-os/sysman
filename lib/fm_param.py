@@ -57,6 +57,9 @@ class FmConst:
     rescueDiskName = "FpemudRescueSystem"
     rescueDiskLabel = "RESSYS"
 
+    installDiskName = "FpemudOsInstaller"
+    installDiskLabel = "INSTALLER"
+
     supportOsProber = True
 
     buildServerDefaultPort = 2108

@@ -19,6 +19,7 @@ from fm_util import TmpMount
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
 from helper_rescue import RescueCdBuilder
+from helper_installcd import InstallCdBuilder
 from helper_bbki import BbkiWrapper
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
@@ -697,7 +698,69 @@ class FmMain:
         return 0
 
     def buildInstallDisk(self, devPath):
-        pass
+        if self.param.runMode in ["prepare", "setup"]:
+            print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
+            return 1
+        self.param.sysChecker.basicCheckWithOverlayContent()
+
+        # modify dynamic config
+        self.infoPrinter.printInfo(">> Preparing...")
+        if True:
+            dcm = DynCfgModifier()
+            dcm.updateMirrors()
+            dcm.updateDownloadCommand()
+            dcm.updateParallelism(self.param.machineInfoGetter.hwInfo())
+            dcm.updateCcache()
+        print("")
+
+        # build
+        if devPath.endswith(".iso"):
+            builder = InstallCdBuilder(InstallCdBuilder.DEV_TYPE_ISO,
+                                      self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                      file_path=devPath, disk_name=FmConst.installDiskName, disk_label=FmConst.installDiskLabel)
+        elif re.fullmatch("/dev/sd.*", devPath) is not None:
+            builder = InstallCdBuilder(InstallCdBuilder.DEV_TYPE_USB_STICK,
+                                      self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                      dev_path=devPath, disk_name=FmConst.installDiskName, disk_label=FmConst.installDiskLabel)
+        elif re.fullmatch("/dev/sr.*", devPath) is not None:
+            builder = InstallCdBuilder(InstallCdBuilder.DEV_TYPE_CDROM,
+                                      self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                      dev_path=devPath, disk_name=FmConst.installDiskName, disk_label=FmConst.installDiskLabel)
+        else:
+            raise Exception("target is not supported")
+
+        self.infoPrinter.printInfo(">> Downloading files...")
+        builder.downloadFiles()
+        print("")
+
+        self.infoPrinter.printInfo(">> Building stage4 (%s)..." % (builder.getArchName("amd64")))
+        builder.buildStage4("amd64")
+        print("")
+
+        self.infoPrinter.printInfo(">> Building stage4 (%s)..." % (builder.getArchName("arm64")))
+        # builder.buildStage4("arm64")
+        print("")
+
+        self.infoPrinter.printInfo(">> Building %s (%s)..." % (FmConst.installDiskName, builder.getArchName("amd64")))
+        builder.buildTargetSystem("amd64")
+        print("")
+
+        self.infoPrinter.printInfo(">> Building %s (%s)..." % (FmConst.installDiskName, builder.getArchName("arm64")))
+        # builder.buildTargetSystem("arm64")
+        print("")
+
+        if builder.getDevType() == RescueCdBuilder.DEV_TYPE_ISO:
+            self.infoPrinter.printInfo(">> Creating %s..." % (devPath))
+        elif builder.getDevType() == RescueCdBuilder.DEV_TYPE_USB_STICK:
+            self.infoPrinter.printInfo(">> Installing into USB stick %s..." % (devPath))
+        elif builder.getDevType() == RescueCdBuilder.DEV_TYPE_CDROM:
+            self.infoPrinter.printInfo(">> Burning CD in %s..." % (devPath))
+        else:
+            assert False
+        builder.exportTargetSystem()
+        print("")
+
+        return 0
 
     def backup(self, devPath):
         # FIXME: a very simple backup process
