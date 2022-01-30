@@ -737,12 +737,12 @@ class FmMain:
         builder.buildStage4("amd64")
         print("")
 
-        self.infoPrinter.printInfo(">> Building stage4 (%s)..." % (builder.getArchName("arm64")))
-        # builder.buildStage4("arm64")
-        print("")
-
         self.infoPrinter.printInfo(">> Building %s (%s)..." % (FmConst.installDiskName, builder.getArchName("amd64")))
         builder.buildTargetSystem("amd64")
+        print("")
+
+        self.infoPrinter.printInfo(">> Building stage4 (%s)..." % (builder.getArchName("arm64")))
+        # builder.buildStage4("arm64")
         print("")
 
         self.infoPrinter.printInfo(">> Building %s (%s)..." % (FmConst.installDiskName, builder.getArchName("arm64")))
