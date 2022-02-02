@@ -13,7 +13,7 @@ class FmPkgman:
         self.param = param
         self.infoPrinter = self.param.infoPrinter
 
-    def installPackage(self, pkgName, tmpOp):
+    def installPackage(self, pkgName, bTest):
         # modify dynamic config
         self.infoPrinter.printInfo(">> Preparing...")
         if True:
@@ -42,6 +42,7 @@ class FmPkgman:
         # emerge package
         self.infoPrinter.printInfo(">> Installing %s..." % (pkgName))
         cmd = "/usr/libexec/fpemud-os-sysman/op-emerge-package.py"
+        tmpOp = "1" if bTest else "0"
         if buildServer is not None:
             try:
                 buildServer.sshExec(cmd, pkgName, tmpOp)
