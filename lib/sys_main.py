@@ -716,16 +716,16 @@ class FmMain:
         # build
         if devPath.endswith(".iso"):
             builder = InstallCdBuilder(InstallCdBuilder.DEV_TYPE_ISO,
-                                      self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
-                                      file_path=devPath, disk_name=FmConst.installDiskName, disk_label=FmConst.installDiskLabel)
+                                       self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                       file_path=devPath, disk_name=FmConst.installDiskName, disk_label=FmConst.installDiskLabel)
         elif re.fullmatch("/dev/sd.*", devPath) is not None:
             builder = InstallCdBuilder(InstallCdBuilder.DEV_TYPE_USB_STICK,
-                                      self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
-                                      dev_path=devPath, disk_name=FmConst.installDiskName, disk_label=FmConst.installDiskLabel)
+                                       self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                       dev_path=devPath, disk_name=FmConst.installDiskName, disk_label=FmConst.installDiskLabel)
         elif re.fullmatch("/dev/sr.*", devPath) is not None:
             builder = InstallCdBuilder(InstallCdBuilder.DEV_TYPE_CDROM,
-                                      self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
-                                      dev_path=devPath, disk_name=FmConst.installDiskName, disk_label=FmConst.installDiskLabel)
+                                       self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
+                                       dev_path=devPath, disk_name=FmConst.installDiskName, disk_label=FmConst.installDiskLabel)
         else:
             raise Exception("target is not supported")
 

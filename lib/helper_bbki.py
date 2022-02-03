@@ -47,7 +47,8 @@ class BbkiWrapper:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        self._bbkiObj.install_initramfs(self._bbkiObj.get_initramfs_atom(), self._bbkiStorageInfo(layout), beList[0])
+        hostStorage = bbki.HostStorage(self._bbkiBootMode(layout), [bbki.HostMountPoint(x.dir_path, x.target) for x in layout.mount_params], layout.boot_disk)
+        self._bbkiObj.install_initramfs(self._bbkiObj.get_initramfs_atom(), hostStorage, beList[0])
 
     def updateBootloader(self, layout):
         beList = self._bbkiObj.get_boot_entries()
@@ -55,7 +56,8 @@ class BbkiWrapper:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        self._bbkiObj.install_bootloader(self._bbkiBootMode(layout), self._bbkiStorageInfo(layout), beList[0], self.getAuxOsInfo(), "")
+        hostStorage = bbki.HostStorage(self._bbkiBootMode(layout), [bbki.HostMountPoint(x.dir_path, x.target) for x in layout.mount_params], layout.boot_disk)
+        self._bbkiObj.install_bootloader(self._bbkiBootMode(layout), hostStorage, beList[0], self.getAuxOsInfo(), "")
 
     def isRescueOsInstalled(self):
         return os.path.exists(self._bbkiObj.rescue_os_spec.root_dir)
@@ -121,13 +123,3 @@ class BbkiWrapper:
             return bbki.BootMode.BIOS
         else:
             assert False
-
-    def _bbkiStorageInfo(self, layout):
-        mpList = []
-        mpList.append(bbki.HostMountPoint(bbki.HostMountPoint.NAME_ROOT, "/", layout.dev_rootfs))
-        if layout.name == "bios-ext4":
-            bootDisk = layout.boot_disk
-        elif layout.name in ["efi-ext4", "efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
-            mpList.append(bbki.HostMountPoint(bbki.HostMountPoint.NAME_ESP, "/boot", layout.get_esp()))
-            bootDisk = None
-        return bbki.HostStorage(self._bbkiBootMode(layout), mpList, bootDisk)
