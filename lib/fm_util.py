@@ -2567,7 +2567,7 @@ class BootDirWriter:
         self._origIsWritable = None
 
     def __enter__(self):
-        self._origIsWritable = self._ctrl.is_writable
+        self._origIsWritable = self._ctrl.is_writable()
         if not self._origIsWritable:
             self._ctrl.to_read_write()
         return self
