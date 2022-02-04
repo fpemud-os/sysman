@@ -47,7 +47,7 @@ class BbkiWrapper:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        hostStorage = bbki.HostStorage(self._bbkiBootMode(layout), [bbki.HostMountPoint(x.mnt_point, x.target, mnt_opt=x.mnt_opts) for x in layout.get_mount_entries()], layout.boot_disk)
+        hostStorage = bbki.HostStorage(self._bbkiBootMode(layout), [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()], layout.boot_disk)
         self._bbkiObj.install_initramfs(self._bbkiObj.get_initramfs_atom(), hostStorage, beList[0])
 
     def updateBootloader(self, layout):
@@ -56,7 +56,7 @@ class BbkiWrapper:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        hostStorage = bbki.HostStorage(self._bbkiBootMode(layout), [bbki.HostMountPoint(x.mnt_point, x.target, mnt_opt=x.mnt_opts) for x in layout.get_mount_entries()], layout.boot_disk)
+        hostStorage = bbki.HostStorage(self._bbkiBootMode(layout), [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()], layout.boot_disk)
         self._bbkiObj.install_bootloader(self._bbkiBootMode(layout), hostStorage, beList[0], self.getAuxOsInfo(), "")
 
     def isRescueOsInstalled(self):
