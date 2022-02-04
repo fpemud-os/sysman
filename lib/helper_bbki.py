@@ -47,8 +47,7 @@ class BbkiWrapper:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        hostStorage = bbki.HostStorage(self._bbkiBootMode(layout), [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()], layout.boot_disk)
-        self._bbkiObj.install_initramfs(self._bbkiObj.get_initramfs_atom(), hostStorage, beList[0])
+        self._bbkiObj.install_initramfs(self._bbkiObj.get_initramfs_atom(), self._bbkiHostStorage(layout), beList[0])
 
     def updateBootloader(self, layout):
         beList = self._bbkiObj.get_boot_entries()
@@ -56,8 +55,7 @@ class BbkiWrapper:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        hostStorage = bbki.HostStorage(self._bbkiBootMode(layout), [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()], layout.boot_disk)
-        self._bbkiObj.install_bootloader(self._bbkiBootMode(layout), hostStorage, beList[0], self.getAuxOsInfo(), "")
+        self._bbkiObj.install_bootloader(self._bbkiBootMode(layout), self._bbkiHostStorage(layout), beList[0], self.getAuxOsInfo(), "")
 
     def isRescueOsInstalled(self):
         return os.path.exists(self._bbkiObj.rescue_os_spec.root_dir)
@@ -123,3 +121,15 @@ class BbkiWrapper:
             return bbki.BootMode.BIOS
         else:
             assert False
+
+    def _bbkiHostStorage(self, layout):
+        # bootDisk is used to install grub boot sector on, so efi-* layout should set it to None
+        if layout == "bios-ext4":
+            bootDisk = layout.boot_disk
+        elif layout in ["efi-ext4", "efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
+            bootDisk = None
+        else:
+            assert False
+        return bbki.HostStorage(self._bbkiBootMode(layout),
+                                [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()],
+                                bootDisk)
