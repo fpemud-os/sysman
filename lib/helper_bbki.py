@@ -124,9 +124,9 @@ class BbkiWrapper:
 
     def _bbkiHostStorage(self, layout):
         # bootDisk is used to install grub boot sector on, so efi-* layout should set it to None
-        if layout == "bios-ext4":
+        if layout.name == "bios-ext4":
             bootDisk = layout.boot_disk
-        elif layout in ["efi-ext4", "efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
+        elif layout.name in ["efi-ext4", "efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
             bootDisk = None
         else:
             assert False
