@@ -225,16 +225,10 @@ class FmSysChecker:
             return
 
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
-            def __errCb(self, checkCode, message):
-                if checkCode == strict_hdds.CheckCode.SWAP_SIZE_TOO_SMALL:
-                    if self.bAutoFix:
-                        self.param.swapManager.disableSwap(layout)
-                        self.param.swapManager.enableSwap(layout)
-                        return
+            def __errCb(checkCode, message):
                 self.infoPrinter.printError(message)
-
             layout.check(self.bAutoFix, __errCb)
-            if layout.name in ["bios-ext4", "efi-ext4", "efi-btrfs", "efi-bcachefs"]:
+            if layout.name in ["bios-ext4", "efi-ext4", "efi-bcache-btrfs", "efi-bcachefs"]:
                 layout.opt_check("swap", self.bAutoFix, __errCb)
             if layout.name == "efi-bcache-btrfs":
                 layout.opt_check("bcache-write-mode", "writeback", self.bAutoFix, __errCb)
