@@ -14,26 +14,15 @@ class FmSwapManager:
         if layout.name in ["bios-ext4", "efi-ext4"]:
             if layout.dev_swap is None:
                 layout.create_swap_file()
-            serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
-            if FmUtil.getBlkDevSize(layout.dev_swap) < layout.get_suggestted_swap_size():
-                self._disableSwapService(layout.dev_swap, serviceName)
-                layout.remove_swap_file()
-                layout.create_swap_file()
-            self._createSwapService(layout.dev_swap, serviceName)
-            self._enableSwapService(layout.dev_swap, serviceName)
-            return
-
-        if layout.name in ["efi-bcache-btrfs", "efi-bcachefs"]:
+        elif layout.name in ["efi-bcache-btrfs", "efi-bcachefs"]:
             if layout.dev_swap is None:
                 raise Exception("no swap partition")
-            if FmUtil.getBlkDevSize(layout.dev_swap) < layout.get_suggestted_swap_size():
-                raise Exception("swap partition is too small")
-            serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
-            self._createSwapService(layout.dev_swap, serviceName)
-            self._enableSwapService(layout.dev_swap, serviceName)
-            return
+        else:
+            assert False
 
-        assert False
+        serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
+        self._createSwapService(layout.dev_swap, serviceName)
+        self._enableSwapService(layout.dev_swap, serviceName)
 
     def disableSwap(self, layout):
         serviceName = FmUtil.path2SwapServiceName(layout.dev_swap)
