@@ -406,9 +406,6 @@ class FmMain:
         if layout.name in ["bios-ext4", "efi-ext4"]:
             raise Exception("storage layout \"%s\" does not support this operation" % (layout.name))
         elif layout.name in ["efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
-            self.infoPrinter.printInfo(">> Move data in %s to other place..." % (devpath))
-            layout.release_disk(devpath)
-            print("")
             self.infoPrinter.printInfo(">> Removing harddisk...")
             layout.remove_disk(devpath)
             print("")
