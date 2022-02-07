@@ -223,14 +223,15 @@ class FmMain:
         elif self.param.runMode == "normal":
             if layout is None:
                 print("    Unknown")
-            elif layout.dev_swap is None or not FmUtil.systemdIsServiceEnabled(FmUtil.path2SwapServiceName(layout.dev_swap)):
-                print("    Disabled")
             else:
-                if layout.dev_swap.startswith("/dev/"):
-                    sz = FmUtil.getBlkDevSize(layout.dev_swap)
+                if layout.dev_swap is None:
+                    print("    Disabled")
                 else:
-                    sz = os.path.getsize(layout.dev_swap)
-                print("    Enabled (%s)" % (FmUtil.formatSize(sz)))
+                    serviceName = FmUtil.systemdFindSwapServiceInDirectory("/etc/systemd/system", layout.dev_swap)
+                    if serviceName is None or not FmUtil.systemdIsServiceEnabled(serviceName):
+                        print("    Disabled")
+                    else:
+                        print("    Enabled (%s)" % (FmUtil.formatSize(layout.get_swap_size())))
         else:
             assert False
 
