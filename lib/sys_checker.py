@@ -270,7 +270,7 @@ class FmSysChecker:
 
     def _checkPreMountRootfsLayout(self):
         layout = strict_hdds.get_current_storage_layout()
-        mRootfs = [m.mnt_point == "/" for m in layout.get_mount_entries()][0]
+        mRootfs = [m for m in layout.get_mount_entries() if m.mnt_point == "/"][0]
         with TmpMount(mRootfs.target, options=mRootfs.mnt_opts) as mp:
             obj = strict_fsh.PreMountRootFs(mp.mountpoint,
                                             mounted_boot=(layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI),
