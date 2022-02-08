@@ -86,8 +86,8 @@ class FmSysChecker:
             with self.infoPrinter.printInfoAndIndent(">> Checking file system layout..."):
                 with self.infoPrinter.printInfoAndIndent("- Check rootfs..."):
                     self._checkRootfsLayout(deepFileSystemCheck)
-                with self.infoPrinter.printInfoAndIndent("- Check premount rootfs..."):
-                    self._checkPreMountRootfsLayout()
+                # with self.infoPrinter.printInfoAndIndent("- Check premount rootfs..."):
+                #   self._checkPreMountRootfsLayout()
 
             with self.infoPrinter.printInfoAndIndent(">> Checking BIOS, bootloader, initramfs and kernel..."):
                 bbkiObj = BbkiWrapper()
