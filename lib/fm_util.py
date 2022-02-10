@@ -51,7 +51,7 @@ from gi.repository import GLib
 class FmUtil:
 
     @staticmethod
-    def bcacheGetHitRatio(self, setUuid):
+    def bcacheGetHitRatio(setUuid):
         return int(pathlib.Path(os.path.join("/sys", "fs", "bcache", setUuid, "stats_day", "cache_hit_ratio")).read_text().rstrip("\n"))
 
     @staticmethod
