@@ -9,7 +9,8 @@ try:
         newBuf = ""
         for line in pathlib.Path(fn).read_text().split("\n"):
             if "systemd_newunit" in line:
-                newBuf += "\tsed -i 's#-datadir=/var/lib/bitcoind#-datadir=/var/cache/bitcoind#g' contrib/init/bitcoind.service\n"
+                newBuf += "\tsed -i 's#/var/lib/bitcoind#/var/cache/bitcoind#g' contrib/init/bitcoind.service\n"
+                newBuf += "\tsed -i 's#StateDirectory#CacheDirectory#g' contrib/init/bitcoind.service\n"
             newBuf += line + "\n"
         with open(fn, "w") as f:
             f.write(newBuf)
