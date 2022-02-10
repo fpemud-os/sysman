@@ -7,7 +7,7 @@ for fn in glob.glob("*.ebuild"):
     with open(fn, "a") as f:
         f.write("""
 pkg_extra_files() {
-        echo "/var/lib/monero/***"
+        echo "/var/cache/monero/***"
         echo "/var/log/monero/***"
 }
 """)

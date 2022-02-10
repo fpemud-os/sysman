@@ -7,6 +7,6 @@ for fn in glob.glob("*.ebuild"):
     with open(fn, "a") as f:
         f.write("""
 pkg_extra_files() {
-        echo "/var/lib/bitcoind/***"
+        echo "/var/cache/bitcoind/***"
 }
 """)

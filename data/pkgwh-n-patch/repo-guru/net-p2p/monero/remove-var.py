@@ -8,8 +8,10 @@ try:
     # what to insert (with blank line in the beginning and the end)
     buf2 = """
 ## patched by fpemud-refsystem ####
+sed -i 's#data-dir=/var/lib/monero#data-dir=/var/cache/monero#g' "${D}/etc/monero/monerod.conf"
+
 mkdir -p "${D}/usr/lib/tmpfiles.d"
-echo "d /var/lib/monero 0755 monero monero" >> "${D}/usr/lib/tmpfiles.d/monero.conf"
+echo "d /var/cache/monero 0755 monero monero" >> "${D}/usr/lib/tmpfiles.d/monero.conf"
 echo "d /var/log/monero 0755 monero monero" >> "${D}/usr/lib/tmpfiles.d/monero.conf"
 
 rm -rf ${D}/var/lib/monero
