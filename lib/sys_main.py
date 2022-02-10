@@ -180,7 +180,7 @@ class FmMain:
                             print("    Swap partition: %s (%s)" % (layout.get_ssd_swap_partition(), partSize(layout.get_ssd_swap_partition())))
                         else:
                             print("    Swap partition: None")
-                        print("    Cache partition: %s (%s)" % (layout.get_ssd_cache_partition(), partSize(layout.get_ssd_cache_partition())))
+                        print("    Cache partition: %s (%s, hit:%s%%)" % (layout.get_ssd_cache_partition(), partSize(layout.get_ssd_cache_partition()), FmUtil.bcacheGetHitRatio(layout.get_bcache_set_uuid())))
                     else:
                         print("    SSD: None")
                         print("    Boot disk: %s" % (layout.boot_disk))
