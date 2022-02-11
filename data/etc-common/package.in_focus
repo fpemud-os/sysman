@@ -55,6 +55,8 @@ media-fonts/noto
 media-fonts/noto-cjk
 media-fonts/noto-emoji
 media-fonts/liberation-fonts
+media-fonts/roboto
+media-fonts/robotomono
 media-fonts/ubuntu-font-family
 media-fonts/unifont
 # libreoffice opensymbol fonts?
