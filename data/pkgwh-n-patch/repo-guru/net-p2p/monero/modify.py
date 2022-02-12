@@ -39,6 +39,11 @@ rm -rf ${D}/var/log/monero
 
         # do insert
         buf = buf[:pos] + buf2 + buf[pos:]
+
+        # do replace
+        buf = buf.replace("dev-libs/boost:=[nls,threads]", "dev-libs/boost:=[nls]")
+
+        # write
         with open(fn, "w") as f:
             f.write(buf)
 except ValueError:
