@@ -1642,10 +1642,8 @@ class FmUtil:
         # patch profile files
         profilesDir = os.path.join(patchDir, "profiles")
         if os.path.exists(profilesDir):
-            for profileDir in FmUtil.listLeafDirs(profilesDir):
-                srcDir = os.path.join(patchDir, "profiles", profileDir)
-                dstDir = os.path.join(repoDir, "profiles", profileDir)
-                FmUtil._portagePatchRepositoryExecScript(repoName, patchTypeName, patchDir, srcDir, dstDir)
+            dstDir = os.path.join(repoDir, "profiles")
+            FmUtil._portagePatchRepositoryExecScript(repoName, patchTypeName, patchDir, profilesDir, dstDir)
 
         # patch packages
         pendingDstDirList = []

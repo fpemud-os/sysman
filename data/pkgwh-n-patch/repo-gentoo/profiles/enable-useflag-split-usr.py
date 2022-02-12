@@ -3,9 +3,9 @@
 
 import pathlib
 
-buf = pathlib.Path("./use.force").read_text()
+buf = pathlib.Path("./base/use.force").read_text()
 if "\nsplit-usr\n" in buf:
-    with open("./use.force", "w") as f:
+    with open("./base/use.force", "w") as f:
         f.write(buf.replace("\nsplit-usr\n", "\n#split-usr\n"))
 else:
     print("outdated")
