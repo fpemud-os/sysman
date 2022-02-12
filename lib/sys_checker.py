@@ -97,7 +97,7 @@ class FmSysChecker:
                     bbkiObj.check_repositories(self.bAutoFix, self.infoPrinter.printError)
                 with self.infoPrinter.printInfoAndIndent("- Check boot entries..."):
                     if self.bAutoFix:
-                        with BootDirWriter(strict_hdds.get_current_storage_layout()):
+                        with BootDirWriter(strict_hdds.get_storage_layout()):
                             bbkiObj.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
                     else:
                         bbkiObj.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
@@ -219,7 +219,7 @@ class FmSysChecker:
             self.infoPrinter.printError("No hard disk?!")
             return
 
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
         if layout is None:
             self.infoPrinter.printError("No valid storage layout.")
             return
@@ -269,7 +269,7 @@ class FmSysChecker:
             self.infoPrinter.printError("/usr/local should not exist.")
 
     def _checkPreMountRootfsLayout(self):
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
         mRootfs = [m for m in layout.get_mount_entries() if m.mnt_point == "/"][0]
         with TmpMount(mRootfs.target, options=mRootfs.mnt_opts) as mp:
             obj = strict_fsh.PreMountRootFs(mp.mountpoint,

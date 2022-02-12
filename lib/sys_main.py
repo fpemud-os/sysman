@@ -145,7 +145,7 @@ class FmMain:
 
         layout = None
         if self.param.runMode in ["normal", "setup"]:
-            layout = strict_hdds.get_current_storage_layout()
+            layout = strict_hdds.get_storage_layout()
 
         print("Storage layout:")
         if True:
@@ -376,7 +376,7 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
             return 1
@@ -399,7 +399,7 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
             return 1
@@ -422,7 +422,7 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
             return 1
@@ -446,7 +446,7 @@ class FmMain:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
         if layout is None:
             print("Invalid storage layout.", file=sys.stderr)
             return 1
@@ -598,7 +598,7 @@ class FmMain:
         print("")
 
         # install
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
         with BootDirWriter(layout):
             try:
                 self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
@@ -620,7 +620,7 @@ class FmMain:
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()
 
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
         bbkiObj = BbkiWrapper()
 
         if not bbkiObj.isRescueOsInstalled():

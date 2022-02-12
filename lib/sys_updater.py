@@ -28,7 +28,7 @@ class FmSysUpdater:
         self.opEmerge9999 = os.path.join(FmConst.libexecDir, "op-emerge-9999.py")
 
     def update(self, bSync, bFetchAndBuild):
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
         bbkiObj = BbkiWrapper()
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
@@ -247,7 +247,7 @@ class FmSysUpdater:
 
     def stablize(self):
         bbkiObj = BbkiWrapper()
-        layout = strict_hdds.get_current_storage_layout()
+        layout = strict_hdds.get_storage_layout()
 
         self.infoPrinter.printInfo(">> Stablizing...")
         with BootDirWriter(layout):
