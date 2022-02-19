@@ -116,6 +116,7 @@ gui-apps/wl-clipboard
 media-gfx/termtosvg
 media-gfx/xdot
 media-sound/alsa-utils
+media-sound/helvum
 media-sound/mpg123
 media-tv/v4l-utils
 net-analyzer/netcat
