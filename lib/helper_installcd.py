@@ -283,7 +283,7 @@ class InstallCdBuilder:
     def buildWindows7Stage4(self, arch):
         # step
         print("        - Initializing...")
-        wdir = self._stage4Info["windows-xp"][arch]["work-dir"]
+        wdir = self._stage4Info["windows-7"][arch]["work-dir"]
         wdir.initialize()
 
         s = wstage4.Settings()
@@ -291,13 +291,13 @@ class InstallCdBuilder:
         s.verbose_level = 0
 
         ts = wstage4.TargetSettings()
-        ts.arch = self._stage4Info["windows-xp"][arch]["arch"]
-        ts.category = self._stage4Info["windows-xp"][arch]["category"]
-        ts.edition = self._stage4Info["windows-xp"][arch]["edition"]
-        ts.lang = self._stage4Info["windows-xp"][arch]["lang"]
+        ts.arch = self._stage4Info["windows-7"][arch]["arch"]
+        ts.category = self._stage4Info["windows-7"][arch]["category"]
+        ts.edition = self._stage4Info["windows-7"][arch]["edition"]
+        ts.lang = self._stage4Info["windows-7"][arch]["lang"]
 
         builder = wstage4.Builder(s, ts, wdir)
-        builder.action_prepare_custom_install_media(self._isoFileWindowsXP)
+        builder.action_prepare_custom_install_media(self._isoFileWindows7)
 
         # step
         print("        - Installing windows...")
@@ -315,7 +315,7 @@ class InstallCdBuilder:
         print("        - Cleaning up...")
         builder.action_cleanup()
 
-        self._stage4Info["windows-xp"][arch]["completed"] = True
+        self._stage4Info["windows-7"][arch]["completed"] = True
 
     def buildTargetSystem(self, arch):
         c = CcacheLocalService()
