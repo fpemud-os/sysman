@@ -2,13 +2,18 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 import os
+import bz2
+import shutil
+import tarfile
 import gstage4
 import wstage4
 from fm_util import FmUtil
 from fm_util import CloudCacheGentoo
 from fm_util import CcacheLocalService
 from fm_util import Stage4Overlay
+from fm_util import Stage4ScriptUseRobustLayer
 from fm_util import PrintLoadAvgThread
+from fm_util import TmpMount
 from fm_param import FmConst
 
 
@@ -439,6 +444,7 @@ class InstallCdBuilder:
                 s = gstage4.scripts.PlacingFilesScript("Install bcachefs kernel config file")
                 s.append_dir("/usr")
                 s.append_dir("/usr/src")
+                from helper_rescue import TMP_DOT_CONFIG                    # FIXME
                 s.append_file("/usr/src/dot-config", TMP_DOT_CONFIG)
                 scriptList.append(s)
             builder.action_install_kernel(preprocess_script_list=scriptList)
@@ -491,13 +497,30 @@ class InstallCdBuilder:
             os.mkdir(dataDir)
 
             # install Gentoo Linux files
+            srcDir = self._stage4Info["gentoo-linux"]["amd64"]["work-dir"].get_old_chroot_dir_paths()[-1]
+            dstFile = os.path.join(dataDir, "gentoo-linux-amd64.tar.bz2")
+            with tarfile.open(dstFile, mode="x:bz2") as tf:
+                tf.add(srcDir, arcname="/")
 
             # install Windows XP files
+            srcFile = self._stage4Info["windows-xp"]["amd64"]["work-dir"].image_filepath
+            dstFile = os.path.join(dataDir, "microsoft-windows-xp-amd64.image.bz2")
+            with bz2.open(dstFile, "wb") as f:
+                with open(srcFile, "rb") as f2:
+                    buf = f2.read(4096)
+                    while len(buf) > 0:
+                        f.write(buf)
+                        buf = f2.read(4096)
 
             # install Windows 7 files
-
-
-
+            srcFile = self._stage4Info["windows-7"]["amd64"]["work-dir"].image_filepath
+            dstFile = os.path.join(dataDir, "microsoft-windows-7-amd64.image.bz2")
+            with bz2.open(dstFile, "wb") as f:
+                with open(srcFile, "rb") as f2:
+                    buf = f2.read(4096)
+                    while len(buf) > 0:
+                        f.write(buf)
+                        buf = f2.read(4096)
 
             # install target system files into usb stick
             for arch, v in self._targetSystemInfo.items():
