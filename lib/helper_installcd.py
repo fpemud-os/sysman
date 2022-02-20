@@ -198,6 +198,7 @@ class InstallCdBuilder:
         # step
         print("        - Installing overlays...")
         builder.action_create_overlays(overlay_list=[
+            Stage4Overlay("guru", "https://github.com/gentoo/guru"),
             Stage4Overlay("mirrorshq-overlay", "https://github.com/mirrorshq/gentoo-overlay"),
             Stage4Overlay("fpemud-os-overlay", "https://github.com/fpemud-os/gentoo-overlay"),
         ])
