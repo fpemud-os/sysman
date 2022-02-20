@@ -35,7 +35,7 @@ class InstallCdBuilder:
                     "subarch": "amd64",
                     "variant": "systemd",
                     "profile": "default/linux/amd64/17.1",
-                    "work-dir": os.path.join(tmpDir, "stage4-gentoo-amd64"),
+                    "work-dir": gstage4.WorkDir(os.path.join(tmpDir, "stage4-gentoo-amd64")),
                     "completed": False
                 },
                 # "arm64": {
