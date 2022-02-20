@@ -731,19 +731,19 @@ class FmMain:
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Building stage4 (Gentoo Linux %s)..." % (builder.getArchName("amd64")))
-        builder.buildGentooLinuxStage4("amd64")
-        print("")
-
-        # self.infoPrinter.printInfo(">> Building stage4 (linux, %s)..." % (builder.getArchName("arm64")))
-        # builder.buildStage4("arm64")
+        # self.infoPrinter.printInfo(">> Building stage4 for Gentoo Linux (%s)..." % (builder.getArchName("amd64")))
+        # builder.buildGentooLinuxStage4("amd64")
         # print("")
 
-        self.infoPrinter.printInfo(">> Building stage4 (Windows XP %s)..." % (builder.getArchName("amd64")))
+        # self.infoPrinter.printInfo(">> Building stage4 for Gentoo Linux (%s)..." % (builder.getArchName("arm64")))
+        # builder.buildGentooLinuxStage4("arm64")
+        # print("")
+
+        self.infoPrinter.printInfo(">> Building stage4 for Windows XP (%s)..." % (builder.getArchName("amd64")))
         builder.buildWindowsXpStage4("amd64")
         print("")
 
-        self.infoPrinter.printInfo(">> Building stage4 (Windows 7 %s)..." % (builder.getArchName("amd64")))
+        self.infoPrinter.printInfo(">> Building stage4 for Windows 7 (%s)..." % (builder.getArchName("amd64")))
         builder.buildWindows7Stage4("amd64")
         print("")
 

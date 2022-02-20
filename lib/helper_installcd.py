@@ -70,7 +70,7 @@ class InstallCdBuilder:
                 "subarch": "amd64",
                 "variant": "openrc",
                 "profile": "default/linux/amd64/17.1/no-multilib",
-                "work-dir": os.path.join(tmpDir, "instcd-rootfs-amd64"),
+                "work-dir": gstage4.WorkDir(os.path.join(tmpDir, "instcd-rootfs-amd64")),
                 "completed": False
             },
             # "arm64": {
@@ -113,7 +113,7 @@ class InstallCdBuilder:
         self._stage3FilesDict = dict()
         self._snapshotFile = None
 
-        self._isoFileWindowsXP = "/usr/share/microsoft-windows-xp-setup-cd/windows-xp-setup-x86.iso"
+        self._isoFileWindowsXP = "/usr/share/microsoft-windows-xp-setup-cd/windows-xp-setup-amd64.iso"
         self._isoFileWindows7 = "/usr/share/microsoft-windows-7-setup-dvd/windows-7-setup-amd64.iso"
 
     def getDevType(self):
