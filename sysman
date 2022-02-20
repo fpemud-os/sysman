@@ -55,8 +55,6 @@ def getArgParser():
     parser2 = subparsers.add_parser("add-harddisk", help="Add harddisk into storage layout")
     parser2.set_defaults(op="hdd_add")
     parser2.add_argument("devpath")
-    parser2.add_argument("--mainboot", action="store_true")
-    parser2.add_argument("--with-badblock", action="store_true")
 
     parser2 = subparsers.add_parser("remove-harddisk", help="Remove harddisk from storage layout")
     parser2.set_defaults(op="hdd_remove")
@@ -209,7 +207,7 @@ try:
             elif args.op == "stablize":
                 ret = FmMain(param).doStablize()
             elif args.op == "hdd_add":
-                ret = FmMain(param).doHddAdd(args.devpath, args.mainboot, args.with_badblock)
+                ret = FmMain(param).doHddAdd(args.devpath)
             elif args.op == "hdd_remove":
                 ret = FmMain(param).doHddRemove(args.devpath)
             elif args.op == "enable-swap":

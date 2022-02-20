@@ -371,7 +371,7 @@ class FmMain:
         self.param.sysUpdater.stablize()
         return 0
 
-    def doHddAdd(self, devpath, bMainBoot, bWithBadBlock):
+    def doHddAdd(self, devpath):
         if self.param.runMode == "prepare":
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1

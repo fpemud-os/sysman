@@ -43,10 +43,18 @@ Basic Usage:
      * Ensures the software part of the current system has no check errors
      * Marks the system as stable
 
+  sysman build-install-disk
+     * Install disk can boot under architecture x86_64 and arm64
+     * Prepares stage4 for Gentoo Linux x86_64
+     * Prepares stage4 for Gentoo Linux arm64
+     * Prepares stage4 for Microsoft Windows XP x86_64
+     * Prepares stage4 for Microsoft Windows 7 x86_64
+     * Can be used as rescue disk
+
 
 Storage Management:
 
-  sysman add-harddisk <devpath> [--mainboot]
+  sysman add-harddisk <devpath>
      * Initialize the new harddisk
      * Add the new harddisk into current storage layout
      * Recreate initramfs and bootloader
@@ -137,14 +145,14 @@ Cluster Management:
 Rescue Facility:
 
   sysman install-rescue-os
-     * Install an Arch Linux based rescue operation system into /boot
+     * Install a rescue operation system into /boot
 
   sysman uninstall-rescue-os
      * Uninstall the rescue operation system
 
-  sysman build-rescue-disk <devpath>
-     * Build an Arch Linux based rescue disk
-     * Support cd-rw, dvd-rw, usb-stick, sd-card
+  sysman build-rescue-disk <devpath|filepath>
+     * Build a rescue disk
+     * Support cd-rw, usb-stick, iso-file
 
 
 Storage layout:

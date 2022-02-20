@@ -35,6 +35,7 @@ class InstallCdBuilder:
                     "subarch": "amd64",
                     "variant": "systemd",
                     "profile": "default/linux/amd64/17.1",
+                    "stage3-file": None,
                     "work-dir": gstage4.WorkDir(os.path.join(tmpDir, "stage4-gentoo-amd64")),
                     "completed": False
                 },
@@ -49,6 +50,7 @@ class InstallCdBuilder:
                     "category": wstage4.Category.WINDOWS_XP,
                     "edition": wstage4.Edition.WINDOWS_XP_PROFESSIONAL,
                     "lang": wstage4.Lang.en_US,
+                    "install-iso-file": "/usr/share/microsoft-windows-xp-setup-cd/windows-xp-setup-amd64.iso",
                     "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-winxp-amd64")),
                     "completed": False,
                 },
@@ -59,6 +61,7 @@ class InstallCdBuilder:
                     "category": wstage4.Category.WINDOWS_7,
                     "edition": wstage4.Edition.WINDOWS_7_ULTIMATE,
                     "lang": wstage4.Lang.en_US,
+                    "install-iso-file": "/usr/share/microsoft-windows-7-setup-dvd/windows-7-setup-amd64.iso",
                     "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-win7-amd64")),
                     "completed": False,
                 },
@@ -70,6 +73,7 @@ class InstallCdBuilder:
                 "subarch": "amd64",
                 "variant": "openrc",
                 "profile": "default/linux/amd64/17.1/no-multilib",
+                "stage3-file": None,
                 "work-dir": gstage4.WorkDir(os.path.join(tmpDir, "instcd-rootfs-amd64")),
                 "completed": False
             },
@@ -78,6 +82,8 @@ class InstallCdBuilder:
             #   "completed": False
             # },
         }
+
+        self._snapshotFile = None
 
         self._devType = devType
         if self._devType == self.DEV_TYPE_ISO:
@@ -110,12 +116,6 @@ class InstallCdBuilder:
                                               hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
                                               10 if "fan" in hwInfo.hwDict else 1)
 
-        self._stage3FilesDict = dict()
-        self._snapshotFile = None
-
-        self._isoFileWindowsXP = "/usr/share/microsoft-windows-xp-setup-cd/windows-xp-setup-amd64.iso"
-        self._isoFileWindows7 = "/usr/share/microsoft-windows-7-setup-dvd/windows-7-setup-amd64.iso"
-
     def getDevType(self):
         return self._devType
 
@@ -131,16 +131,18 @@ class InstallCdBuilder:
             assert v["subarch"] in cache.get_subarch_list(arch)
         for arch, v in list(self._stage4Info["gentoo-linux"].items()) + list(self._targetSystemInfo.items()):
             try:
-                self._stage3FilesDict[arch] = cache.get_latest_stage3(arch, v["subarch"], v["variant"], cached_only=True)   # prefer local stage3 file
+                v["stage3-file"] = cache.get_latest_stage3(arch, v["subarch"], v["variant"], cached_only=True)   # prefer local stage3 file
             except FileNotFoundError:
-                self._stage3FilesDict[arch] = cache.get_latest_stage3(arch, v["subarch"], v["variant"])
-        self._snapshotFile = cache.get_latest_snapshot()                                                                    # always use newest snapshot
+                v["stage3-file"] = cache.get_latest_stage3(arch, v["subarch"], v["variant"])
+        self._snapshotFile = cache.get_latest_snapshot()                                                         # always use newest snapshot
 
         # check windows source files
-        if not os.path.exists(self._isoFileWindowsXP):
-            raise Exception("%s does not exists" % (self._isoFileWindowsXP))
-        if not os.path.exists(self._isoFileWindows7):
-            raise Exception("%s does not exists" % (self._isoFileWindows7))
+        for v in self._stage4Info["windows-xp"].values():
+            if not os.path.exists(v["install-iso-file"]):
+                raise Exception("%s does not exists" % (v["install-iso-file"]))
+        for v in self._stage4Info["windows-7"].values():
+            if not os.path.exists(v["install-iso-file"]):
+                raise Exception("%s does not exists" % (v["install-iso-file"]))
 
     def buildGentooLinuxStage4(self, arch):
         ftPortage = gstage4.target_features.UsePortage()
@@ -165,7 +167,7 @@ class InstallCdBuilder:
 
         ts = gstage4.TargetSettings()
         ts.arch = arch
-        ts.profile = self._targetSystemInfo[arch]["profile"]
+        ts.profile = self._stage4Info["gentoo-linux"][arch]["profile"]
         ftUsrMerge.update_target_settings(ts)
         ftPortage.update_target_settings(ts)
         ftSystemd.update_target_settings(ts)
@@ -181,7 +183,7 @@ class InstallCdBuilder:
 
         # step
         print("        - Extracting seed stage...")
-        with gstage4.seed_stages.GentooStage3Archive(*self._stage3FilesDict[arch]) as ss:
+        with gstage4.seed_stages.GentooStage3Archive(*self._stage4Info["gentoo-linux"][arch]["stage3-file"]) as ss:
             builder.action_unpack(ss)
 
         # step
@@ -260,7 +262,7 @@ class InstallCdBuilder:
         ts.lang = self._stage4Info["windows-xp"][arch]["lang"]
 
         builder = wstage4.Builder(s, ts, wdir)
-        builder.action_prepare_custom_install_media(self._isoFileWindowsXP)
+        builder.action_prepare_custom_install_media(self._stage4Info["windows-xp"][arch]["install-iso-file"])
 
         # step
         print("        - Installing windows...")
@@ -297,7 +299,7 @@ class InstallCdBuilder:
         ts.lang = self._stage4Info["windows-7"][arch]["lang"]
 
         builder = wstage4.Builder(s, ts, wdir)
-        builder.action_prepare_custom_install_media(self._isoFileWindows7)
+        builder.action_prepare_custom_install_media(self._stage4Info["windows-7"][arch]["install-iso-file"])
 
         # step
         print("        - Installing windows...")
@@ -360,7 +362,7 @@ class InstallCdBuilder:
 
         # step
         print("        - Extracting seed stage...")
-        with gstage4.seed_stages.GentooStage3Archive(*self._stage3FilesDict[arch]) as ss:
+        with gstage4.seed_stages.GentooStage3Archive(*self._targetSystemInfo[arch]["stage3-file"]) as ss:
             builder.action_unpack(ss)
 
         # step
@@ -497,33 +499,41 @@ class InstallCdBuilder:
             os.mkdir(dataDir)
 
             # install Gentoo Linux files
-            srcDir = self._stage4Info["gentoo-linux"]["amd64"]["work-dir"].get_old_chroot_dir_paths()[-1]
-            dstFile = os.path.join(dataDir, "gentoo-linux-amd64.tar.bz2")
-            with tarfile.open(dstFile, mode="x:bz2") as tf:
-                tf.add(srcDir, arcname="/")
+            if self._stage4Info["gentoo-linux"]["amd64"]["completed"]:
+                srcDir = self._stage4Info["gentoo-linux"]["amd64"]["work-dir"].get_old_chroot_dir_paths()[-1]
+                dstFile = os.path.join(dataDir, "gentoo-linux-amd64.tar.bz2")
+                with tarfile.open(dstFile, mode="x:bz2") as tf:
+                    tf.add(srcDir, arcname="/")
 
             # install Windows XP files
-            srcFile = self._stage4Info["windows-xp"]["amd64"]["work-dir"].image_filepath
-            dstFile = os.path.join(dataDir, "microsoft-windows-xp-amd64.image.bz2")
-            with bz2.open(dstFile, "wb") as f:
-                with open(srcFile, "rb") as f2:
-                    buf = f2.read(4096)
-                    while len(buf) > 0:
-                        f.write(buf)
+            if self._stage4Info["windows-xp"]["amd64"]["completed"]:
+                srcFile = self._stage4Info["windows-xp"]["amd64"]["work-dir"].image_filepath
+                dstFile = os.path.join(dataDir, "microsoft-windows-xp-amd64.image.bz2")
+                with bz2.open(dstFile, "wb") as f:
+                    with open(srcFile, "rb") as f2:
                         buf = f2.read(4096)
+                        while len(buf) > 0:
+                            f.write(buf)
+                            buf = f2.read(4096)
 
             # install Windows 7 files
-            srcFile = self._stage4Info["windows-7"]["amd64"]["work-dir"].image_filepath
-            dstFile = os.path.join(dataDir, "microsoft-windows-7-amd64.image.bz2")
-            with bz2.open(dstFile, "wb") as f:
-                with open(srcFile, "rb") as f2:
-                    buf = f2.read(4096)
-                    while len(buf) > 0:
-                        f.write(buf)
+            if self._stage4Info["windows-7"]["amd64"]["completed"]:
+                srcFile = self._stage4Info["windows-7"]["amd64"]["work-dir"].image_filepath
+                dstFile = os.path.join(dataDir, "microsoft-windows-7-amd64.image.bz2")
+                with bz2.open(dstFile, "wb") as f:
+                    with open(srcFile, "rb") as f2:
                         buf = f2.read(4096)
+                        while len(buf) > 0:
+                            f.write(buf)
+                            buf = f2.read(4096)
 
             # install target system files into usb stick
+            bFound = False
             for arch, v in self._targetSystemInfo.items():
+                if not v["completed"]:
+                    continue
+
+                bFound = True
                 sp = v["work-dir"].get_old_chroot_dir_paths()[-1]
                 dstOsDir = os.path.join(osDir, self._archDirDict[arch])
 
@@ -547,6 +557,8 @@ class InstallCdBuilder:
                     assert False
                 else:
                     assert False
+
+            assert bFound
 
             # create grub.cfg
             osArchDir = os.path.join("/os", self._archDirDict["amd64"])      # FIXME
