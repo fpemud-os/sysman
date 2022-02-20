@@ -731,21 +731,29 @@ class FmMain:
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Building stage4 (%s)..." % (builder.getArchName("amd64")))
-        builder.buildStage4("amd64")
+        self.infoPrinter.printInfo(">> Building stage4 (Gentoo Linux %s)..." % (builder.getArchName("amd64")))
+        builder.buildGentooLinuxStage4("amd64")
+        print("")
+
+        # self.infoPrinter.printInfo(">> Building stage4 (linux, %s)..." % (builder.getArchName("arm64")))
+        # builder.buildStage4("arm64")
+        # print("")
+
+        self.infoPrinter.printInfo(">> Building stage4 (Windows XP %s)..." % (builder.getArchName("amd64")))
+        builder.buildWindowsXpStage4("amd64")
+        print("")
+
+        self.infoPrinter.printInfo(">> Building stage4 (Windows 7 %s)..." % (builder.getArchName("amd64")))
+        builder.buildWindows7Stage4("amd64")
         print("")
 
         self.infoPrinter.printInfo(">> Building %s (%s)..." % (FmConst.installDiskName, builder.getArchName("amd64")))
         builder.buildTargetSystem("amd64")
         print("")
 
-        self.infoPrinter.printInfo(">> Building stage4 (%s)..." % (builder.getArchName("arm64")))
-        # builder.buildStage4("arm64")
-        print("")
-
-        self.infoPrinter.printInfo(">> Building %s (%s)..." % (FmConst.installDiskName, builder.getArchName("arm64")))
+        # self.infoPrinter.printInfo(">> Building %s (%s)..." % (FmConst.installDiskName, builder.getArchName("arm64")))
         # builder.buildTargetSystem("arm64")
-        print("")
+        # print("")
 
         if builder.getDevType() == RescueCdBuilder.DEV_TYPE_ISO:
             self.infoPrinter.printInfo(">> Creating %s..." % (devPath))

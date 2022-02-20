@@ -3,9 +3,12 @@
 
 import os
 import gstage4
+import wstage4
 from fm_util import FmUtil
 from fm_util import CloudCacheGentoo
 from fm_util import CcacheLocalService
+from fm_util import Stage4Overlay
+from fm_util import PrintLoadAvgThread
 from fm_param import FmConst
 
 
@@ -20,13 +23,55 @@ class InstallCdBuilder:
             "amd64": "x86_64",
             "arm64": "arm64",
         }
-        self._stage4ArchInfoDict = {
-            "amd64": ["amd64", "systemd", "default/linux/amd64/17.1", os.path.join(tmpDir, "stage4-amd64"), False],   # [subarch, variant, profile, rootfs-dir, complete-flag]
-            # "arm64": ["arm64", None],
+
+        self._stage4Info = {
+            "gentoo-linux": {
+                "amd64": {
+                    "subarch": "amd64",
+                    "variant": "systemd",
+                    "profile": "default/linux/amd64/17.1",
+                    "work-dir": os.path.join(tmpDir, "stage4-gentoo-amd64"),
+                    "completed": False
+                },
+                # "arm64": {
+                #   "arch": "arm64",
+                #   "completed": False
+                # },
+            },
+            "windows-xp": {
+                "amd64": {
+                    "arch": wstage4.Arch.X86_64,
+                    "category": wstage4.Category.WINDOWS_XP,
+                    "edition": wstage4.Edition.WINDOWS_XP_PROFESSIONAL,
+                    "lang": wstage4.Lang.en_US,
+                    "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-winxp-amd64")),
+                    "completed": False,
+                },
+            },
+            "windows-7": {
+                "amd64": {
+                    "arch": wstage4.Arch.X86_64,
+                    "category": wstage4.Category.WINDOWS_7,
+                    "edition": wstage4.Edition.WINDOWS_7_ULTIMATE,
+                    "lang": wstage4.Lang.en_US,
+                    "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-win7-amd64")),
+                    "completed": False,
+                },
+            },
         }
-        self._archInfoDict = {
-            "amd64": ["amd64", "openrc", "default/linux/amd64/17.1/no-multilib", os.path.join(tmpDir, "instcd-rootfs-amd64"), False],   # [subarch, variant, profile, rootfs-dir, complete-flag]
-            # "arm64": ["arm64", None],
+
+        self._targetSystemInfo = {
+            "amd64": {
+                "subarch": "amd64",
+                "variant": "openrc",
+                "profile": "default/linux/amd64/17.1/no-multilib",
+                "work-dir": os.path.join(tmpDir, "instcd-rootfs-amd64"),
+                "completed": False
+            },
+            # "arm64": {
+            #   "arch": "arm64",
+            #   "completed": False
+            # },
         }
 
         self._devType = devType
@@ -53,9 +98,6 @@ class InstallCdBuilder:
                 raise Exception("device %s needs to be at least %d GB." % (self._devPath, DEV_MIN_SIZE_IN_GB))
             if FmUtil.isMountPoint(self._devPath):
                 raise Exception("device %s or any of its partitions is already mounted, umount it first." % (self._devPath))
-        elif self._devType == self.DEV_TYPE_RESCUE_OS:
-            assert len(kwargs) == 1 and "rescue_os_spec" in kwargs
-            self._rescueOsSpec = kwargs["rescue_os_spec"]
         else:
             assert False
 
@@ -66,6 +108,9 @@ class InstallCdBuilder:
         self._stage3FilesDict = dict()
         self._snapshotFile = None
 
+        self._isoFileWindowsXP = "/usr/share/microsoft-windows-xp-setup-cd/windows-xp-setup-x86.iso"
+        self._isoFileWindows7 = "/usr/share/microsoft-windows-7-setup-dvd/windows-7-setup-amd64.iso"
+
     def getDevType(self):
         return self._devType
 
@@ -73,13 +118,26 @@ class InstallCdBuilder:
         return self._archDirDict[arch]
 
     def downloadFiles(self):
+        # get gentoo source files
         cache = CloudCacheGentoo(FmConst.gentooCacheDir)
+        cache.sync()
+        for arch, v in list(self._stage4Info["gentoo-linux"].items()) + list(self._targetSystemInfo.items()):
+            assert arch in cache.get_arch_list()
+            assert v["subarch"] in cache.get_subarch_list(arch)
+        for arch, v in list(self._stage4Info["gentoo-linux"].items()) + list(self._targetSystemInfo.items()):
+            try:
+                self._stage3FilesDict[arch] = cache.get_latest_stage3(arch, v["subarch"], v["variant"], cached_only=True)   # prefer local stage3 file
+            except FileNotFoundError:
+                self._stage3FilesDict[arch] = cache.get_latest_stage3(arch, v["subarch"], v["variant"])
+        self._snapshotFile = cache.get_latest_snapshot()                                                                    # always use newest snapshot
 
-    def buildStage4(self, arch):
-        tmpRootfsDir = self._stage4ArchInfoDict[arch][3]
+        # check windows source files
+        if not os.path.exists(self._isoFileWindowsXP):
+            raise Exception("%s does not exists" % (self._isoFileWindowsXP))
+        if not os.path.exists(self._isoFileWindows7):
+            raise Exception("%s does not exists" % (self._isoFileWindows7))
 
-        c = CcacheLocalService()
-
+    def buildGentooLinuxStage4(self, arch):
         ftPortage = gstage4.target_features.UsePortage()
         ftSystemd = gstage4.target_features.UseSystemd()
         ftNoDeprecate = gstage4.target_features.DoNotUseDeprecatedPackagesAndFunctions()
@@ -91,7 +149,7 @@ class InstallCdBuilder:
 
         # step
         print("        - Initializing...")
-        wdir = gstage4.WorkDir(tmpRootfsDir)
+        wdir = self._stage4Info["gentoo-linux"][arch]["work-dir"]
         wdir.initialize()
 
         s = gstage4.Settings()
@@ -102,13 +160,14 @@ class InstallCdBuilder:
 
         ts = gstage4.TargetSettings()
         ts.arch = arch
-        ts.profile = self._archInfoDict[arch][2]
+        ts.profile = self._targetSystemInfo[arch]["profile"]
         ftUsrMerge.update_target_settings(ts)
         ftPortage.update_target_settings(ts)
         ftSystemd.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
         ftPerferGnu.update_target_settings(ts)
 
+        c = CcacheLocalService()
         if c.is_enabled():
             s.host_ccache_dir = c.get_ccache_dir()
             ts.build_opts.ccache = True
@@ -177,11 +236,83 @@ class InstallCdBuilder:
         print("        - Cleaning up...")
         builder.action_cleanup()
 
-        self._stage4ArchInfoDict[arch][-1] = True
+        self._stage4Info["gentoo-linux"][arch]["completed"] = True
+
+    def buildWindowsXpStage4(self, arch):
+        # step
+        print("        - Initializing...")
+        wdir = self._stage4Info["windows-xp"][arch]["work-dir"]
+        wdir.initialize()
+
+        s = wstage4.Settings()
+        s.program_name = FmConst.programName
+        s.verbose_level = 0
+
+        ts = wstage4.TargetSettings()
+        ts.arch = self._stage4Info["windows-xp"][arch]["arch"]
+        ts.category = self._stage4Info["windows-xp"][arch]["category"]
+        ts.edition = self._stage4Info["windows-xp"][arch]["edition"]
+        ts.lang = self._stage4Info["windows-xp"][arch]["lang"]
+
+        builder = wstage4.Builder(s, ts, wdir)
+        builder.action_prepare_custom_install_media(self._isoFileWindowsXP)
+
+        # step
+        print("        - Installing windows...")
+        builder.action_install_windows()
+
+        # step
+        print("        - Installing windows applications...")
+        builder.action_install_applications()
+
+        # step
+        print("        - Customizing...")
+        builder.action_customize_system()
+
+        # step
+        print("        - Cleaning up...")
+        builder.action_cleanup()
+
+        self._stage4Info["windows-xp"][arch]["completed"] = True
+
+    def buildWindows7Stage4(self, arch):
+        # step
+        print("        - Initializing...")
+        wdir = self._stage4Info["windows-xp"][arch]["work-dir"]
+        wdir.initialize()
+
+        s = wstage4.Settings()
+        s.program_name = FmConst.programName
+        s.verbose_level = 0
+
+        ts = wstage4.TargetSettings()
+        ts.arch = self._stage4Info["windows-xp"][arch]["arch"]
+        ts.category = self._stage4Info["windows-xp"][arch]["category"]
+        ts.edition = self._stage4Info["windows-xp"][arch]["edition"]
+        ts.lang = self._stage4Info["windows-xp"][arch]["lang"]
+
+        builder = wstage4.Builder(s, ts, wdir)
+        builder.action_prepare_custom_install_media(self._isoFileWindowsXP)
+
+        # step
+        print("        - Installing windows...")
+        builder.action_install_windows()
+
+        # step
+        print("        - Installing windows applications...")
+        builder.action_install_applications()
+
+        # step
+        print("        - Customizing...")
+        builder.action_customize_system()
+
+        # step
+        print("        - Cleaning up...")
+        builder.action_cleanup()
+
+        self._stage4Info["windows-xp"][arch]["completed"] = True
 
     def buildTargetSystem(self, arch):
-        tmpRootfsDir = self._archInfoDict[arch][3]
-
         c = CcacheLocalService()
 
         ftPortage = gstage4.target_features.UsePortage()
@@ -197,7 +328,7 @@ class InstallCdBuilder:
 
         # step
         print("        - Initializing...")
-        wdir = gstage4.WorkDir(tmpRootfsDir)
+        wdir = self._targetSystemInfo[arch]["work-dir"]
         wdir.initialize()
 
         s = gstage4.Settings()
@@ -208,7 +339,7 @@ class InstallCdBuilder:
 
         ts = gstage4.TargetSettings()
         ts.arch = arch
-        ts.profile = self._archInfoDict[arch][2]
+        ts.profile = self._targetSystemInfo[arch]["profile"]
         ftUsrMerge.update_target_settings(ts)
         ftPortage.update_target_settings(ts)
         ftGenkernel.update_target_settings(ts)
@@ -332,10 +463,10 @@ class InstallCdBuilder:
         print("        - Cleaning up...")
         builder.action_cleanup()
 
-        self._archInfoDict[arch][-1] = True
+        self._targetSystemInfo[arch]["completed"] = True
 
     def exportTargetSystem(self):
-        assert all([x[-1] for x in self._archInfoDict.values()])
+        assert all([x["completed"] for x in self._targetSystemInfo.values()])
 
         if self._devType == self.DEV_TYPE_ISO:
             assert False
@@ -343,10 +474,111 @@ class InstallCdBuilder:
             assert False
         elif self._devType == self.DEV_TYPE_USB_STICK:
             self._exportToUsbStick()
-        elif self._devType == self.DEV_TYPE_RESCUE_OS:
-            self._exportToRescueOsDir()
         else:
             assert False
+
+    def _exportToUsbStick(self):
+        # format USB stick and get its UUID
+        partDevPath = FmUtil.formatDisk(self._devPath, partitionType="vfat", partitionLabel=self._diskLabel)
+        uuid = FmUtil.getBlkDevUuid(partDevPath)
+        if uuid == "":
+            raise Exception("can not get FS-UUID for %s" % (partDevPath))
+
+        with TmpMount(partDevPath) as mp:
+            osDir = os.path.join(mp.mountpoint, "os")
+            os.mkdir(osDir)
+            dataDir = os.path.join(mp.mountpoint, "data")
+            os.mkdir(dataDir)
+
+            # install Gentoo Linux files
+
+            # install Windows XP files
+
+            # install Windows 7 files
+
+
+
+
+            # install target system files into usb stick
+            for arch, v in self._targetSystemInfo.items():
+                sp = v["work-dir"].get_old_chroot_dir_paths()[-1]
+                dstOsDir = os.path.join(osDir, self._archDirDict[arch])
+
+                os.mkdir(dstOsDir)
+                shutil.move(os.path.join(sp, "boot", "vmlinuz"), dstOsDir)
+                shutil.move(os.path.join(sp, "boot", "initramfs.img"), dstOsDir)
+                shutil.copy(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), dstOsDir)
+                FmUtil.makeSquashedRootfsFiles(sp, dstOsDir)
+
+                # install grub
+                if arch == "amd64":
+                    FmUtil.shellCall("grub-install --removable --target=x86_64-efi --boot-directory=%s --efi-directory=%s --no-nvram" % (mp.mountpoint, mp.mountpoint))
+                    FmUtil.shellCall("grub-install --removable --target=i386-pc --boot-directory=%s %s" % (mp.mountpoint, self._devPath))
+                    # src = grub_install.Source(base_dir=sp)
+                    # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
+                    # grub_install.install(src, dst, ["i386-pc", "x86_64_efi"])
+                elif arch == "arm64":
+                    # src = grub_install.Source(base_dir=sp)
+                    # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
+                    # grub_install.install(src, dst, ["arm64_efi"])
+                    assert False
+                else:
+                    assert False
+
+            # create grub.cfg
+            osArchDir = os.path.join("/os", self._archDirDict["amd64"])      # FIXME
+            with open(os.path.join(mp.mountpoint, "grub", "grub.cfg"), "w") as f:
+                f.write("set default=0\n")
+                f.write("set timeout=90\n")
+                f.write("set gfxmode=auto\n")
+                f.write("\n")
+
+                f.write("insmod efi_gop\n")
+                f.write("insmod efi_uga\n")
+                f.write("insmod gfxterm\n")
+                f.write("insmod all_video\n")
+                f.write("insmod videotest\n")
+                f.write("insmod videoinfo\n")
+                f.write("terminal_output gfxterm\n")
+                f.write("\n")
+
+                f.write("menuentry \"Boot %s\" --class gnu-linux --class os {\n" % (self._diskName))
+                f.write("    linux %s/vmlinuz root=/dev/ram0 init=/linuxrc dev_uuid=%s looptype=squashfs loop=%s/rootfs.sqfs cdroot dokeymap docache gk.hw.use-modules_load=1\n" % (osArchDir, uuid, osArchDir))            # without gk.hw.use-modules_load=1, squashfs module won't load, sucks
+                f.write("    initrd %s/initramfs.img\n" % (osArchDir))
+                f.write("}\n")
+                f.write("\n")
+
+                f.write("menuentry \"Boot existing OS\" --class os {\n")
+                f.write("    set root=(hd0)\n")
+                f.write("    chainloader +1\n")
+                f.write("}\n")
+                f.write("\n")
+
+                # FIXME: memtest86+ does not work under UEFI?
+                f.write("menuentry \"Run Memtest86+\" {\n")
+                f.write("    linux %s/memtest.bin\n" % (osArchDir))
+                f.write("}\n")
+                f.write("\n")
+
+                # menuentry "Hardware Information (HDT)" {
+                #     linux /os/%ARCH%/hdt
+                # }
+
+                # Menu
+                f.write("menuentry \"Restart\" {\n")
+                f.write("    reboot\n")
+                f.write("}\n")
+                f.write("\n")
+
+                # Menu
+                f.write("menuentry \"Power Off\" {\n")
+                f.write("    halt\n")
+                f.write("}\n")
+
+            # create livecd
+            # FIXME: it sucks that genkernel's initrd requires this file
+            with open(os.path.join(mp.mountpoint, "livecd"), "w") as f:
+                f.write("")
 
 
 DEV_MIN_SIZE_IN_GB = 10                     # 10Gib
