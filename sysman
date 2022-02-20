@@ -50,6 +50,10 @@ def getArgParser():
     parser2 = subparsers.add_parser("stablize", help="Stablize the system")
     parser2.set_defaults(op="stablize")
 
+    parser2 = subparsers.add_parser("build-install-disk", help="Build a install disk")
+    parser2.set_defaults(op="build-install-disk")
+    parser2.add_argument("devpath")
+
     ###########################################################################
 
     parser2 = subparsers.add_parser("add-harddisk", help="Add harddisk into storage layout")
@@ -134,10 +138,6 @@ def getArgParser():
 
     parser2 = subparsers.add_parser("build-rescue-disk", help="Build a rescue disk")
     parser2.set_defaults(op="build-rescue-disk")
-    parser2.add_argument("devpath")
-
-    parser2 = subparsers.add_parser("build-install-disk", help="Build a install disk")
-    parser2.set_defaults(op="build-install-disk")
     parser2.add_argument("devpath")
 
     parser2 = subparsers.add_parser("backup", help="Do backup")
