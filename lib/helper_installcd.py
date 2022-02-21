@@ -207,7 +207,8 @@ class InstallCdBuilder:
         # step
         with PrintLoadAvgThread("        - Updating world..."):
             scriptList = [
-                Stage4ScriptUseRobustLayer(gentooRepo.get_datadir_path())
+                Stage4ScriptUseRobustLayer(gentooRepo.get_datadir_path()),
+                PrepareInstallingFpemudOsSysman(gentooRepo.get_datadir_path()),
             ]
             ftUsrMerge.update_preprocess_script_list_for_update_world(scriptList)
 
@@ -616,6 +617,30 @@ class InstallCdBuilder:
             # FIXME: it sucks that genkernel's initrd requires this file
             with open(os.path.join(mp.mountpoint, "livecd"), "w") as f:
                 f.write("")
+
+
+
+class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
+
+    def __init__(self, gentoo_repo_dirpath):
+        self._gentooRepoDir = gentoo_repo_dirpath
+
+    def fill_script_dir(self, script_dir_hostpath):
+        fullfn = os.path.join(script_dir_hostpath, "main.sh")
+        with open(fullfn, "w") as f:
+            f.write("#!/bin/sh\n")
+            f.write("\n")
+            f.write("cd %s\n" % (self._gentooRepoDir))
+            f.write("sed -i '/dosym/d' net-misc/stunnel/*.ebuild\n")
+            f.write("ebuild $(ls net-misc/stunnel/*.ebuild | head -n1) manifest\n")
+            f.write("\n")
+        os.chmod(fullfn, 0o755)
+
+    def get_description(self):
+        return "Prepare installing fpemud-os-sysman"
+
+    def get_script(self):
+        return "main.sh"
 
 
 DEV_MIN_SIZE_IN_GB = 10                     # 10Gib
