@@ -619,7 +619,6 @@ class InstallCdBuilder:
                 f.write("")
 
 
-
 class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
 
     def __init__(self, gentoo_repo_dirpath):
