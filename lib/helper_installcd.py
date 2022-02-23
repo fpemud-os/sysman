@@ -124,7 +124,7 @@ class InstallCdBuilder:
 
     def downloadFiles(self):
         # get gentoo source files
-        cache = CloudCacheGentoo(FmConst.gentooCacheDir)
+        cache = CloudCacheGentoo(FmConst.gentooLinuxCacheDir)
         cache.sync()
         for arch, v in list(self._stage4Info["gentoo-linux"].items()) + list(self._targetSystemInfo.items()):
             assert arch in cache.get_arch_list()

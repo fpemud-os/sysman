@@ -79,7 +79,7 @@ class RescueCdBuilder:
         return self._archDirDict[arch]
 
     def downloadFiles(self):
-        cache = CloudCacheGentoo(FmConst.gentooCacheDir)
+        cache = CloudCacheGentoo(FmConst.gentooLinuxCacheDir)
 
         # sync
         cache.sync()
