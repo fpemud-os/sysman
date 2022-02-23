@@ -265,8 +265,11 @@ class InstallCdBuilder:
         ts.edition = self._stage4Info["windows-xp"][arch]["edition"]
         ts.lang = self._stage4Info["windows-xp"][arch]["lang"]
 
+        installIsoFile = self._stage4Info["windows-xp"][arch]["install-iso-file"]
+        installIsoFile = wstage4.CustomWindowsInstallIsoFile(ts.arch, ts.version, ts.edition, ts.lang, installIsoFile)
+
         builder = wstage4.Builder(s, ts, wdir)
-        builder.action_prepare_custom_install_media(self._stage4Info["windows-xp"][arch]["install-iso-file"])
+        builder.action_prepare_custom_install_media(installIsoFile)
 
         # step
         print("        - Installing windows...")
@@ -302,8 +305,11 @@ class InstallCdBuilder:
         ts.edition = self._stage4Info["windows-7"][arch]["edition"]
         ts.lang = self._stage4Info["windows-7"][arch]["lang"]
 
+        installIsoFile = self._stage4Info["windows-7"][arch]["install-iso-file"]
+        installIsoFile = wstage4.CustomWindowsInstallIsoFile(ts.arch, ts.version, ts.edition, ts.lang, installIsoFile)
+
         builder = wstage4.Builder(s, ts, wdir)
-        builder.action_prepare_custom_install_media(self._stage4Info["windows-7"][arch]["install-iso-file"])
+        builder.action_prepare_custom_install_media(installIsoFile)
 
         # step
         print("        - Installing windows...")
