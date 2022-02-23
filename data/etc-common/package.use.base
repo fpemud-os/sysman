@@ -195,6 +195,7 @@ net-im/zoom                                                                     
 
 
 # package specified flags
+sys-apps/debianutils                                                -installkernel
 net-wireless/iwd                                                    -systemd                            # don't use systemd-resolve
 net-wireless/iwd                                                    -crda
 sys-apps/systemd                                                    -gcrypt -resolvconf
