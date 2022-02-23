@@ -7,7 +7,7 @@ import shutil
 import tarfile
 import gstage4
 import wstage4
-from fm_util import FmUtil
+from fm_util import CloudCacheMicrosoftWindows, FmUtil
 from fm_util import CloudCacheGentoo
 from fm_util import CcacheLocalService
 from fm_util import Stage4Overlay
@@ -47,10 +47,10 @@ class InstallCdBuilder:
             "windows-xp": {
                 "amd64": {
                     "arch": wstage4.Arch.X86_64,
-                    "category": wstage4.Category.WINDOWS_XP,
+                    "version": wstage4.Version.WINDOWS_XP,
                     "edition": wstage4.Edition.WINDOWS_XP_PROFESSIONAL,
                     "lang": wstage4.Lang.en_US,
-                    "install-iso-file": "/usr/share/microsoft-windows-xp-setup-cd/windows-xp-setup-amd64.iso",
+                    "install-iso-file": None,
                     "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-winxp-amd64")),
                     "completed": False,
                 },
@@ -58,10 +58,10 @@ class InstallCdBuilder:
             "windows-7": {
                 "amd64": {
                     "arch": wstage4.Arch.X86_64,
-                    "category": wstage4.Category.WINDOWS_7,
+                    "version": wstage4.Version.WINDOWS_7,
                     "edition": wstage4.Edition.WINDOWS_7_ULTIMATE,
                     "lang": wstage4.Lang.en_US,
-                    "install-iso-file": "/usr/share/microsoft-windows-7-setup-dvd/windows-7-setup-amd64.iso",
+                    "install-iso-file": None,
                     "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-win7-amd64")),
                     "completed": False,
                 },
@@ -136,13 +136,14 @@ class InstallCdBuilder:
                 v["stage3-file"] = cache.get_latest_stage3(arch, v["subarch"], v["variant"])
         self._snapshotFile = cache.get_latest_snapshot()                                                         # always use newest snapshot
 
-        # check windows source files
-        for v in self._stage4Info["windows-xp"].values():
-            if not os.path.exists(v["install-iso-file"]):
-                raise Exception("%s does not exists" % (v["install-iso-file"]))
-        for v in self._stage4Info["windows-7"].values():
-            if not os.path.exists(v["install-iso-file"]):
-                raise Exception("%s does not exists" % (v["install-iso-file"]))
+        # get windows source files
+        cache = CloudCacheMicrosoftWindows(FmConst.mswinCacheDir)
+        if True:
+            ret = cache.download_files_by_arch_version(self._stage4Info["windows-xp"]["arch"], self._stage4Info["windows-xp"]["version"])
+            self._stage4Info["windows-xp"]["install-iso-file"] = ret[0]
+        if True:
+            ret = cache.download_files_by_arch_version(self._stage4Info["windows-7"]["arch"], self._stage4Info["windows-7"]["version"])
+            self._stage4Info["windows-7"]["install-iso-file"] = ret[0]
 
     def buildGentooLinuxStage4(self, arch):
         ftPortage = gstage4.target_features.UsePortage()
@@ -260,7 +261,7 @@ class InstallCdBuilder:
 
         ts = wstage4.TargetSettings()
         ts.arch = self._stage4Info["windows-xp"][arch]["arch"]
-        ts.category = self._stage4Info["windows-xp"][arch]["category"]
+        ts.version = self._stage4Info["windows-xp"][arch]["version"]
         ts.edition = self._stage4Info["windows-xp"][arch]["edition"]
         ts.lang = self._stage4Info["windows-xp"][arch]["lang"]
 
@@ -297,7 +298,7 @@ class InstallCdBuilder:
 
         ts = wstage4.TargetSettings()
         ts.arch = self._stage4Info["windows-7"][arch]["arch"]
-        ts.category = self._stage4Info["windows-7"][arch]["category"]
+        ts.version = self._stage4Info["windows-7"][arch]["version"]
         ts.edition = self._stage4Info["windows-7"][arch]["edition"]
         ts.lang = self._stage4Info["windows-7"][arch]["lang"]
 
