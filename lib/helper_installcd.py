@@ -276,8 +276,12 @@ class InstallCdBuilder:
         builder.action_install_windows()
 
         # step
-        print("        - Installing windows applications...")
-        builder.action_install_applications()
+        print("        - Installing core applications...")
+        builder.action_install_core_applications()
+
+        # step
+        print("        - Installing extra applications...")
+        builder.action_install_extra_applications()
 
         # step
         print("        - Customizing...")
@@ -316,8 +320,12 @@ class InstallCdBuilder:
         builder.action_install_windows()
 
         # step
-        print("        - Installing windows applications...")
-        builder.action_install_applications()
+        print("        - Installing core applications...")
+        builder.action_install_core_applications()
+
+        # step
+        print("        - Installing extra applications...")
+        builder.action_install_extra_applications()
 
         # step
         print("        - Customizing...")
