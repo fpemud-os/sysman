@@ -107,7 +107,7 @@ app-misc/screenfetch
 app-misc/trash-cli
 app-text/dos2unix
 app-text/tree
-dev-python/windown              # it's not only a python module but also a cli utility
+dev-python/windown                  # it is not only a python module
 dev-util/clinfo
 dev-util/d-feet
 dev-util/meld
