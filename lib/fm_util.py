@@ -24,7 +24,6 @@ import struct
 import filecmp
 import fnmatch
 import gstage4
-import wstage4
 import pyudev
 import random
 import termios
@@ -2796,75 +2795,6 @@ class CloudCacheGentoo:
         fn = releaseVariant + "-" + releaseVersion + ".tar.xz"
         fnDigest = fn + ".DIGESTS"
         return (fn, fnDigest)
-
-
-class CloudCacheMicrosoftWindows:
-
-    def __init__(self, cacheDir):
-        self._dir = cacheDir
-
-    def get_install_iso_filename_by_arch_version(self, arch, version):
-        versionPathDict = {
-            wstage4.Version.WINDOWS_98: "windows-98",
-            wstage4.Version.WINDOWS_XP: "windows-xp",
-            wstage4.Version.WINDOWS_7: "windows-7",
-        }
-        archNameDict = {
-            wstage4.Arch.X86: "x86",
-            wstage4.Arch.X86_64: "amd64",
-        }
-
-        if version == wstage4.Version.WINDOWS_98:
-            return versionPathDict[version] + "-setup.iso"
-        elif version in wstage4.Version.WINDOWS_XP:
-            return versionPathDict[version] + "-setup-" + archNameDict[arch] + ".iso"
-        elif version == wstage4.Version.WINDOWS_7:
-            return versionPathDict[version] + "-setup-" + archNameDict[arch] + ".iso"
-        else:
-            assert False
-
-    def get_install_iso_filepath_by_arch_version(self, arch, version):
-        if version == wstage4.Version.WINDOWS_98:
-            # FIXME
-            return "/usr/share/microsoft-windows-xp-setup-cd/windows-xp-setup-amd64.iso"
-        else:
-            return os.path.join(self._dir, self.get_install_iso_filename_by_arch_version(arch, version))
-
-    def get_prefered_edition_by_version(self, version):
-        d = {
-            wstage4.Version.WINDOWS_98: wstage4.Edition.WINDOWS_98_SE,
-            wstage4.Version.WINDOWS_XP: wstage4.Edition.WINDOWS_XP_PROFESSIONAL,
-            wstage4.Version.WINDOWS_7: wstage4.Edition.WINDOWS_7_ULTIMATE,
-        }
-        return d[version]
-
-    def download_files_by_arch_version(self, arch, version):
-        fullfn = self.get_install_iso_filepath_by_arch_version(arch, version)
-
-        # FIXME
-        if version == wstage4.Version.WINDOWS_98:
-            if os.path.exists(fullfn):
-                return fullfn
-            else:
-                raise Exception("windows 98 iso does not exist")
-
-        url = self._get_url_by_arch_edition(arch, self.get_prefered_edition_by_version(version))
-        if os.path.exists(fullfn):
-            print("Files already downloaded.")
-        else:
-            FmUtil.wgetDownload(url, fullfn)
-        return fullfn
-
-    def _get_url_by_arch_edition(self, arch, edition):
-        if arch == wstage4.Arch.X86 and edition == wstage4.Edition.WINDOWS_7_PROFESSIONAL:
-            # from https://techpp.com/2018/04/16/windows-7-iso-official-direct-download-links
-            return "https://download.microsoft.com/download/C/0/6/C067D0CD-3785-4727-898E-60DC3120BB14/7601.24214.180801-1700.win7sp1_ldr_escrow_CLIENT_PROFESSIONAL_x86FRE_en-us.iso"
-
-        if arch == wstage4.Arch.X86_64 and edition == wstage4.Edition.WINDOWS_7_PROFESSIONAL:
-            # from https://techpp.com/2018/04/16/windows-7-iso-official-direct-download-links
-            return "https://download.microsoft.com/download/5/1/9/5195A765-3A41-4A72-87D8-200D897CBE21/7601.24214.180801-1700.win7sp1_ldr_escrow_CLIENT_ULTIMATE_x64FRE_en-us.iso"
-
-        assert False
 
 
 class CcacheLocalService:
