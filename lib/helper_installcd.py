@@ -5,9 +5,10 @@ import os
 import bz2
 import shutil
 import tarfile
+import windown
 import gstage4
 import wstage4
-from fm_util import CloudCacheMicrosoftWindows, FmUtil
+from fm_util import FmUtil
 from fm_util import CloudCacheGentoo
 from fm_util import CcacheLocalService
 from fm_util import Stage4Overlay
@@ -50,6 +51,7 @@ class InstallCdBuilder:
                     "version": wstage4.Version.WINDOWS_XP,
                     "edition": wstage4.Edition.WINDOWS_XP_PROFESSIONAL,
                     "lang": wstage4.Lang.en_US,
+                    "product-id": "windows-xp-professional.x86_64.en-US",
                     "install-iso-file": None,
                     "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-winxp-amd64")),
                     "completed": False,
@@ -61,6 +63,7 @@ class InstallCdBuilder:
                     "version": wstage4.Version.WINDOWS_7,
                     "edition": wstage4.Edition.WINDOWS_7_ULTIMATE,
                     "lang": wstage4.Lang.en_US,
+                    "product-id": "windows-7-ultimate.x86_64.en-US",
                     "install-iso-file": None,
                     "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-win7-amd64")),
                     "completed": False,
@@ -137,13 +140,11 @@ class InstallCdBuilder:
         self._snapshotFile = cache.get_latest_snapshot()                                                         # always use newest snapshot
 
         # get windows source files
-        cache = CloudCacheMicrosoftWindows(FmConst.mswinCacheDir)
-        if True:
-            ret = cache.download_files_by_arch_version(self._stage4Info["windows-xp"]["arch"], self._stage4Info["windows-xp"]["version"])
-            self._stage4Info["windows-xp"]["install-iso-file"] = ret[0]
-        if True:
-            ret = cache.download_files_by_arch_version(self._stage4Info["windows-7"]["arch"], self._stage4Info["windows-7"]["version"])
-            self._stage4Info["windows-7"]["install-iso-file"] = ret[0]
+        os.makedirs(FmConst.mswinCacheDir, exist_ok=True)
+        cache = windown.WindowsDownloader(WindownCfg())
+        for key in ["windows-xp", "windows-7"]:
+            cache.download(self._stage4Info[key]["product-id"], FmConst.mswinCacheDir, create_product_subdir=True)
+            self._stage4Info[key]["install-iso-file"] = cache.get_install_iso_filepath(self._stage4Info[key]["product-id"])
 
     def buildGentooLinuxStage4(self, arch):
         ftPortage = gstage4.target_features.UsePortage()
@@ -632,6 +633,36 @@ class InstallCdBuilder:
             # FIXME: it sucks that genkernel's initrd requires this file
             with open(os.path.join(mp.mountpoint, "livecd"), "w") as f:
                 f.write("")
+
+
+class WindownCfg(windown.ConfigBase):
+
+    def __init__(self):
+        self.check()
+
+    @property
+    def quiet(self):
+        return False
+
+    @property
+    def fetch_command(self):
+        return "/usr/libexec/robust_layer/wget -q --show-progress -O \\\"\\${FILE}\\\" \\\"\\${URI}\\\""
+
+    @property
+    def resume_command(self):
+        return "/usr/libexec/robust_layer/wget -q --show-progress -c -O \\\"\\${FILE}\\\" \\\"\\${URI}\\\""
+
+    @property
+    def fetch_command_quiet(self):
+        return "/usr/libexec/robust_layer/wget -q -O \\\"\\${FILE}\\\" \\\"\\${URI}\\\""
+
+    @property
+    def resume_command_quiet(self):
+        return "/usr/libexec/robust_layer/wget -q -c -O \\\"\\${FILE}\\\" \\\"\\${URI}\\\""
+
+    @property
+    def checksum_failure_max_tries(self):
+        return 5
 
 
 class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
