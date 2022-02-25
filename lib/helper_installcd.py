@@ -52,7 +52,6 @@ class InstallCdBuilder:
                     "edition": wstage4.Edition.WINDOWS_XP_PROFESSIONAL,
                     "lang": wstage4.Lang.en_US,
                     "product-id": "windows-xp-professional.x86_64.en-US",
-                    "install-iso-file": None,
                     "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-winxp-amd64")),
                     "completed": False,
                 },
@@ -64,7 +63,6 @@ class InstallCdBuilder:
                     "edition": wstage4.Edition.WINDOWS_7_ULTIMATE,
                     "lang": wstage4.Lang.en_US,
                     "product-id": "windows-7-ultimate.x86_64.en-US",
-                    "install-iso-file": None,
                     "work-dir": wstage4.WorkDir(os.path.join(tmpDir, "stage4-win7-amd64")),
                     "completed": False,
                 },
@@ -119,6 +117,8 @@ class InstallCdBuilder:
                                               hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
                                               10 if "fan" in hwInfo.hwDict else 1)
 
+        self._winCache = windown.WindowsDownloader(WindownCfg())
+
     def getDevType(self):
         return self._devType
 
@@ -141,10 +141,9 @@ class InstallCdBuilder:
 
         # get windows source files
         os.makedirs(FmConst.mswinCacheDir, exist_ok=True)
-        cache = windown.WindowsDownloader(WindownCfg())
         for key in ["windows-xp", "windows-7"]:
-            cache.download(self._stage4Info[key]["product-id"], FmConst.mswinCacheDir, create_product_subdir=True)
-            self._stage4Info[key]["install-iso-file"] = cache.get_install_iso_filepath(self._stage4Info[key]["product-id"])
+            for arch, v in self._stage4Info[key].items():
+                self._winCache.download(v["product-id"], FmConst.mswinCacheDir, create_product_subdir=True)
 
     def buildGentooLinuxStage4(self, arch):
         ftPortage = gstage4.target_features.UsePortage()
@@ -266,7 +265,7 @@ class InstallCdBuilder:
         ts.edition = self._stage4Info["windows-xp"][arch]["edition"]
         ts.lang = self._stage4Info["windows-xp"][arch]["lang"]
 
-        installIsoFile = self._stage4Info["windows-xp"][arch]["install-iso-file"]
+        installIsoFile = self._winCache.get_install_iso_filepath(self._stage4Info["windows-xp"][arch]["product-id"])
         installIsoFile = wstage4.CustomWindowsInstallIsoFile(ts.arch, ts.version, ts.edition, ts.lang, installIsoFile)
 
         builder = wstage4.Builder(s, ts, wdir)
@@ -310,7 +309,7 @@ class InstallCdBuilder:
         ts.edition = self._stage4Info["windows-7"][arch]["edition"]
         ts.lang = self._stage4Info["windows-7"][arch]["lang"]
 
-        installIsoFile = self._stage4Info["windows-7"][arch]["install-iso-file"]
+        installIsoFile = self._winCache.get_install_iso_filepath(self._stage4Info["windows-7"][arch]["product-id"])
         installIsoFile = wstage4.CustomWindowsInstallIsoFile(ts.arch, ts.version, ts.edition, ts.lang, installIsoFile)
 
         builder = wstage4.Builder(s, ts, wdir)
