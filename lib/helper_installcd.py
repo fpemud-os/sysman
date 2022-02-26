@@ -127,6 +127,7 @@ class InstallCdBuilder:
 
     def downloadFiles(self):
         # get gentoo source files
+        print("        - Downloading Gentoo Linux files...")
         cache = CloudCacheGentoo(FmConst.gentooLinuxCacheDir)
         cache.sync()
         for arch, v in list(self._stage4Info["gentoo-linux"].items()) + list(self._targetSystemInfo.items()):
@@ -139,11 +140,17 @@ class InstallCdBuilder:
                 v["stage3-file"] = cache.get_latest_stage3(arch, v["subarch"], v["variant"])
         self._snapshotFile = cache.get_latest_snapshot()                                                         # always use newest snapshot
 
-        # get windows source files
+        # get windows-xp source files
+        print("        - Downloading Microsoft Windows XP files...")
         os.makedirs(FmConst.mswinCacheDir, exist_ok=True)
-        for key in ["windows-xp", "windows-7"]:
-            for arch, v in self._stage4Info[key].items():
-                self._winCache.download(v["product-id"], FmConst.mswinCacheDir, create_product_subdir=True)
+        for arch, v in self._stage4Info["windows-xp"].items():
+            self._winCache.download(v["product-id"], FmConst.mswinCacheDir, create_product_subdir=True)
+
+        # get windows-7 source files
+        print("        - Downloading Microsoft Windows 7 files...")
+        os.makedirs(FmConst.mswinCacheDir, exist_ok=True)
+        for arch, v in self._stage4Info["windows-7"].items():
+            self._winCache.download(v["product-id"], FmConst.mswinCacheDir, create_product_subdir=True)
 
     def buildGentooLinuxStage4(self, arch):
         ftPortage = gstage4.target_features.UsePortage()
