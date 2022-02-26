@@ -731,9 +731,9 @@ class FmMain:
         builder.downloadFiles()
         print("")
 
-        self.infoPrinter.printInfo(">> Building stage4 for Gentoo Linux (%s)..." % (builder.getArchName("amd64")))
-        builder.buildGentooLinuxStage4("amd64")
-        print("")
+        # self.infoPrinter.printInfo(">> Building stage4 for Gentoo Linux (%s)..." % (builder.getArchName("amd64")))
+        # builder.buildGentooLinuxStage4("amd64")
+        # print("")
 
         # self.infoPrinter.printInfo(">> Building stage4 for Gentoo Linux (%s)..." % (builder.getArchName("arm64")))
         # builder.buildGentooLinuxStage4("arm64")
