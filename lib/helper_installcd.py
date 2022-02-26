@@ -661,7 +661,7 @@ class WindownCfg(windown.ConfigBase):
 
     @property
     def checksum_failure_max_tries(self):
-        return 5
+        return 1
 
     def _wgetCmd(self, bQuiet, bContinue):
         ret = r'/usr/libexec/robust_layer/wget '
