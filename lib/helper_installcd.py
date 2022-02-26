@@ -669,7 +669,7 @@ class WindownCfg(windown.ConfigBase):
             ret += r' -q'
         if bContinue:
             ret += r' -c'
-        ret += r' -O \"\${FILE}\" \"\${URI}\"'
+        ret += r' -O \"${FILE}\" \"${URI}\"'
 
 
 class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
