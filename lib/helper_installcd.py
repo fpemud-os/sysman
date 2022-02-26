@@ -645,23 +645,32 @@ class WindownCfg(windown.ConfigBase):
 
     @property
     def fetch_command(self):
-        return "/usr/libexec/robust_layer/wget -q --show-progress -O \\\"\\${FILE}\\\" \\\"\\${URI}\\\""
+        return self._wgetCmd(False, False)
 
     @property
     def resume_command(self):
-        return "/usr/libexec/robust_layer/wget -q --show-progress -c -O \\\"\\${FILE}\\\" \\\"\\${URI}\\\""
+        return self._wgetCmd(False, True)
 
     @property
     def fetch_command_quiet(self):
-        return "/usr/libexec/robust_layer/wget -q -O \\\"\\${FILE}\\\" \\\"\\${URI}\\\""
+        return self._wgetCmd(True, True)
 
     @property
     def resume_command_quiet(self):
-        return "/usr/libexec/robust_layer/wget -q -c -O \\\"\\${FILE}\\\" \\\"\\${URI}\\\""
+        return self._wgetCmd(True, True)
 
     @property
     def checksum_failure_max_tries(self):
         return 5
+
+    def _wgetCmd(self, bQuiet, bContinue):
+        ret = r'/usr/libexec/robust_layer/wget '
+        if bQuiet:
+            ret += r' -q'
+        if bContinue:
+            ret += r' -c'
+        ret += r' -O \"\${FILE}\" \"\${URI}\"'
+
 
 
 class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
