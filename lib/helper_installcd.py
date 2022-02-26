@@ -672,7 +672,6 @@ class WindownCfg(windown.ConfigBase):
         ret += r' -O \"\${FILE}\" \"\${URI}\"'
 
 
-
 class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
 
     def __init__(self, gentoo_repo_dirpath):
