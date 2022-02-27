@@ -8,6 +8,7 @@ import tarfile
 import windown
 import gstage4
 import wstage4
+import wstage4.sources
 from fm_util import FmUtil
 from fm_util import CloudCacheGentoo
 from fm_util import CcacheLocalService
@@ -273,7 +274,7 @@ class InstallCdBuilder:
         ts.lang = self._stage4Info["windows-xp"][arch]["lang"]
 
         installIsoFile = self._winCache.get_install_iso_filepath(FmConst.mswinCacheDir, self._stage4Info["windows-xp"][arch]["product-id"])
-        installIsoFile = wstage4.CustomWindowsInstallIsoFile(ts.arch, ts.version, ts.edition, ts.lang, installIsoFile)
+        installIsoFile = wstage4.sources.CustomWindowsInstallIsoFile(ts.arch, ts.version, ts.edition, ts.lang, installIsoFile)
 
         builder = wstage4.Builder(s, ts, wdir)
         builder.action_prepare_custom_install_media(installIsoFile)
@@ -317,7 +318,7 @@ class InstallCdBuilder:
         ts.lang = self._stage4Info["windows-7"][arch]["lang"]
 
         installIsoFile = self._winCache.get_install_iso_filepath(FmConst.mswinCacheDir, self._stage4Info["windows-7"][arch]["product-id"])
-        installIsoFile = wstage4.CustomWindowsInstallIsoFile(ts.arch, ts.version, ts.edition, ts.lang, installIsoFile)
+        installIsoFile = wstage4.sources.CustomWindowsInstallIsoFile(ts.arch, ts.version, ts.edition, ts.lang, installIsoFile)
 
         builder = wstage4.Builder(s, ts, wdir)
         builder.action_prepare_custom_install_media(installIsoFile)
