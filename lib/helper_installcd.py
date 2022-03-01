@@ -6,6 +6,7 @@ import bz2
 import shutil
 import tarfile
 import windown
+import windown.simple_cfg
 import gstage4
 import wstage4
 import wstage4.sources
@@ -118,7 +119,13 @@ class InstallCdBuilder:
                                               hwInfo.hwDict["memory"]["size"] * 1024 * 1024 * 1024,
                                               10 if "fan" in hwInfo.hwDict else 1)
 
-        self._winCache = windown.WindowsDownloader(WindownCfg())
+        cfg = windown.simple_cfg.Config()
+        cfg.fetch_command = r'/usr/libexec/robust_layer/wget -O \"${FILE}\" \"${URI}\"'
+        cfg.resume_command = r'/usr/libexec/robust_layer/wget -c -O \"${FILE}\" \"${URI}\"'
+        cfg.fetch_command_quiet = r'/usr/libexec/robust_layer/wget -q -O \"${FILE}\" \"${URI}\"'
+        cfg.resume_command_quiet = r'/usr/libexec/robust_layer/wget -q -c -O \"${FILE}\" \"${URI}\"'
+        cfg.checksum_failure_max_tries = 1
+        self._winCache = windown.WindowsDownloader(cfg)
 
     def getDevType(self):
         return self._devType
@@ -640,45 +647,6 @@ class InstallCdBuilder:
             # FIXME: it sucks that genkernel's initrd requires this file
             with open(os.path.join(mp.mountpoint, "livecd"), "w") as f:
                 f.write("")
-
-
-class WindownCfg(windown.ConfigBase):
-
-    def __init__(self):
-        self.check()
-
-    @property
-    def quiet(self):
-        return False
-
-    @property
-    def fetch_command(self):
-        return self._wgetCmd(False, False)
-
-    @property
-    def resume_command(self):
-        return self._wgetCmd(False, True)
-
-    @property
-    def fetch_command_quiet(self):
-        return self._wgetCmd(True, True)
-
-    @property
-    def resume_command_quiet(self):
-        return self._wgetCmd(True, True)
-
-    @property
-    def checksum_failure_max_tries(self):
-        return 1
-
-    def _wgetCmd(self, bQuiet, bContinue):
-        ret = r'/usr/libexec/robust_layer/wget '
-        if bQuiet:
-            ret += r' -q'
-        if bContinue:
-            ret += r' -c'
-        ret += r' -O \"${FILE}\" \"${URI}\"'
-        return ret
 
 
 class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
