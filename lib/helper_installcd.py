@@ -691,9 +691,11 @@ class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
         with open(fullfn, "w") as f:
             f.write("#!/bin/sh\n")
             f.write("\n")
-            f.write("cd %s\n" % (self._gentooRepoDir))
+            f.write("cd %s\n" % (self._gentooRepoDir))                                  # remove symlink /sbin/stunnel
             f.write("sed -i '/dosym/d' net-misc/stunnel/*.ebuild\n")
             f.write("ebuild $(ls net-misc/stunnel/*.ebuild | head -n1) manifest\n")
+            f.write("\n")
+            f.write("USE=-sysv-utils emerge -1 systemd")                                # remove systemd's /usr/bin/poweroff and friends
             f.write("\n")
         os.chmod(fullfn, 0o755)
 
