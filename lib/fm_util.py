@@ -2605,7 +2605,7 @@ class CloudCacheGentoo:
                             if elem.text is None:
                                 continue
                             m = re.fullmatch("(\\S+)/", elem.text)
-                            if m is None:
+                            if m is None or m.group(1) in [".", ".."]:
                                 continue
                             archList.append(m.group(1))
                         break
