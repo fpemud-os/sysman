@@ -664,7 +664,7 @@ class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
             f.write("ebuild $(ls net-misc/stunnel/*.ebuild | head -n1) manifest\n")
             f.write("\n")
             f.write("cd /\n")                                                                   # remove systemd's /usr/bin/poweroff and friends
-            f.write('USE="split-usr -sysv-utils" emerge -1 systemd\n')
+            f.write('rm -f /usr/bin/{poweroff,reboot,suspend}\n')
             f.write("\n")
         os.chmod(fullfn, 0o755)
 
