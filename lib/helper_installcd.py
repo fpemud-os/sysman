@@ -2,6 +2,7 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 import os
+import io
 import bz2
 import shutil
 import tarfile
@@ -522,6 +523,26 @@ class InstallCdBuilder:
     def _exportToIsoFile(self):
         iso = pycdlib.PyCdlib()
         iso.new(udf="2.60")
+        try:
+            # add README.TXT
+            buf = ""
+            buf += 'This disc contains a "UDF" file system and requires an operating system\n'
+            buf += 'that supports the ISO-13346 "UDF" file system specification.\n'
+            buf = buf.encode("iso8859-1")
+            iso.add_fp(io.ByteIO(buf), len(buf), iso_path="/README.TXT")
+
+            # add files
+            f = iso.get_udf_facade()
+            f.add_directory("/os")
+            f.add_directory("/data")
+
+            # add boot files
+            pass
+
+            # write
+            iso.write(self._devPath)
+        finally:
+            iso.close()
 
     def _exportToUsbStick(self):
         # format USB stick and get its UUID
