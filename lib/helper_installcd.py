@@ -5,6 +5,7 @@ import os
 import bz2
 import shutil
 import tarfile
+import pycdlib
 import windown
 import windown.simple_cfg
 import gstage4
@@ -517,6 +518,10 @@ class InstallCdBuilder:
             self._exportToUsbStick()
         else:
             assert False
+
+    def _exportToIsoFile(self):
+        iso = pycdlib.PyCdlib()
+        iso.new(udf="2.60")
 
     def _exportToUsbStick(self):
         # format USB stick and get its UUID
