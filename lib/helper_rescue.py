@@ -2,7 +2,9 @@
 # -*- coding: utf-8; tab-width: 4; indent-tabs-mode: t -*-
 
 import os
+import io
 import shutil
+import pycdlib
 import gstage4
 import gstage4.scripts
 import gstage4.seed_stages
@@ -269,6 +271,41 @@ class RescueCdBuilder:
             self._exportToRescueOsDir()
         else:
             assert False
+
+    def _exportToIsoFile(self):
+        iso = pycdlib.PyCdlib()
+        iso.new(udf="2.60")
+        try:
+            # add README.TXT
+            buf = ""
+            buf += 'This disc contains a "UDF" file system and requires an operating system\n'
+            buf += 'that supports the ISO-13346 "UDF" file system specification.\n'
+            buf = buf.encode("iso8859-1")
+            iso.add_fp(io.ByteIO(buf), len(buf), iso_path="/README.TXT")
+
+            # add files
+            f = iso.get_udf_facade()
+            f.add_directory("/os")
+            for arch, v in self._archInfoDict.items():
+                tmpRootfsDir = v[3]
+                sp = gstage4.WorkDir(tmpRootfsDir).get_old_chroot_dir_paths()[-1]
+                dstOsDir = os.path.join("/os", self._archDirDict[arch])
+
+                f.add_directory(dstOsDir)
+                f.add_file(os.path.join(sp, "boot", "vmlinuz"), "/os/vmlinuz")
+                f.add_file(os.path.join(sp, "boot", "initramfs.img"), "/os/initramfs.img")
+                f.add_file(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), "/os/memtest.bin")
+                FmUtil.makeSquashedRootfsFiles(sp, dstOsDir)
+
+
+
+            # add boot files
+            pass
+
+            # write
+            iso.write(self._devPath)
+        finally:
+            iso.close()
 
     def _exportToUsbStick(self):
         # format USB stick and get its UUID
