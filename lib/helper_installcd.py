@@ -663,11 +663,8 @@ class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
             f.write("sed -i '/dosym/d' net-misc/stunnel/*.ebuild\n")
             f.write("ebuild $(ls net-misc/stunnel/*.ebuild | head -n1) manifest\n")
             f.write("\n")
-            f.write("cd %s\n" % (self._gentooRepoDir))                                          # enable split-usr USE flag
-            f.write("sed -i '/split-usr/d' profiles/base/use.force\n")
-            f.write("\n")
             f.write("cd /\n")                                                                   # remove systemd's /usr/bin/poweroff and friends
-            f.write('USE="-split-usr -sysv-utils" emerge -1 systemd\n')
+            f.write('USE="split-usr -sysv-utils" emerge -1 systemd\n')
             f.write("\n")
         os.chmod(fullfn, 0o755)
 
