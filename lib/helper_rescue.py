@@ -292,12 +292,10 @@ class RescueCdBuilder:
                 dstOsDir = os.path.join("/os", self._archDirDict[arch])
 
                 f.add_directory(dstOsDir)
-                f.add_file(os.path.join(sp, "boot", "vmlinuz"), "/os/vmlinuz")
-                f.add_file(os.path.join(sp, "boot", "initramfs.img"), "/os/initramfs.img")
-                f.add_file(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), "/os/memtest.bin")
+                f.add_file(os.path.join(sp, "boot", "vmlinuz"), os.path.join(dstOsDir, "vmlinuz"))
+                f.add_file(os.path.join(sp, "boot", "initramfs.img"), os.path.join(dstOsDir, "initramfs.img"))
+                f.add_file(os.path.join(sp, "usr", "share", "memtest86+", "memtest.bin"), os.path.join(dstOsDir, "memtest.bin"))
                 FmUtil.makeSquashedRootfsFiles(sp, dstOsDir)
-
-
 
             # add boot files
             pass

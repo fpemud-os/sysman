@@ -171,6 +171,8 @@ class InstallCdBuilder:
         ftSshServer = gstage4.target_features.SshServer()
         ftChronyDaemon = gstage4.target_features.ChronyDaemon()
         ftNetworkManager = gstage4.target_features.NetworkManager()
+        ftSetPasswordForRoot = gstage4.target_features.SetPasswordForUserRoot("123456")
+        ftFpemudOs = FpemudOs()
 
         # step
         print("        - Initializing...")
@@ -191,6 +193,7 @@ class InstallCdBuilder:
         ftSystemd.update_target_settings(ts)
         ftNoDeprecate.update_target_settings(ts)
         ftPerferGnu.update_target_settings(ts)
+        ftFpemudOs.update_target_settings(ts)
 
         c = CcacheLocalService()
         if c.is_enabled():
@@ -226,7 +229,6 @@ class InstallCdBuilder:
         with PrintLoadAvgThread("        - Updating world..."):
             scriptList = [
                 Stage4ScriptUseRobustLayer(gentooRepo.get_datadir_path()),
-                PrepareInstallingFpemudOsSysman(gentooRepo.get_datadir_path()),
             ]
             ftUsrMerge.update_preprocess_script_list_for_update_world(scriptList)
 
@@ -234,9 +236,7 @@ class InstallCdBuilder:
             if c.is_enabled():
                 installList.append("dev-util/ccache")
 
-            worldSet = {
-                "app-admin/fpemud-os-sysman",
-            }
+            worldSet = {}
             ftPortage.update_world_set(worldSet)
             ftSystemd.update_world_set(worldSet)
             ftSshServer.update_world_set(worldSet)
@@ -256,8 +256,8 @@ class InstallCdBuilder:
         # step
         print("        - Customizing...")
         scriptList = []
-        gstage4.target_features.SetPasswordForUserRoot("123456").update_custom_script_list(scriptList)
-        scriptList.append(gstage4.scripts.OneLinerScript("Update system", "sysman update"))
+        ftSetPasswordForRoot.update_custom_script_list(scriptList)
+        ftFpemudOs.update_custom_script_list(gentooRepo.get_datadir_path(), scriptList)
         builder.action_customize_system(custom_script_list=scriptList)
 
         # step
@@ -675,30 +675,42 @@ class InstallCdBuilder:
                 f.write("")
 
 
-class PrepareInstallingFpemudOsSysman(gstage4.ScriptInChroot):
+class FpemudOs:
 
-    def __init__(self, gentoo_repo_dirpath):
-        self._gentooRepoDir = gentoo_repo_dirpath
+    class _ModifyEbuilds(gstage4.ScriptInChroot):
 
-    def fill_script_dir(self, script_dir_hostpath):
-        fullfn = os.path.join(script_dir_hostpath, "main.sh")
-        with open(fullfn, "w") as f:
-            f.write("#!/bin/sh\n")
-            f.write("\n")
-            f.write("cd %s\n" % (self._gentooRepoDir))                                          # remove symlink /sbin/stunnel
-            f.write("sed -i '/dosym/d' net-misc/stunnel/*.ebuild\n")
-            f.write("ebuild $(ls net-misc/stunnel/*.ebuild | head -n1) manifest\n")
-            f.write("\n")
-            f.write("cd /\n")                                                                   # remove systemd's /usr/bin/poweroff and friends
-            f.write('rm -f /usr/bin/{poweroff,reboot,suspend}\n')
-            f.write("\n")
-        os.chmod(fullfn, 0o755)
+        def __init__(self, gentoo_repo_dirpath):
+            self._gentooRepoDir = gentoo_repo_dirpath
 
-    def get_description(self):
-        return "Prepare installing fpemud-os-sysman"
+        def fill_script_dir(self, script_dir_hostpath):
+            fullfn = os.path.join(script_dir_hostpath, "main.sh")
+            with open(fullfn, "w") as f:
+                f.write("#!/bin/sh\n")
+                f.write("\n")
+                f.write("cd %s\n" % (self._gentooRepoDir))                                          # remove symlink /sbin/stunnel
+                f.write("sed -i '/dosym/d' net-misc/stunnel/*.ebuild\n")
+                f.write("ebuild $(ls net-misc/stunnel/*.ebuild | head -n1) manifest\n")
+                f.write("\n")
+            os.chmod(fullfn, 0o755)
 
-    def get_script(self):
-        return "main.sh"
+        def get_description(self):
+            return "Modify ebuilds"
+
+        def get_script(self):
+            return "main.sh"
+
+    def update_target_settings(self, target_settings):
+        assert "10-fpemud-os-sysman" not in target_settings.pkg_use_files
+
+        buf = ""
+        buf += "# eliminate /usr/bin/poweroff and friends"
+        buf += "sys-apps/systemd -sysv-utils\n"
+        target_settings.pkg_use_files["10-fpemud-os-sysman"] = buf
+
+    def update_custom_script_list(self, gentoo_repo_dirpath, custom_script_list):
+        custom_script_list.append(self._ModifyEbuilds(gentoo_repo_dirpath))
+        custom_script_list.append(gstage4.scripts.OneLinerScript("Install app-admin/fpemud-os-sysman", "emerge app-admin/fpemud-os-sysman"))
+        custom_script_list.append(gstage4.scripts.OneLinerScript("Update system", "sysman update"))
 
 
 DEV_MIN_SIZE_IN_GB = 10                     # 10Gib
