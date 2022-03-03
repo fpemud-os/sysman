@@ -348,16 +348,22 @@ class RescueCdBuilder:
             with open(os.path.join(mp.mountpoint, "grub", "grub.cfg"), "w") as f:
                 f.write("set default=0\n")
                 f.write("set timeout=90\n")
-                f.write("set gfxmode=auto\n")
                 f.write("\n")
 
-                f.write("insmod efi_gop\n")
-                f.write("insmod efi_uga\n")
-                f.write("insmod gfxterm\n")
-                f.write("insmod all_video\n")
-                f.write("insmod videotest\n")
-                f.write("insmod videoinfo\n")
-                f.write("terminal_output gfxterm\n")
+                f.write("# hold shift to disable gfxterm\n")
+                f.write("if ! keystatus --shift; then\n")
+                f.write("    if loadfont unicode; then\n")
+                f.write('        if [ "${grub_platform}" == "efi" ]; then\n')
+                f.write("            insmod efi_gop\n")
+                f.write("            insmod efi_uga\n")
+                f.write('        elif [ "${grub_platform}" == "pc"]; then\n')
+                f.write("            insmod vbe\n")
+                f.write('        fi\n')
+                f.write("        set gfxmode=auto\n")
+                f.write("        insmod gfxterm\n")
+                f.write("        terminal_output gfxterm\n")
+                f.write('    fi\n')
+                f.write('fi\n')
                 f.write("\n")
 
                 f.write("menuentry \"Boot %s\" --class gnu-linux --class os {\n" % (self._diskName))
@@ -372,10 +378,12 @@ class RescueCdBuilder:
                 f.write("}\n")
                 f.write("\n")
 
-                # FIXME: memtest86+ does not work under UEFI?
-                f.write("menuentry \"Run Memtest86+\" {\n")
-                f.write("    linux %s/memtest.bin\n" % (osArchDir))
-                f.write("}\n")
+                f.write("# memtest86+ does not work under UEFI\n")
+                f.write('if [ "${grub_platform}" == "pc" ]; then\n')
+                f.write("    menuentry \"Run Memtest86+\" {\n")
+                f.write("        linux %s/memtest.bin\n" % (osArchDir))
+                f.write("    }\n")
+                f.write('fi\n')
                 f.write("\n")
 
                 # menuentry "Hardware Information (HDT)" {
@@ -392,6 +400,12 @@ class RescueCdBuilder:
                 f.write("menuentry \"Power Off\" {\n")
                 f.write("    halt\n")
                 f.write("}\n")
+
+                # f.write("insmod all_video\n")
+                # f.write("insmod videotest\n")
+                # f.write("insmod videoinfo\n")
+                # f.write("\n")
+                # https://github.com/Jimmy-Z/grub-iso-boot/blob/master/grub.cfg
 
             # create README.txt
             with open(os.path.join(mp.mountpoint, README_FILENAME), "w") as f:
