@@ -110,6 +110,7 @@ app-text/tree
 dev-python/windown                  # it is not only a python module
 dev-util/clinfo
 dev-util/d-feet
+dev-util/dex2jar
 dev-util/meld
 dev-util/rocminfo
 gnome-base/dconf-editor

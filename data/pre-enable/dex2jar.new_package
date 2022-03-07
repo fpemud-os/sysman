@@ -1,0 +1,3 @@
+[main]
+name = mva
+package = dev-util/dex2jar
