@@ -12,7 +12,7 @@ try:
             raise ValueError()
 
         buf += "\n"
-        buf += 'DEPEND="${DEPEND} gui-libs/gtk\n'
+        buf += 'DEPEND="${DEPEND} gui-libs/gtk"\n'
         with open(fn, "w") as f:
             f.write(buf)
 except ValueError:
