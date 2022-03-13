@@ -7,6 +7,7 @@ import bz2
 import shutil
 import tarfile
 import pycdlib
+import grub_install
 import windown
 import windown.simple_cfg
 import gstage4
@@ -604,11 +605,11 @@ class InstallCdBuilder:
 
                 # install grub
                 if arch == "amd64":
-                    FmUtil.shellCall("grub-install --removable --target=x86_64-efi --boot-directory=%s --efi-directory=%s --no-nvram" % (mp.mountpoint, mp.mountpoint))
-                    FmUtil.shellCall("grub-install --removable --target=i386-pc --boot-directory=%s %s" % (mp.mountpoint, self._devPath))
-                    # src = grub_install.Source(base_dir=sp)
-                    # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)
-                    # grub_install.install(src, dst, ["i386-pc", "x86_64_efi"])
+                    s = grub_install.Source(sp)
+                    t = grub_install.Target(grub_install.TargetType.MOUNTED_HDD_DEV, grub_install.TargetAccessMode.W, rootfs_mount_point=mp, boot_mount_point=mp)
+                    t.install_platform(grub_install.PlatformType.X86_64_EFI, s, removable=True, update_nvram=False)
+                    t.install_platform(grub_install.PlatformType.I386_PC, s)
+                    t.install_data_files(s, locales="*", fonts="*", themes="*")
                 elif arch == "arm64":
                     # src = grub_install.Source(base_dir=sp)
                     # dst = grub_install.Target(boot_dir=mp.mountpoint, hdd_dev=self._devPath)

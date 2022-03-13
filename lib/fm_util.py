@@ -2189,13 +2189,14 @@ class TmpMount:
 
     def __init__(self, path, options=None):
         self._path = path
+        self._opts = options
         self._tmppath = tempfile.mkdtemp()
 
         try:
             cmd = ["mount"]
-            if options is not None:
+            if self._opts is not None:
                 cmd.append("-o")
-                cmd.append(options)
+                cmd.append(self._opts)
             cmd.append(self._path)
             cmd.append(self._tmppath)
             subprocess.run(cmd, check=True, universal_newlines=True)
@@ -2210,8 +2211,20 @@ class TmpMount:
         self.close()
 
     @property
+    def device(self):
+        return self._path
+
+    @property
     def mountpoint(self):
         return self._tmppath
+
+    @property
+    def fstype(self):
+        return FmUtil.getBlkDevFsType(self._path)
+
+    @property
+    def opts(self):
+        return self._opts
 
     def close(self):
         subprocess.run(["umount", self._tmppath], check=True, universal_newlines=True)
