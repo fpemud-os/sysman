@@ -1,4 +1,4 @@
 [main]
-name = dotnet
+name = shnurise
 url = https://github.com/gentoo/dotnet
 package = www-apache/mod_mono
