@@ -606,7 +606,7 @@ class InstallCdBuilder:
                 # install grub
                 if arch == "amd64":
                     s = grub_install.Source(sp)
-                    t = grub_install.Target(grub_install.TargetType.MOUNTED_HDD_DEV, grub_install.TargetAccessMode.W, rootfs_mount_point=mp, boot_mount_point=mp)
+                    t = grub_install.Target(grub_install.TargetType.MOUNTED_HDD_DEV, grub_install.TargetAccessMode.W, rootfs_mount_point=mp)
                     t.install_platform(grub_install.PlatformType.X86_64_EFI, s, removable=True, update_nvram=False)
                     t.install_platform(grub_install.PlatformType.I386_PC, s)
                     t.install_data_files(s, locales="*", fonts="*", themes="*")
