@@ -13,13 +13,7 @@ from fm_util import FmUtil
 class BbkiWrapper:
 
     def __init__(self):
-        if "FPEMUD_OS_PREPARE" in os.environ:
-            bSelfBoot = False
-        elif "FPEMUD_OS_SETUP" in os.environ:
-            bSelfBoot = False
-        else:
-            bSelfBoot = True
-        self._bbkiObj = bbki.Bbki(bbki.etcdir_cfg.Config(FmConst.portageCfgDir), bSelfBoot)
+        self._bbkiObj = bbki.Bbki(bbki.etcdir_cfg.Config(FmConst.portageCfgDir))
 
     @property
     def repositories(self):
@@ -34,9 +28,6 @@ class BbkiWrapper:
 
     def setStable(self, value):
         self._bbkiObj.set_stable_flag(value)
-
-    def get_current_boot_entry(self):
-        return self._bbkiObj.get_current_boot_entry()
 
     def get_pending_boot_entry(self):
         return self._bbkiObj.get_pending_boot_entry()
