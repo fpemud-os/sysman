@@ -74,6 +74,8 @@ class FmSysChecker:
         self.bAutoFix = bAutoFix
         self.infoPrinter = self.param.infoPrinter
         try:
+            layout = None
+
             with self.infoPrinter.printInfoAndIndent(">> Preparing..."):
                 self.basicCheck()
 
@@ -82,7 +84,7 @@ class FmSysChecker:
                 self._checkCooling()
 
             with self.infoPrinter.printInfoAndIndent(">> Checking storage layout..."):
-                self._checkStorageLayout()
+                layout = self._checkAndGetStorageLayout()
 
             with self.infoPrinter.printInfoAndIndent(">> Checking file system layout..."):
                 with self.infoPrinter.printInfoAndIndent("- Check rootfs..."):
@@ -90,15 +92,15 @@ class FmSysChecker:
                 # with self.infoPrinter.printInfoAndIndent("- Check premount rootfs..."):
                 #   self._checkPreMountRootfsLayout()
 
-            with self.infoPrinter.printInfoAndIndent(">> Checking BIOS, bootloader, initramfs and kernel..."):
-                bbkiObj = BbkiWrapper(strict_hdds.get_storage_layout())
+            with self.infoPrinter.printInfoAndIndent(">> Checking BIOS, bootloader, kernel and initramfs..."):
+                bbkiObj = BbkiWrapper(layout)
                 with self.infoPrinter.printInfoAndIndent("- Check config..."):
                     bbkiObj.check_config(self.bAutoFix, self.infoPrinter.printError)
                 with self.infoPrinter.printInfoAndIndent("- Check repositories..."):
                     bbkiObj.check_repositories(self.bAutoFix, self.infoPrinter.printError)
                 with self.infoPrinter.printInfoAndIndent("- Check boot entries..."):
                     if self.bAutoFix:
-                        with BootDirWriter(strict_hdds.get_storage_layout()):
+                        with BootDirWriter(layout):
                             bbkiObj.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
                     else:
                         bbkiObj.check_boot_entry_files(self.bAutoFix, self.infoPrinter.printError)
@@ -214,7 +216,7 @@ class FmSysChecker:
                 if count != 0:
                     self.infoPrinter.printError("\"%s\" is not 0." % (fullfn))
 
-    def _checkStorageLayout(self):
+    def _checkAndGetStorageLayout(self):
         layout = None
 
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
@@ -252,6 +254,8 @@ class FmSysChecker:
                                 self.infoPrinter.printError("Swap serivce is not enabled.")
                     else:
                         self.infoPrinter.printError("Swap service not found.")
+
+        return layout
 
     def _checkRootfsLayout(self, deepCheck):
         # general check
