@@ -215,19 +215,12 @@ class FmSysChecker:
                     self.infoPrinter.printError("\"%s\" is not 0." % (fullfn))
 
     def _checkStorageLayout(self):
-        tlist = FmUtil.getDevPathListForFixedHdd()
-        if len(tlist) == 0:
-            self.infoPrinter.printError("No hard disk?!")
-            return
-
-        layout = strict_hdds.get_storage_layout()
-        if layout is None:
-            self.infoPrinter.printError("No valid storage layout.")
-            return
+        layout = None
 
         with self.infoPrinter.printInfoAndIndent("- Checking storage layout"):
             def __errCb(checkCode, message):
                 self.infoPrinter.printError(message)
+            layout = strict_hdds.get_storage_layout()
             layout.check(self.bAutoFix, __errCb)
             if layout.name in ["bios-ext4", "efi-ext4", "efi-bcache-btrfs", "efi-bcachefs"]:
                 layout.opt_check("swap", self.bAutoFix, __errCb)
