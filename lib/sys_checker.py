@@ -90,7 +90,7 @@ class FmSysChecker:
                 with self.infoPrinter.printInfoAndIndent("- Check rootfs..."):
                     self._checkRootfsLayout(deepFileSystemCheck)
                 # with self.infoPrinter.printInfoAndIndent("- Check premount rootfs..."):
-                #   self._checkPreMountRootfsLayout()
+                #   self._checkPreMountRootfsLayout(layout)
 
             with self.infoPrinter.printInfoAndIndent(">> Checking BIOS, bootloader, kernel and initramfs..."):
                 bbkiObj = BbkiWrapper(layout)
@@ -267,7 +267,6 @@ class FmSysChecker:
             self.infoPrinter.printError("/usr/local should not exist.")
 
     def _checkPreMountRootfsLayout(self):
-        layout = strict_hdds.get_storage_layout()
         mRootfs = [m for m in layout.get_mount_entries() if m.mnt_point == "/"][0]
         with TmpMount(mRootfs.target, options=mRootfs.mnt_opts) as mp:
             obj = strict_fsh.PreMountRootFs(mp.mountpoint,
