@@ -6,8 +6,8 @@ import sys
 import strict_hdds
 
 sys.path.append('/usr/lib64/fpemud-os-sysman')
-from fm_util import BootDirWriter
 from helper_bbki import BbkiWrapper
+from helper_bbki import BootDirWriter
 
 
 bPretend = (sys.argv[1] != "0")

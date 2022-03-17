@@ -10,8 +10,8 @@ import bbki.util
 
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from fm_util import PrintLoadAvgThread
-from fm_util import BootDirWriter
 from helper_bbki import BbkiWrapper
+from helper_bbki import BootDirWriter
 
 
 kernelCfgRules = json.loads(sys.argv[1])

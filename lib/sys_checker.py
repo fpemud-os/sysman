@@ -14,11 +14,12 @@ import strict_fsh
 import strict_hdds
 import configparser
 import robust_layer.simple_fops
-from fm_util import CcacheLocalService, FmUtil
+from fm_util import FmUtil
+from fm_util import CcacheLocalService
 from fm_util import TmpMount
-from fm_util import BootDirWriter
 from fm_param import FmConst
 from helper_bbki import BbkiWrapper
+from helper_bbki import BootDirWriter
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import RepositoryCheckError
 from helper_pkg_warehouse import OverlayCheckError

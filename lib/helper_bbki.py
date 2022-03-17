@@ -13,6 +13,7 @@ from fm_util import FmUtil
 class BbkiWrapper:
 
     def __init__(self, layout):
+        self._bootMode = self._bbkiBootMode(layout)
         self._bbkiObj = bbki.BbkiManager(bbki.etcdir_cfg.Config(FmConst.portageCfgDir),
                                          [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()])
 
@@ -29,7 +30,7 @@ class BbkiWrapper:
     def get_pending_boot_entry(self):
         return self._bbkiObj.get_pending_boot_entry()
 
-    def installInitramfs(self, layout):
+    def installInitramfs(self):
         beList = self._bbkiObj.get_boot_entries()
         if len(beList) == 0:
             raise Exception("no boot entry")
@@ -37,13 +38,13 @@ class BbkiWrapper:
             raise Exception("multiple boot entries")
         self._bbkiObj.install_initramfs(self._bbkiObj.get_initramfs_atom(), beList[0])
 
-    def updateBootloader(self, layout):
+    def updateBootloader(self):
         beList = self._bbkiObj.get_boot_entries()
         if len(beList) == 0:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        self._bbkiObj.install_bootloader(self._bbkiBootMode(layout), beList[0], self.getAuxOsInfo(), "")
+        self._bbkiObj.install_bootloader(self._bootMode, beList[0], self.getAuxOsInfo(), "")
 
     def isRescueOsInstalled(self):
         return os.path.exists(self._bbkiObj.rescue_os_spec.root_dir)
@@ -109,3 +110,20 @@ class BbkiWrapper:
             return bbki.BootMode.BIOS
         else:
             assert False
+
+
+class BootDirWriter:
+
+    def __init__(self, layout):
+        self._ctrl = layout.get_bootdir_rw_controller()
+        self._origIsWritable = None
+
+    def __enter__(self):
+        self._origIsWritable = self._ctrl.is_writable()
+        if not self._origIsWritable:
+            self._ctrl.to_read_write()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        if not self._origIsWritable:
+            self._ctrl.to_read_only()

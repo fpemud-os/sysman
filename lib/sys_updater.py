@@ -7,10 +7,10 @@ import bbki
 import strict_hdds
 from fm_util import FmUtil
 from fm_util import ParallelRunSequencialPrint
-from fm_util import BootDirWriter
 from fm_param import FmConst
 from client_build_server import BuildServerSelector
 from helper_bbki import BbkiWrapper
+from helper_bbki import BootDirWriter
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import CloudOverlayDb
 from helper_dyncfg import DynCfgModifier

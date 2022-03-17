@@ -2575,23 +2575,6 @@ class SysfsHwMon:
             assert False
 
 
-class BootDirWriter:
-
-    def __init__(self, layout):
-        self._ctrl = layout.get_bootdir_rw_controller()
-        self._origIsWritable = None
-
-    def __enter__(self):
-        self._origIsWritable = self._ctrl.is_writable()
-        if not self._origIsWritable:
-            self._ctrl.to_read_write()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        if not self._origIsWritable:
-            self._ctrl.to_read_only()
-
-
 class CloudCacheGentoo:
 
     def __init__(self, cacheDir):

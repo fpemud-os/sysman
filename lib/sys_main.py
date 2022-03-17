@@ -14,13 +14,13 @@ import bbki.util
 import robust_layer.simple_fops
 from datetime import datetime
 from fm_util import FmUtil
-from fm_util import BootDirWriter
 from fm_util import TmpMount
 from fm_param import FmConst
 from helper_dyncfg import DynCfgModifier
 from helper_rescue import RescueCdBuilder
 from helper_installcd import InstallCdBuilder
 from helper_bbki import BbkiWrapper
+from helper_bbki import BootDirWriter
 from helper_pkg_warehouse import EbuildRepositories
 from helper_pkg_warehouse import EbuildOverlays
 from helper_pkg_warehouse import CloudOverlayDb
