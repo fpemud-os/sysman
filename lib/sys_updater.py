@@ -29,15 +29,19 @@ class FmSysUpdater:
         self.opEmerge9999 = os.path.join(FmConst.libexecDir, "op-emerge-9999.py")
 
     def update(self, bSync, bFetchAndBuild):
-        layout = strict_hdds.get_storage_layout()
+        if self.param.runMode in ["normal", "setup"]:
+            layout = strict_hdds.get_storage_layout()
+        else:
+            layout = None
         bbkiObj = BbkiWrapper(layout)
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
 
         # set system to unstable status
-        if bbkiObj.isStable():
-            with BootDirWriter(layout):
-                bbkiObj.setStable(False)
+        if self.param.runMode in ["normal", "setup"]:
+            if bbkiObj.isStable():
+                with BootDirWriter(layout):
+                    bbkiObj.setStable(False)
 
         # modify dynamic config
         self.infoPrinter.printInfo(">> Preparing...")
@@ -74,9 +78,9 @@ class FmSysUpdater:
                 else:
                     startCoro = FmUtil.asyncStartCmdExec
                     waitCoro = FmUtil.asyncWaitCmdExec
-                for repo in bbki.RepoManager(bbki.etcdir_cfg.Config(FmConst.portageCfgDir)).repositories:
+                for repo in bbkiObj.repositories:
                     prspObj.add_task(
-                        startCoro, [self.opSync, "sync-bbki-repo", repo.name],
+                        startCoro, [self.opSync, self.param.runMode, "sync-bbki-repo", repo.name],
                         waitCoro,
                         pre_func=lambda x=repo.name: self.infoPrinter.printInfo(">> Synchronizing BBKI repository \"%s\"..." % (x)),
                         post_func=lambda: print(""),
@@ -89,7 +93,7 @@ class FmSysUpdater:
             for repoName in pkgwh.repoman.getRepositoryList():
                 repoDir = pkgwh.repoman.getRepoDir(repoName)
                 self.infoPrinter.printInfo(">> Synchronizing repository \"%s\"..." % (repoName))
-                self._execAndSyncDownQuietly(buildServer, self.opSync, "sync-repo", repoName, directory=repoDir)
+                self._execAndSyncDownQuietly(buildServer, self.opSync, self.param.runMode, "sync-repo", repoName, directory=repoDir)
                 print("")
 
             # update cloud overlay db
@@ -109,7 +113,7 @@ class FmSysUpdater:
                     if pkgwh.layman.getOverlayType(repo) == "static":
                         continue
                     prspObj.add_task(
-                        startCoro, [self.opSync, "sync-overlay", repo],
+                        startCoro, [self.opSync, self.param.runMode, "sync-overlay", repo],
                         waitCoro,
                         pre_func=lambda x=repo: self.infoPrinter.printInfo(">> Synchronizing overlay \"%s\"..." % (x)),
                         post_func=lambda: print(""),
@@ -128,7 +132,7 @@ class FmSysUpdater:
                     if ourl is None:
                         raise Exception("no URL for overlay %s" % repo)
                     if buildServer is None:
-                        FmUtil.cmdExec(self.opSync, "add-trusted-overlay", repo, vcsType, ourl)
+                        FmUtil.cmdExec(self.opSync, self.param.runMode, "add-trusted-overlay", repo, vcsType, ourl)
                     else:
                         buildServer.sshExec(self.opSync, "add-trusted-overlay", repo, vcsType, ourl)
                         buildServer.syncDownWildcardList([
@@ -149,9 +153,9 @@ class FmSysUpdater:
                     if ourl is None:
                         raise Exception("no URL for overlay %s" % repo)
                     if buildServer is None:
-                        FmUtil.cmdExec(self.opSync, "add-transient-overlay", repo, vcsType, ourl)
+                        FmUtil.cmdExec(self.opSync, self.param.runMode, "add-transient-overlay", repo, vcsType, ourl)
                     else:
-                        buildServer.sshExec(self.opSync, "add-transient-overlay", repo, vcsType, ourl)
+                        buildServer.sshExec(self.opSync, self.param.runMode, "add-transient-overlay", repo, vcsType, ourl)
                         buildServer.syncDownWildcardList([
                             os.path.join(pkgwh.layman.getOverlayFilesDir(repo), "***"),
                             pkgwh.layman.getOverlayDir(repo),
@@ -164,16 +168,16 @@ class FmSysUpdater:
                 tlist = [x for x in data[1] if not pkgwh.layman.isOverlayPackageEnabled(repo, x)]
                 if tlist != []:
                     self.infoPrinter.printInfo(">> Enabling packages in overlay \"%s\"..." % repo)
-                    self._exec(buildServer, self.opSync, "enable-overlay-package", repo, *tlist)
+                    self._exec(buildServer, self.opSync, self.param.runMode, "enable-overlay-package", repo, *tlist)
                     print("")
             if buildServer is not None:
                 buildServer.syncDownDirectory(os.path.join(FmConst.portageDataDir, "overlay-*"), quiet=True)
 
             # refresh package related stuff
-            self._execAndSyncDownQuietly(buildServer, self.opSync, "refresh-package-related-stuff", directory=FmConst.portageCfgDir)
+            self._execAndSyncDownQuietly(buildServer, self.opSync, self.param.runMode, "refresh-package-related-stuff", directory=FmConst.portageCfgDir)
 
             # eliminate "Performing Global Updates"
-            self._execAndSyncDownQuietly(buildServer, self.opSync, "touch-portage-tree", directory=FmConst.portageDbDir)     # FIXME
+            self._execAndSyncDownQuietly(buildServer, self.opSync, self.param.runMode, "touch-portage-tree", directory=FmConst.portageDbDir)     # FIXME
 
         # do fetch and build
         if True:
@@ -184,7 +188,7 @@ class FmSysUpdater:
             with BootDirWriter(layout):
                 self.infoPrinter.printInfo(">> Installing %s-%s..." % (bbkiObj.get_kernel_atom().fullname, bbkiObj.get_kernel_atom().ver))
                 if True:
-                    self._exec(buildServer, self.opInstallKernel, kernelCfgRules, resultFile)
+                    self._exec(buildServer, self.opInstallKernel, self.param.runMode, kernelCfgRules, resultFile)
                     # kernelBuilt, postfix = self._parseKernelBuildResult(self._readResultFile(buildServer, resultFile))
                     print("")
 
@@ -195,17 +199,17 @@ class FmSysUpdater:
 
                 self.infoPrinter.printInfo(">> Creating initramfs...")
                 if True:
-                    if self.param.runMode == "prepare":
-                        print("WARNING: Running in \"%s\" mode, do NOT create initramfs!!!" % (self.param.runMode))
+                    if self.param.runMode in ["normal", "setup"]:
+                        bbkiObj.installInitramfs()
                     else:
-                        bbkiObj.installInitramfs(layout)
+                        print("WARNING: Running in \"%s\" mode, do NOT create initramfs!!!" % (self.param.runMode))
                     print("")
 
                 self.infoPrinter.printInfo(">> Updating boot-loader...")
-                if self.param.runMode == "prepare":
-                    print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
+                if self.param.runMode in ["normal", "setup"]:
+                    bbkiObj.updateBootloader()
                 else:
-                    bbkiObj.updateBootloader(layout)
+                    print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                 print("")
 
             # synchronize boot partitions
@@ -272,11 +276,11 @@ class FmSysUpdater:
         # re-create initramfs
         with BootDirWriter(layout):
             self.infoPrinter.printInfo(">> Recreating initramfs...")
-            bbkiObj.installInitramfs(layout)
+            bbkiObj.installInitramfs()
             print("")
 
             self.infoPrinter.printInfo(">> Updating boot-loader...")
-            bbkiObj.updateBootloader(layout)
+            bbkiObj.updateBootloader()
             print("")
 
         # synchronize boot partitions

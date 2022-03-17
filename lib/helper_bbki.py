@@ -13,10 +13,23 @@ from fm_util import FmUtil
 class BbkiWrapper:
 
     def __init__(self, layout):
-        self._bootMode = self._bbkiBootMode(layout)
-        self._bbkiObj = bbki.BbkiManager(bbki.etcdir_cfg.Config(FmConst.portageCfgDir),
-                                         [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()])
+        if layout is not None:
+            if layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
+                self._bootMode = bbki.BootMode.EFI
+            elif layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
+                self._bootMode = bbki.BootMode.BIOS
+            else:
+                assert False
+            self._bbkiObj = bbki.Bbki(bbki.etcdir_cfg.Config(FmConst.portageCfgDir),
+                                      [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()])
+        else:
+            self._bootMode = None
+            self._bbkiObj = bbki.Bbki(bbki.etcdir_cfg.Config(FmConst.portageCfgDir), [])
 
+    @property
+    def repositories(self):
+        return self._bbkiObj.repositories
+        
     @property
     def rescue_os_spec(self):
         return self._bbkiObj.rescue_os_spec
@@ -103,27 +116,24 @@ class BbkiWrapper:
                 continue
         return ret
 
-    def _bbkiBootMode(self, layout):
-        if layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
-            return bbki.BootMode.EFI
-        elif layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
-            return bbki.BootMode.BIOS
-        else:
-            assert False
-
 
 class BootDirWriter:
 
     def __init__(self, layout):
-        self._ctrl = layout.get_bootdir_rw_controller()
-        self._origIsWritable = None
+        if layout is not None:
+            self._ctrl = layout.get_bootdir_rw_controller()
+            self._origIsWritable = None
+        else:
+            self._ctrl = None
 
     def __enter__(self):
-        self._origIsWritable = self._ctrl.is_writable()
-        if not self._origIsWritable:
-            self._ctrl.to_read_write()
+        if self._ctrl is not None:
+            self._origIsWritable = self._ctrl.is_writable()
+            if not self._origIsWritable:
+                self._ctrl.to_read_write()
         return self
 
     def __exit__(self, type, value, traceback):
-        if not self._origIsWritable:
-            self._ctrl.to_read_only()
+        if self._ctrl is not None:
+            if not self._origIsWritable:
+                self._ctrl.to_read_only()

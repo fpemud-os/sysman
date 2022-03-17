@@ -10,14 +10,18 @@ from helper_bbki import BbkiWrapper
 from helper_bbki import BootDirWriter
 
 
-bPretend = (sys.argv[1] != "0")
+runMode = sys.argv[1]
+bPretend = (sys.argv[2] != "0")
 pretendPrefix = "to be " if bPretend else ""
-resultFile = sys.argv[2]
+resultFile = sys.argv[3]
 
 
 # do clean
 print("        - Processing...")
-layout = strict_hdds.get_storage_layout()
+if runMode in ["normal", "setup"]:
+    layout = strict_hdds.get_storage_layout()
+else:
+    layout = None
 bbkiObj = BbkiWrapper(layout)
 bootFileList, moduleFileList, firmwareFileList = [], [], []
 if not bPretend:

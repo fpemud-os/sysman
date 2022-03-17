@@ -206,9 +206,7 @@ class FmMain:
                     assert False
 
                 print("Swap:")
-                if self.param.runMode == "setup":
-                    print("    Disabled")
-                elif self.param.runMode == "normal":
+                if self.param.runMode == "normal":
                     if layout.dev_swap is None:
                         print("    Disabled")
                     else:
@@ -217,6 +215,8 @@ class FmMain:
                             print("    Disabled")
                         else:
                             print("    Enabled (%s)" % (FmUtil.formatSize(layout.get_swap_size())))
+                elif self.param.runMode == "setup":
+                    print("    Disabled")
                 else:
                     assert False
 
@@ -351,9 +351,14 @@ class FmMain:
         return 0
 
     def doStablize(self):
+        if self.param.runMode != "normal":
+            print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
+            return 1
+
         self.param.sysChecker.basicCheckWithOverlayContent()
 
         self.param.sysUpdater.stablize()
+
         return 0
 
     def doHddAdd(self, devpath):
@@ -556,6 +561,7 @@ class FmMain:
         if self.param.runMode not in ["normal", "setup"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
+
         self.param.sysChecker.basicCheckWithOverlayContent()
 
         # modify dynamic config
@@ -603,6 +609,7 @@ class FmMain:
         if self.param.runMode not in ["normal", "setup"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
+
         self.param.sysChecker.basicCheckWithOverlayContent()
 
         layout = strict_hdds.get_storage_layout()

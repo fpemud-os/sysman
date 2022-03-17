@@ -57,8 +57,6 @@ class FmSwapManager:
             FmUtil.cmdCall("systemctl", "start", serviceName)
         elif self.param.runMode == "setup":
             FmUtil.cmdCall("swapon", path)
-        elif self.param.runMode == "prepare":
-            assert False
         else:
             assert False
 
@@ -67,8 +65,6 @@ class FmSwapManager:
             FmUtil.cmdCall("systemctl", "stop", serviceName)
         elif self.param.runMode == "setup":
             FmUtil.cmdCall("swapoff", path)
-        elif self.param.runMode == "prepare":
-            assert False
         else:
             assert False
         FmUtil.cmdCall("systemctl", "disable", serviceName)

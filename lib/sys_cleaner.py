@@ -50,13 +50,16 @@ class FmSysCleaner:
         # clean old kernel files
         self.infoPrinter.printInfo(">> Removing old kernel files...")
         if True:
-            layout = strict_hdds.get_storage_layout()
+            if self.param.runMode in ["normal", "setup"]:
+                layout = strict_hdds.get_storage_layout()
+            else:
+                layout = None
             bbkiObj = BbkiWrapper(layout)
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             bFileRemoved = False
 
             with BootDirWriter(layout):
-                self._exec(buildServer, self.opCleanKernel, "%d" % (bPretend), resultFile)
+                self._exec(buildServer, self.opCleanKernel, "%s %d" % (self.param.runMode, bPretend), resultFile)
                 if buildServer is None:
                     with open(resultFile, "r", encoding="iso8859-1") as f:
                         data = f.read()
@@ -72,13 +75,13 @@ class FmSysCleaner:
                         print("")
 
                     self.infoPrinter.printInfo(">> Updating boot-loader...")
-                    if self.param.runMode == "prepare":
-                        print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
-                    else:
+                    if self.param.runMode in ["normal", "setup"]:
                         bbkiObj.updateBootloaderAfterCleaning()
+                    else:
+                        print("WARNING: Running in \"%s\" mode, do NOT maniplate boot-loader!!!" % (self.param.runMode))
                     print("")
 
-            if layout.name in ["efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
+            if layout is not None and layout.name in ["efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
                 dstList = layout.get_pending_esp_list()
                 if bFileRemoved and len(dstList) > 0:
                     with self.infoPrinter.printInfoAndIndent(">> Synchronizing boot partitions..."):
@@ -89,7 +92,7 @@ class FmSysCleaner:
 
         # clean kcache
         self.infoPrinter.printInfo(">> Cleaning %s..." % (FmConst.kcacheDir))
-        self._execAndSyncDownQuietly(buildServer, self.opCleanKcache, "%d" % (bPretend), directory=FmConst.kcacheDir)
+        self._execAndSyncDownQuietly(buildServer, self.opCleanKcache, "%s %d" % (self.param.runMode, bPretend), directory=FmConst.kcacheDir)
         print("")
 
         # clean not-used packages and USE flags

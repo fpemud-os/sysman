@@ -6,12 +6,15 @@ import strict_hdds
 sys.path.append('/usr/lib64/fpemud-os-sysman')
 from helper_bbki import BbkiWrapper
 
-
-bPretend = (sys.argv[1] != "0")
+runMode = sys.argv[1]
+bPretend = (sys.argv[2] != "0")
 pretendPrefix = "to be " if bPretend else ""
 
 print("        - Processing...")
-layout = strict_hdds.get_storage_layout()
+if runMode in ["normal", "setup"]:
+    layout = strict_hdds.get_storage_layout()
+else:
+    layout = None
 bbkiObj = BbkiWrapper(layout)
 fileList = bbkiObj.clean_distfiles(pretend=bPretend)
 

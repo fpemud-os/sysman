@@ -14,9 +14,14 @@ from helper_bbki import BbkiWrapper
 from helper_bbki import BootDirWriter
 
 
-kernelCfgRules = json.loads(sys.argv[1])
-resultFile = sys.argv[2]
-layout = strict_hdds.get_storage_layout()
+runMode = sys.argv[1]
+kernelCfgRules = json.loads(sys.argv[2])
+resultFile = sys.argv[3]
+
+if runMode in ["normal", "setup"]:
+    layout = strict_hdds.get_storage_layout()
+else:
+    layout = None
 bbkiObj = BbkiWrapper(layout)
 
 print("        - Fetching...")
