@@ -4,7 +4,6 @@
 import sys
 import strict_hdds
 sys.path.append('/usr/lib64/fpemud-os-sysman')
-from fm_param import FmConst
 from helper_bbki import BbkiWrapper
 from helper_pkg_warehouse import PkgWarehouse
 from helper_pkg_warehouse import EbuildRepositories

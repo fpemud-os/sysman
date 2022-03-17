@@ -269,7 +269,7 @@ class FmSysChecker:
         if os.path.exists("/usr/local"):
             self.infoPrinter.printError("/usr/local should not exist.")
 
-    def _checkPreMountRootfsLayout(self):
+    def _checkPreMountRootfsLayout(self, layout):
         mRootfs = [m for m in layout.get_mount_entries() if m.mnt_point == "/"][0]
         with TmpMount(mRootfs.target, options=mRootfs.mnt_opts) as mp:
             obj = strict_fsh.PreMountRootFs(mp.mountpoint,

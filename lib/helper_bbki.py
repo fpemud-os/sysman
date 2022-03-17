@@ -29,7 +29,7 @@ class BbkiWrapper:
     @property
     def repositories(self):
         return self._bbkiObj.repositories
-        
+
     @property
     def rescue_os_spec(self):
         return self._bbkiObj.rescue_os_spec

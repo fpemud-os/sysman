@@ -10,7 +10,6 @@ import tarfile
 import strict_pgs
 import strict_fsh
 import strict_hdds
-import bbki.util
 import robust_layer.simple_fops
 from datetime import datetime
 from fm_util import FmUtil
