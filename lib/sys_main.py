@@ -81,17 +81,16 @@ class FmMain:
             app-misc/sway                   (overlay-uly55e5)
         '''
 
-        self.param.sysChecker.basicCheckWithOverlayContent()
-
-        bbkiObj = BbkiWrapper()
-        repoman = EbuildRepositories()
-        layman = EbuildOverlays()
-
         if self.param.runMode != "normal":
             print("WARNING: Running in \"%s\" mode!!!" % (self.param.runMode))
             print("")
 
+        self.param.sysChecker.basicCheckWithOverlayContent()
+
         if self.param.runMode in ["normal", "setup"]:
+            layout = strict_hdds.get_storage_layout()
+            bbkiObj = BbkiWrapper(layout)
+
             s = "System status: "
             if bbkiObj.isStable():
                 s += "stable"
@@ -100,70 +99,64 @@ class FmMain:
             print(s)
             print("")
 
-        print("Hardware:")
-        hwInfo = self.param.machineInfoGetter.hwInfo()
-        if isinstance(hwInfo, HwInfoPcBranded):
-            print("    %s %s" % (hwInfo.vendor, hwInfo.model))
-        elif isinstance(hwInfo, HwInfoPcAssembled):
-            print("    DIY PC")
-        else:
-            assert False
-
-        print("Boot mode:")
-        if bbki.util.get_boot_mode() == bbki.BootMode.EFI:
-            print("    UEFI")
-        elif bbki.util.get_boot_mode() == bbki.BootMode.BIOS:
-            print("    BIOS")
-        else:
-            assert False
-
-        print("Main OS:")
-        be = bbkiObj.get_pending_boot_entry()
-        if be is None:
-            be = "None"
-        else:
-            be = "Linux (%s)" % (be.postfix)
-        print("    %s" % (be))
-
-        print("Rescue OS:")
-        if bbkiObj.isRescueOsInstalled():
-            print("    Installed")
-        else:
-            print("    Not installed")
-
-        if self.param.runMode in ["normal", "setup"]:
-            auxOsInfo = bbkiObj.getAuxOsInfo()
-            if len(auxOsInfo) > 0:
-                print("Auxillary OSes:")
-                for item in auxOsInfo:
-                    sys.stdout.write("    %s:" % (item.name))
-                    for i in range(0, 20 - len(item.name)):
-                        sys.stdout.write(" ")
-                    print(item.partition_path)
-
-        print("")
-
-        layout = None
-        if self.param.runMode in ["normal", "setup"]:
-            layout = strict_hdds.get_storage_layout()
-
-        print("Storage layout:")
-        if True:
-            def partSize(devpath):
-                sz = FmUtil.getBlkDevSize(devpath)
-                return FmUtil.formatSize(sz)
-
-            if layout is None:
-                print("    State: unusable")
+            print("Hardware:")
+            hwInfo = self.param.machineInfoGetter.hwInfo()
+            if isinstance(hwInfo, HwInfoPcBranded):
+                print("    %s %s" % (hwInfo.vendor, hwInfo.model))
+            elif isinstance(hwInfo, HwInfoPcAssembled):
+                print("    DIY PC")
             else:
+                assert False
+            print("")
+
+            if True:
+                print("Main OS:")
+                be = bbkiObj.get_pending_boot_entry()
+                if be is None:
+                    be = "None"
+                else:
+                    be = "Linux (%s)" % (be.postfix)
+                print("    %s" % (be))
+
+                print("Rescue OS:")
+                if bbkiObj.isRescueOsInstalled():
+                    print("    Installed")
+                else:
+                    print("    Not installed")
+
+                auxOsInfo = bbkiObj.getAuxOsInfo()
+                if len(auxOsInfo) > 0:
+                    print("Auxillary OSes:")
+                    for item in auxOsInfo:
+                        sys.stdout.write("    %s:" % (item.name))
+                        for i in range(0, 20 - len(item.name)):
+                            sys.stdout.write(" ")
+                        print(item.partition_path)
+
+                print("")
+
+            if True:
+                def __partSize(devpath):
+                    sz = FmUtil.getBlkDevSize(devpath)
+                    return FmUtil.formatSize(sz)
+
+                print("Boot mode:")
+                if layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_EFI:
+                    print("    UEFI")
+                elif layout.boot_mode == strict_hdds.StorageLayout.BOOT_MODE_BIOS:
+                    print("    BIOS")
+                else:
+                    assert False
+
+                print("Storage layout:")
                 print("    Name: %s" % (layout.name))
                 print("    State: ready")
                 if layout.name == "bios-ext4":
                     print("    Boot disk: %s" % (layout.boot_disk))
-                    print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
+                    print("    Root partititon: %s (%s)" % (layout.dev_rootfs, __partSize(layout.dev_rootfs)))
                 elif layout.name == "efi-ext4":
                     print("    Boot disk: %s" % (layout.boot_disk))
-                    print("    Root partititon: %s (%s)" % (layout.dev_rootfs, partSize(layout.dev_rootfs)))
+                    print("    Root partititon: %s (%s)" % (layout.dev_rootfs, __partSize(layout.dev_rootfs)))
                 elif layout.name in ["efi-btrfs"]:
                     print("    Boot disk: %s" % (layout.boot_disk))
                     totalSize = 0
@@ -177,10 +170,10 @@ class FmMain:
                     if layout.get_ssd() is not None:
                         print("    SSD: %s (boot disk)" % (layout.get_ssd()))
                         if layout.get_ssd_swap_partition() is not None:
-                            print("    Swap partition: %s (%s)" % (layout.get_ssd_swap_partition(), partSize(layout.get_ssd_swap_partition())))
+                            print("    Swap partition: %s (%s)" % (layout.get_ssd_swap_partition(), __partSize(layout.get_ssd_swap_partition())))
                         else:
                             print("    Swap partition: None")
-                        print("    Cache partition: %s (%s)" % (layout.get_ssd_cache_partition(), partSize(layout.get_ssd_cache_partition())))
+                        print("    Cache partition: %s (%s)" % (layout.get_ssd_cache_partition(), __partSize(layout.get_ssd_cache_partition())))
                     else:
                         print("    SSD: None")
                         print("    Boot disk: %s" % (layout.boot_disk))
@@ -195,10 +188,10 @@ class FmMain:
                     if layout.get_ssd() is not None:
                         print("    SSD: %s (boot disk)" % (layout.get_ssd()))
                         if layout.get_ssd_swap_partition() is not None:
-                            print("    Swap partition: %s (%s)" % (layout.get_ssd_swap_partition(), partSize(layout.get_ssd_swap_partition())))
+                            print("    Swap partition: %s (%s)" % (layout.get_ssd_swap_partition(), __partSize(layout.get_ssd_swap_partition())))
                         else:
                             print("    Swap partition: None")
-                        print("    Cache partition: %s (%s)" % (layout.get_ssd_cache_partition(), partSize(layout.get_ssd_cache_partition())))
+                        print("    Cache partition: %s (%s)" % (layout.get_ssd_cache_partition(), __partSize(layout.get_ssd_cache_partition())))
                     else:
                         print("    SSD: None")
                         print("    Boot disk: %s" % (layout.boot_disk))
@@ -212,66 +205,58 @@ class FmMain:
                 else:
                     assert False
 
-        print("Swap:")
-        if self.param.runMode == "prepare":
-            print("    Unknown")
-        elif self.param.runMode == "setup":
-            if layout is None:
-                print("    Unknown")
-            else:
-                print("    Disabled")
-        elif self.param.runMode == "normal":
-            if layout is None:
-                print("    Unknown")
-            else:
-                if layout.dev_swap is None:
+                print("Swap:")
+                if self.param.runMode == "setup":
                     print("    Disabled")
-                else:
-                    serviceName = FmUtil.systemdFindSwapServiceInDirectory("/etc/systemd/system", layout.dev_swap)
-                    if serviceName is None or not FmUtil.systemdIsServiceEnabled(serviceName):
+                elif self.param.runMode == "normal":
+                    if layout.dev_swap is None:
                         print("    Disabled")
                     else:
-                        print("    Enabled (%s)" % (FmUtil.formatSize(layout.get_swap_size())))
-        else:
-            assert False
+                        serviceName = FmUtil.systemdFindSwapServiceInDirectory("/etc/systemd/system", layout.dev_swap)
+                        if serviceName is None or not FmUtil.systemdIsServiceEnabled(serviceName):
+                            print("    Disabled")
+                        else:
+                            print("    Enabled (%s)" % (FmUtil.formatSize(layout.get_swap_size())))
+                else:
+                    assert False
 
-        # FIXME
-        print("Logging:")
-        if True:
-            print("    To harddisk (/var/log)")
+                # FIXME
+                print("Logging:")
+                if True:
+                    print("    To harddisk (/var/log)")
 
-        print("")
-
-        if True:
-            ret = FmUtil.findBackendGraphicsDevices()
-            if len(ret) > 0:
-                totalMem = 0
-                totalFlopsForFp32 = 0
-                for path in ret:
-                    rc = FmUtil.getVendorIdAndDeviceIdByDevNode(path)
-                    if rc is None:
-                        totalMem = None
-                        break
-                    info = DevHwInfoDb.getDevHwInfo(rc[0], rc[1])
-                    if info is None:
-                        totalMem = None
-                        break
-                    if "mem" not in info or not isinstance(info["mem"], int):
-                        totalMem = None
-                        break
-                    if "fp32" not in info or not isinstance(info["fp32"], int):
-                        totalMem = None
-                        break
-                    totalMem += info["mem"]
-                    totalFlopsForFp32 += info["fp32"]
-
-                totalStr = "unknown"
-                if totalMem is not None:
-                    totalStr = "%s %s" % (FmUtil.formatSize(totalMem), FmUtil.formatFlops(totalFlopsForFp32))
-
-                print("Backend graphics devices:")
-                print("    %s (total: %s)" % (" ".join(ret), totalStr))
                 print("")
+
+            if True:
+                ret = FmUtil.findBackendGraphicsDevices()
+                if len(ret) > 0:
+                    totalMem = 0
+                    totalFlopsForFp32 = 0
+                    for path in ret:
+                        rc = FmUtil.getVendorIdAndDeviceIdByDevNode(path)
+                        if rc is None:
+                            totalMem = None
+                            break
+                        info = DevHwInfoDb.getDevHwInfo(rc[0], rc[1])
+                        if info is None:
+                            totalMem = None
+                            break
+                        if "mem" not in info or not isinstance(info["mem"], int):
+                            totalMem = None
+                            break
+                        if "fp32" not in info or not isinstance(info["fp32"], int):
+                            totalMem = None
+                            break
+                        totalMem += info["mem"]
+                        totalFlopsForFp32 += info["fp32"]
+
+                    totalStr = "unknown"
+                    if totalMem is not None:
+                        totalStr = "%s %s" % (FmUtil.formatSize(totalMem), FmUtil.formatFlops(totalFlopsForFp32))
+
+                    print("Backend graphics devices:")
+                    print("    %s (total: %s)" % (" ".join(ret), totalStr))
+                    print("")
 
         with strict_pgs.PasswdGroupShadow() as pgs:
             print("System users:       %s" % (", ".join(pgs.getSystemUserList())))
@@ -279,6 +264,7 @@ class FmMain:
             print("")
 
         print("Repositories:")
+        repoman = EbuildRepositories()
         repoList = repoman.getRepositoryList()
         if len(repoList) > 0:
             maxLen = FmUtil.strListMaxLen(repoList)
@@ -290,10 +276,10 @@ class FmMain:
                     print("    %s [Not Exist]" % (s1))
         else:
             print("    None")
-
         print("")
 
         print("Overlays:")
+        layman = EbuildOverlays()
         overlayList = layman.getOverlayList()
         if len(overlayList) > 0:
             tlist2 = []
@@ -322,7 +308,6 @@ class FmMain:
                 print("    %s [%s %s] Last Update: %s" % (s1, s2, s3, FmUtil.getDirLastUpdateTime(layman.getOverlayDir(overlayList[i]))))
         else:
             print("    None")
-
         print("")
 
         print("Selected packages:")
@@ -584,7 +569,8 @@ class FmMain:
         print("")
 
         # build
-        bbkiObj = BbkiWrapper()
+        layout = strict_hdds.get_storage_layout()
+        bbkiObj = BbkiWrapper(layout)
         builder = RescueCdBuilder(RescueCdBuilder.DEV_TYPE_RESCUE_OS,
                                   self.param.tmpDirOnHdd, self.param.machineInfoGetter.hwInfo(),
                                   rescue_os_spec=bbkiObj.rescue_os_spec)
@@ -598,7 +584,6 @@ class FmMain:
         print("")
 
         # install
-        layout = strict_hdds.get_storage_layout()
         with BootDirWriter(layout):
             try:
                 self.infoPrinter.printInfo(">> Installing Rescue OS into /boot...")
@@ -621,7 +606,7 @@ class FmMain:
         self.param.sysChecker.basicCheckWithOverlayContent()
 
         layout = strict_hdds.get_storage_layout()
-        bbkiObj = BbkiWrapper()
+        bbkiObj = BbkiWrapper(layout)
 
         if not bbkiObj.isRescueOsInstalled():
             print("Rescue OS is not installed.", file=sys.stderr)

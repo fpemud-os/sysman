@@ -18,7 +18,7 @@ resultFile = sys.argv[2]
 # do clean
 print("        - Processing...")
 layout = strict_hdds.get_storage_layout()
-bbkiObj = BbkiWrapper()
+bbkiObj = BbkiWrapper(layout)
 bootFileList, moduleFileList, firmwareFileList = [], [], []
 if not bPretend:
     with BootDirWriter(layout):

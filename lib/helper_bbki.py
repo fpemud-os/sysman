@@ -12,8 +12,9 @@ from fm_util import FmUtil
 
 class BbkiWrapper:
 
-    def __init__(self):
-        self._bbkiObj = bbki.BbkiManager(bbki.etcdir_cfg.Config(FmConst.portageCfgDir))
+    def __init__(self, layout):
+        self._bbkiObj = bbki.BbkiManager(bbki.etcdir_cfg.Config(FmConst.portageCfgDir),
+                                         [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()])
 
     @property
     def rescue_os_spec(self):
@@ -34,9 +35,7 @@ class BbkiWrapper:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        self._bbkiObj.install_initramfs(self._bbkiObj.get_initramfs_atom(),
-                                        [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()],
-                                        beList[0])
+        self._bbkiObj.install_initramfs(self._bbkiObj.get_initramfs_atom(), beList[0])
 
     def updateBootloader(self, layout):
         beList = self._bbkiObj.get_boot_entries()
@@ -44,11 +43,7 @@ class BbkiWrapper:
             raise Exception("no boot entry")
         if len(beList) > 1:
             raise Exception("multiple boot entries")
-        self._bbkiObj.install_bootloader(self._bbkiBootMode(layout),
-                                         [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()],
-                                         beList[0],
-                                         self.getAuxOsInfo(),
-                                         "")
+        self._bbkiObj.install_bootloader(self._bbkiBootMode(layout), beList[0], self.getAuxOsInfo(), "")
 
     def isRescueOsInstalled(self):
         return os.path.exists(self._bbkiObj.rescue_os_spec.root_dir)

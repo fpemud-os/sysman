@@ -90,7 +90,7 @@ class FmSysChecker:
                 #   self._checkPreMountRootfsLayout()
 
             with self.infoPrinter.printInfoAndIndent(">> Checking BIOS, bootloader, initramfs and kernel..."):
-                bbkiObj = BbkiWrapper()
+                bbkiObj = BbkiWrapper(strict_hdds.get_storage_layout())
                 with self.infoPrinter.printInfoAndIndent("- Check config..."):
                     bbkiObj.check_config(self.bAutoFix, self.infoPrinter.printError)
                 with self.infoPrinter.printInfoAndIndent("- Check repositories..."):

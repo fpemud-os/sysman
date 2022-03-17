@@ -17,7 +17,7 @@ from helper_bbki import BbkiWrapper
 kernelCfgRules = json.loads(sys.argv[1])
 resultFile = sys.argv[2]
 layout = strict_hdds.get_storage_layout()
-bbkiObj = BbkiWrapper()
+bbkiObj = BbkiWrapper(layout)
 
 print("        - Fetching...")
 kernelAtom = bbkiObj.get_kernel_atom()

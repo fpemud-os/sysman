@@ -50,7 +50,7 @@ class FmSysCleaner:
         self.infoPrinter.printInfo(">> Removing old kernel files...")
         if True:
             layout = strict_hdds.get_storage_layout()
-            bbkiObj = BbkiWrapper()
+            bbkiObj = BbkiWrapper(layout)
             resultFile = os.path.join(self.param.tmpDir, "result.txt")
             bFileRemoved = False
 

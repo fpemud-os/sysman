@@ -30,7 +30,7 @@ class FmSysUpdater:
 
     def update(self, bSync, bFetchAndBuild):
         layout = strict_hdds.get_storage_layout()
-        bbkiObj = BbkiWrapper()
+        bbkiObj = BbkiWrapper(layout)
         pkgwh = PkgWarehouse()
         overlayDb = CloudOverlayDb()
 
@@ -247,8 +247,8 @@ class FmSysUpdater:
             buildServer.dispose()
 
     def stablize(self):
-        bbkiObj = BbkiWrapper()
         layout = strict_hdds.get_storage_layout()
+        bbkiObj = BbkiWrapper(layout)
 
         self.infoPrinter.printInfo(">> Stablizing...")
         with BootDirWriter(layout):
