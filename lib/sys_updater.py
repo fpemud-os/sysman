@@ -3,6 +3,7 @@
 
 import os
 import json
+import bbki
 import strict_hdds
 from fm_util import FmUtil
 from fm_util import ParallelRunSequencialPrint
@@ -73,7 +74,7 @@ class FmSysUpdater:
                 else:
                     startCoro = FmUtil.asyncStartCmdExec
                     waitCoro = FmUtil.asyncWaitCmdExec
-                for repo in bbkiObj.repositories:
+                for repo in bbki.RepoManager(bbki.etcdir_cfg.Config(FmConst.portageCfgDir)).repositories:
                     prspObj.add_task(
                         startCoro, [self.opSync, "sync-bbki-repo", repo.name],
                         waitCoro,
