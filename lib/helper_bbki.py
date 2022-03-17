@@ -13,7 +13,7 @@ from fm_util import FmUtil
 class BbkiWrapper:
 
     def __init__(self):
-        self._bbkiObj = bbki.Bbki(bbki.etcdir_cfg.Config(FmConst.portageCfgDir))
+        self._bbkiObj = bbki.BbkiManager(bbki.etcdir_cfg.Config(FmConst.portageCfgDir))
 
     @property
     def repositories(self):
