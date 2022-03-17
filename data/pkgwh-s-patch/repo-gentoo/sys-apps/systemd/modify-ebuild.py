@@ -112,8 +112,8 @@ find "${D}" -name "/etc/systemd/system/multi-user.target.wants" | xargs rm -rf
 sed -i "/\\/srv/d" "${D}/usr/lib/tmpfiles.d/home.conf"
 
 # change 99-sysctl.conf from a symlink to an empty file
-/bin/rm -f "${D}/etc/sysctl.d/99-sysctl.conf"
-/bin/touch "${D}/etc/sysctl.d/99-sysctl.conf"
+#/bin/rm -f "${D}/etc/sysctl.d/99-sysctl.conf"
+#/bin/touch "${D}/etc/sysctl.d/99-sysctl.conf"
 
 # make systemd record journal in memory only, to eliminate disk writes
 rm -rf "${D}/var/log/journal"
