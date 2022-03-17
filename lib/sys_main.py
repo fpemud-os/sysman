@@ -357,7 +357,7 @@ class FmMain:
         return 0
 
     def doHddAdd(self, devpath):
-        if self.param.runMode == "prepare":
+        if self.param.runMode not in ["normal", "setup"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
@@ -380,7 +380,7 @@ class FmMain:
         return 0
 
     def doHddRemove(self, devpath):
-        if self.param.runMode == "prepare":
+        if self.param.runMode not in ["normal", "setup"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
@@ -403,7 +403,7 @@ class FmMain:
         return 0
 
     def doEnableSwap(self):
-        if self.param.runMode == "prepare":
+        if self.param.runMode not in ["normal", "setup"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
@@ -427,7 +427,7 @@ class FmMain:
         return 0
 
     def doDisableSwap(self):
-        if self.param.runMode == "prepare":
+        if self.param.runMode not in ["normal", "setup"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
 
@@ -553,7 +553,7 @@ class FmMain:
         return 0
 
     def installRescueOs(self):
-        if self.param.runMode in ["prepare", "setup"]:
+        if self.param.runMode not in ["normal", "setup"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()
@@ -600,7 +600,7 @@ class FmMain:
         return 0
 
     def uninstallRescueOs(self):
-        if self.param.runMode in ["prepare", "setup"]:
+        if self.param.runMode not in ["normal", "setup"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()
@@ -624,7 +624,7 @@ class FmMain:
         return 0
 
     def buildRescueDisk(self, devPath):
-        if self.param.runMode in ["prepare", "setup"]:
+        if self.param.runMode not in ["normal"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()
@@ -681,7 +681,7 @@ class FmMain:
         return 0
 
     def buildInstallDisk(self, devPath):
-        if self.param.runMode in ["prepare", "setup"]:
+        if self.param.runMode not in ["normal"]:
             print("Operation is not supported in \"%s\" mode." % (self.param.runMode), file=sys.stderr)
             return 1
         self.param.sysChecker.basicCheckWithOverlayContent()

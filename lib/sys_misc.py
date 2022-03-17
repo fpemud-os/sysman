@@ -53,22 +53,22 @@ class FmSwapManager:
 
     def _enableSwapService(self, path, serviceName):
         FmUtil.cmdCall("systemctl", "enable", serviceName)
-        if self.param.runMode == "prepare":
-            assert False
+        if self.param.runMode == "normal":
+            FmUtil.cmdCall("systemctl", "start", serviceName)
         elif self.param.runMode == "setup":
             FmUtil.cmdCall("swapon", path)
-        elif self.param.runMode == "normal":
-            FmUtil.cmdCall("systemctl", "start", serviceName)
+        elif self.param.runMode == "prepare":
+            assert False
         else:
             assert False
 
     def _disableSwapService(self, path, serviceName):
-        if self.param.runMode == "prepare":
-            assert False
+        if self.param.runMode == "normal":
+            FmUtil.cmdCall("systemctl", "stop", serviceName)
         elif self.param.runMode == "setup":
             FmUtil.cmdCall("swapoff", path)
-        elif self.param.runMode == "normal":
-            FmUtil.cmdCall("systemctl", "stop", serviceName)
+        elif self.param.runMode == "prepare":
+            assert False
         else:
             assert False
         FmUtil.cmdCall("systemctl", "disable", serviceName)
