@@ -5,5 +5,5 @@ linux-addon/wireless-regdb
 #linux-addon/amdgpu-unofficial-firmware
 #linux-addon/ipw2100-firmware
 #linux-addon/ipw2200-firmware
-linux-addon/vhba-module
-linux-addon/virtualbox-modules
+#linux-addon/vhba-module
+#linux-addon/virtualbox-modules
