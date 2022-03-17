@@ -78,3 +78,6 @@ virtual/libcrypt           -~x86 -~amd64
 
 # ???
 net-fs/samba               -~x86 -~amd64
+
+# ???
+media-video/ffmpeg         -~x86 -~amd64
