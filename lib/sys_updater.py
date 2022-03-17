@@ -271,7 +271,7 @@ class FmSysUpdater:
     def updateAfterHddAddOrRemove(self, hwInfo, layout, bbkiObj):
         pendingBe = bbkiObj.get_pending_boot_entry()
         if pendingBe is None:
-            raise Exception("No kernel in /boot, you should build a kernel immediately!")
+            raise Exception("No boot entry found!")
 
         # re-create initramfs
         with BootDirWriter(layout):

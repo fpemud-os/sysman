@@ -257,6 +257,19 @@ class FmMain:
                     print("Backend graphics devices:")
                     print("    %s (total: %s)" % (" ".join(ret), totalStr))
                     print("")
+        elif self.param.runMode == "prepare":
+            bbkiObj = BbkiWrapper(None)
+
+            print("Main OS:")
+            be = bbkiObj.get_newest_boot_entry()
+            if be is None:
+                be = "None"
+            else:
+                be = "Linux (%s)" % (be.postfix)
+            print("    %s" % (be))
+            print("")
+        else:
+            assert False
 
         with strict_pgs.PasswdGroupShadow() as pgs:
             print("System users:       %s" % (", ".join(pgs.getSystemUserList())))
