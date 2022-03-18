@@ -91,9 +91,9 @@ class FmSysChecker:
             with self.infoPrinter.printInfoAndIndent(">> Checking file system layout..."):
                 with self.infoPrinter.printInfoAndIndent("- Check rootfs..."):
                     self._checkRootfsLayout(deepFileSystemCheck)
-                if self.param.runMode in ["normal", "setup"]:
-                    with self.infoPrinter.printInfoAndIndent("- Check premount rootfs..."):
-                        self._checkPreMountRootfsLayout(layout)
+                # if self.param.runMode in ["normal", "setup"]:
+                #     with self.infoPrinter.printInfoAndIndent("- Check premount rootfs..."):
+                #         self._checkPreMountRootfsLayout(layout)
 
             with self.infoPrinter.printInfoAndIndent(">> Checking BIOS, bootloader, kernel and initramfs..."):
                 bbkiObj = BbkiWrapper(layout)
