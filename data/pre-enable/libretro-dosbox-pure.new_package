@@ -1,0 +1,3 @@
+[main]
+name = vortex
+package = games-emulation/libretro-dosbox-pure
