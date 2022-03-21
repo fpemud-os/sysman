@@ -1,0 +1,3 @@
+[main]
+name = flewkey-overlay
+package = games-emulation/retro-gtk
