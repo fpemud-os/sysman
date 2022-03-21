@@ -2854,7 +2854,7 @@ class Stage4ScriptUseRobustLayer(gstage4.ScriptInChroot):
 
     def fill_script_dir(self, script_dir_hostpath):
         srcDir = os.path.join(script_dir_hostpath, "robust_layer")
-        FmUtil.cmdCall("/usr/libexec/robust_layer/git", "clone", "--depth", "1", "https://github.com/mirrorshq/robust_layer", srcDir)
+        FmUtil.cmdCall("/usr/libexec/robust_layer/git", "clone", "--depth", "1", "https://gitee.com/mirrorshq/robust_layer", srcDir)
 
         fullfn = os.path.join(script_dir_hostpath, "main.sh")
         with open(fullfn, "w") as f:

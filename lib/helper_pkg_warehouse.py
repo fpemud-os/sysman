@@ -356,7 +356,7 @@ class EbuildRepositories:
         }
         self._repoGitUrlDict = {
             "guru": "https://github.com/gentoo/guru",
-            "mirrorshq": "https://github.com/mirrorshq/gentoo-overlay",
+            "mirrorshq": "https://gitee.com/mirrorshq/gentoo-overlay",
             "bombyx-netutils": "https://gitee.com/bombyx-netutils/gentoo-overlay",
             "fpemud-os": "https://github.com/fpemud-os/gentoo-overlay",
         }
