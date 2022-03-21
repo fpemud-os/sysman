@@ -1361,6 +1361,8 @@ class CloudOverlayDb:
                 for sourceTag in nameTag.xpath("../source"):
                     tVcsType = sourceTag.get("type")
                     tUrl = sourceTag.text
+                    if tUrl.startswith("git://github.com"):     # github does not support git:// anymore
+                        continue
                     if tVcsType == vcsType and tUrl.startswith(urlPrefix + "://"):
                         ret[overlayName] = (tVcsType, tUrl)
                         break
