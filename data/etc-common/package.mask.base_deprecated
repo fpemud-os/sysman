@@ -87,3 +87,6 @@ dev-libs/amdgpu-pro-opencl
 
 # newer libstdc++ is integrated in gcc
 sys-libs/libstdc++-v3
+
+# it depends on libsdl2[X]
+games-fps/xonotic
