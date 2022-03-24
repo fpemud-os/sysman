@@ -21,7 +21,7 @@ class BbkiWrapper:
             else:
                 assert False
             self._bbkiObj = bbki.Bbki(bbki.etcdir_cfg.Config(FmConst.portageCfgDir),
-                                      [bbki.HostMountPoint(x.mnt_point, x.target) for x in layout.get_mount_entries()])
+                                      [bbki.HostMountPoint(x.mountpoint, x.device) for x in layout.get_mount_entries()])
         else:
             self._bootMode = None
             self._bbkiObj = bbki.Bbki(bbki.etcdir_cfg.Config(FmConst.portageCfgDir), [])
