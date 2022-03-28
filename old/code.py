@@ -632,3 +632,23 @@ class ArchLinuxBasedOsBuilder:
             f.write("#" * (DEFAULT_ENVBLK_SIZE - len(GRUB_ENVBLK_SIGNATURE) - len(GRUB_ENVBLK_MESSAGE)))
 
         os.rename(tmpName, name)
+
+
+
+
+
+
+class StructUtil:
+
+    class Exception(Exception):
+        pass
+
+    @staticmethod
+    def readStream(f, fmt):
+        buf = bytes()
+        while len(buf) < struct.calcsize(fmt):
+            buf2 = f.read(struct.calcsize(fmt) - len(buf))
+            if buf2 is None:
+                raise StructUtil.Exception("not enough data")
+            buf += buf2
+        return struct.unpack(fmt, buf)
