@@ -652,3 +652,14 @@ class StructUtil:
                 raise StructUtil.Exception("not enough data")
             buf += buf2
         return struct.unpack(fmt, buf)
+
+
+
+
+        else:
+            # FIXME
+            stream = io.BytesIO(robustGetAndRead("https://distfiles.gentoo.org/snapshots/gentoo-latest.tar.xz"))
+            with tarfile.open(fileobj=stream, mode="r:xz") as tf:
+                name = [x for x in tf.getnames() if "profiles/thirdpartymirrors" in x][0]
+                with open(os.path.join(cacheDir, "thirdpartymirrors"), "wb") as f:
+                    f.write(tf.extractfile(name).read())
